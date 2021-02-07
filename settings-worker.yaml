@@ -1,0 +1,18 @@
+# This is the settings file for Product Search Engine - worker.
+
+# 0. Redis connection
+redis_host: "141.223.197.35"
+redis_port: "63790"
+# 1. DB connection
+
+log_db_conn_info: "host=141.223.197.35 port=54320 user=pse password=pse dbname=pse"
+graph_db_conn_info: "host=141.223.197.35 port=54320 user=pse password=pse dbname=pse"
+
+
+# 3. Chromedriver path
+chromedriver_path: "./web_drivers/chromedriver"
+chromedriver_user_agent: "Mozilla/5.0 AppleWebKit/537.36 (KHTML like Gecko) Chrome/79.0.3883.121"
+num_driver: 1
+#proxy_server: ""
+
+# 4. OpenURL table name
