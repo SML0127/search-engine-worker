@@ -40,7 +40,6 @@ class Exporter():
     graph_mgr = self.graph_mgr
    
     smpid = graph_mgr.get_smpid_from_job_id(job_id)
-    #cnum  = graph_mgr.get_cnum_from_job_configuration(job_id)
     cnum  = graph_mgr.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
     pricing_information = graph_mgr.get_pricing_information_onetime(tsid)
     node_properties = graph_mgr.get_node_properties_from_mysite(exec_id, mpid)

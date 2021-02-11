@@ -11,6 +11,9 @@ from selenium.webdriver.support.ui import WebDriverWait
 from random_user_agent.user_agent import UserAgent
 from random_user_agent.params import SoftwareName, OperatingSystem
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait 
+from selenium.webdriver.support import expected_conditions as EC
 import time
 
 software_names = [SoftwareName.CHROME.value]
@@ -440,16 +443,17 @@ class WebManager():
     except Exception as e:
       raise WebMgrErr(e)
 
-
   def click_elements(self, xpath):
     try:
       elements = self.get_elements_by_selenium_(xpath)
       num_elements = len(elements)
       if num_elements == 0: return
-      action = ActionChains(self.get_cur_driver_())
-      for element in elements:
-        action.click(element)
-      action.perform()
+      element = WebDriverWait(self.get_cur_driver_(), 3).until(EC.element_to_be_clickable((By.XPATH, xpath)))
+      element.click()
+      #action = ActionChains(self.get_cur_driver_())
+      #for element in elements:
+      #  action.click(element)
+      #action.perform()
     except Exception as e:
       raise WebMgrErr(e) 
 

@@ -9,7 +9,7 @@ from io import BytesIO
 from PIL import Image
 import requests
 from price_parser import Price
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 class GraphManager():
 
@@ -138,7 +138,7 @@ class GraphManager():
           prd_in_other_job = 0
           new_but_out_of_stock = 0
           print("# of product to compare: ", len(result))
-          max_update_chunk = 50
+          max_update_chunk = 30
           update_chunk = 0
           for product in result:
              # New
@@ -177,10 +177,18 @@ class GraphManager():
            
              # different job_id, job_id2 == -1 -> job_id1 is same job -> deleted
              elif prd.get('job_id1') != prd.get('job_id2') and prd.get('job_id2') == -1 and int(prd.get('job_id1')) == int(job_id):
-                deleted += 1
-                query = "update job_source_view set status = 3, stock = 0 where url = '{}'".format(prd['v1_url']) 
+                
+                query = "select status from job_source_view where mpid = {} and job_id = {}".format(mpid, job_id) 
                 self.pg_cur.execute(query)
-                self.pg_conn.commit()
+                status = self.pg_cur.fetchone()[0]
+                if status == 3:
+                   up_to_date += 1
+                else:
+                   deleted += 1
+                   query = "update job_source_view set status = 3, stock = 0 where url = '{}'".format(prd['v1_url']) 
+                   self.pg_cur.execute(query)
+                   self.pg_conn.commit()
+                
              # different job_id, job_id2 == -1 -> job_id1 is other job
              elif prd.get('job_id1') != prd.get('job_id2') and prd.get('job_id2') == -1  and int(prd.get('job_id1')) != int(job_id) :
                 prd_in_other_job += 1
@@ -188,17 +196,29 @@ class GraphManager():
              elif (prd.get('job_id1') == prd.get('job_id2') and prd.get('job_id1') != -1):
                 # Deleted
                 if prd.get('v1_url') != '' and  prd.get('v2_url') == '':
-                   deleted += 1
-                   query = "update job_source_view set status = 3, stock = 0 where url = '{}'".format(prd['v1_url']) 
+                   query = "select status from job_source_view where mpid = {} and job_id = {}".format(mpid, job_id) 
                    self.pg_cur.execute(query)
-                   self.pg_conn.commit()
+                   status = self.pg_cur.fetchone()[0]
+                   if status == 3:
+                      up_to_date += 1
+                   else:
+                      deleted += 1
+                      query = "update job_source_view set status = 3, stock = 0 where url = '{}'".format(prd['v1_url']) 
+                      self.pg_cur.execute(query)
+                      self.pg_conn.commit()
                 # Deleted
                 #elif prd.get('prev_stock') != '0' and  prd.get('new_stock') == '0':
                 elif prd.get('new_stock') == '0':
-                  deleted += 1
-                  query = "update job_source_view set status = 3, stock = 0 where url = '{}'".format(prd['v1_url']) 
-                  self.pg_cur.execute(query)
-                  self.pg_conn.commit()               
+                   query = "select status from job_source_view where mpid = {} and job_id = {}".format(mpid, job_id) 
+                   self.pg_cur.execute(query)
+                   status = self.pg_cur.fetchone()[0]
+                   if status == 3:
+                      up_to_date += 1
+                   else:
+                     deleted += 1
+                     query = "update job_source_view set status = 3, stock = 0 where url = '{}'".format(prd['v1_url']) 
+                     self.pg_cur.execute(query)
+                     self.pg_conn.commit()               
                 elif prd.get('prev_name') != prd.get('new_name'):
                    is_changed = True
                 # Changed: num option 0 -> larger than 1 
@@ -245,7 +265,7 @@ class GraphManager():
                    if is_same == False:
                       is_changed = True
                    else:
-                      query = "select image_url_sha256 from job_thumbnail_source_view where mpid = {}".format(mpid)
+                      query = "select image_url_sha256 from job_thumbnail_source_view where mpid = {} and job_id = {}".format(mpid, job_id)
                       self.pg_cur.execute(query)
                       res1 = self.pg_cur.fetchall()
                       res1_list = []
@@ -266,7 +286,7 @@ class GraphManager():
                       if is_same_img_list == False:
                          is_changed = True
                       elif is_same_img_list == True:
-                         query = "select value from job_description_source_view where mpid = {} and key = '{}'".format(mpid, 'description_sha256')
+                         query = "select value from job_description_source_view where mpid = {} and key = '{}' and job_id = {}".format(mpid, 'description_sha256', job_id)
                          self.pg_cur.execute(query)
                          res = self.pg_cur.fetchone()
                          res1_desc = res[0]
@@ -291,10 +311,16 @@ class GraphManager():
                             self.pg_conn.commit()
                          # Deleted
                          elif (prd.get('prev_price') != 0 and prd.get('new_price') == 0):
-                            deleted += 1
-                            query = "update job_source_view set status = 3, stock = 0 where url = '{}'".format(prd['v2_url']) 
+                            query = "select status from job_source_view where mpid = {} and job_id = {}".format(mpid, job_id) 
                             self.pg_cur.execute(query)
-                            self.pg_conn.commit()
+                            status = self.pg_cur.fetchone()[0]
+                            if status == 3:
+                               up_to_date += 1
+                            else:
+                               deleted += 1
+                               query = "update job_source_view set status = 3, stock = 0 where url = '{}'".format(prd['v2_url']) 
+                               self.pg_cur.execute(query)
+                               self.pg_conn.commit()
                          # Updated
                          elif (prd.get('prev_price') != 0 and prd.get('new_price') != 0 and prd.get('prev_price') != prd.get('new_price')):
                             is_changed = True
@@ -312,7 +338,7 @@ class GraphManager():
                   
                 # both of num option 0
                 elif prd.get('prev_num_options', 0) == 0 and prd.get('new_num_options', 0) == 0:
-                   query = "select image_url_sha256 from job_thumbnail_source_view where mpid = {}".format(mpid)
+                   query = "select image_url_sha256 from job_thumbnail_source_view where mpid = {} and job_id = {}".format(mpid, job_id)
                    self.pg_cur.execute(query)
                    res1 = self.pg_cur.fetchall()
                    res1_list = []
@@ -333,7 +359,7 @@ class GraphManager():
                    if is_same_img_list == False:
                       is_changed = True
                    else:
-                      query = "select value from job_description_source_view where mpid = {} and key = '{}'".format(mpid, 'description_sha256')
+                      query = "select value from job_description_source_view where mpid = {} and key = '{}' and job_id = {}".format(mpid, 'description_sha256', job_id)
                       self.pg_cur.execute(query)
                       res = self.pg_cur.fetchone()
                       res1_desc = res[0]
@@ -344,7 +370,7 @@ class GraphManager():
                       res2_desc = res[0]
 
                       if res1_desc != res2_desc:
-                         query = "select value from job_description_source_view where mpid = {} and key = '{}'".format(mpid, 'description')
+                         query = "select value from job_description_source_view where mpid = {} and key = '{}' and job_id = {}".format(mpid, 'description', job_id)
                          self.pg_cur.execute(query)
                          res = self.pg_cur.fetchone()
                          res1_desc = res[0]
@@ -367,10 +393,16 @@ class GraphManager():
                          self.pg_conn.commit()
                       # Deleted
                       elif (prd.get('prev_price') != 0 and prd.get('new_price') == 0):
-                         deleted += 1
-                         query = "update job_source_view set status = 3, stock = 0 where url = '{}'".format(prd['v2_url']) 
+                         query = "select status from job_source_view where mpid = {} and job_id = {}".format(mpid, job_id) 
                          self.pg_cur.execute(query)
-                         self.pg_conn.commit()
+                         status = self.pg_cur.fetchone()[0]
+                         if status == 3:
+                            up_to_date += 1
+                         else:
+                            deleted += 1
+                            query = "update job_source_view set status = 3, stock = 0 where url = '{}'".format(prd['v2_url']) 
+                            self.pg_cur.execute(query)
+                            self.pg_conn.commit()
                       # Updated
                       elif (prd.get('prev_price') != 0 and prd.get('new_price') != 0 and prd.get('prev_price') != prd.get('new_price')):
                          is_changed = True
@@ -412,13 +444,18 @@ class GraphManager():
                 query = "insert into job_option_source_view select  * from job"+job_id+"_option_source_view_latest where mpid = {};".format(mpid)
                 self.pg_cur.execute(query)
                 self.pg_conn.commit()
-
+               
+                query = 'select * from job_thumbnail_source_view where job_id = {} and mpid = {}'.format(job_id, mpid)
+                self.pg_cur.execute(query)
+                
                 query = 'delete from job_thumbnail_source_view where job_id = {} and mpid = {}'.format(job_id, mpid)
                 self.pg_cur.execute(query)
                 self.pg_conn.commit()
                 query = "insert into job_thumbnail_source_view select * from job"+job_id+"_thumbnail_source_view_latest where mpid = {};".format(mpid)
                 self.pg_cur.execute(query)
                 self.pg_conn.commit()
+                query = 'select * from job_thumbnail_source_view where job_id = {} and mpid = {}'.format(job_id, mpid)
+                self.pg_cur.execute(query)
              elif is_new == True:
                 query = "insert into job_description_source_view select * from job"+job_id+"_description_source_view_latest where mpid = {};".format(new_prd_mpid)
                 self.pg_cur.execute(query)
@@ -435,12 +472,12 @@ class GraphManager():
              if update_chunk == max_update_chunk:
                 cur_time = datetime.utcnow() + time_gap 
                 cur_time = cur_time.strftime('%Y-%m-%d %H:%M:%S')
-                self.log_to_job_current_mysite_working('{}\n[Running] \nUp-to-date: {} items\nChanged: {} items\n, New: {} items\n, Deleted: {} items'.format(cur_time, up_to_date, changed, new_item, deleted), job_id) 
+                self.log_to_job_current_mysite_working('{}\n[Running] \nUp-to-date: {} items\nChanged: {} items\n New: {} items\n Deleted: {} items\n'.format(cur_time, up_to_date, changed, new_item, deleted), job_id) 
                 update_chunk = 0
              
           cur_time = datetime.utcnow() + time_gap 
           cur_time = cur_time.strftime('%Y-%m-%d %H:%M:%S')
-          self.log_to_job_current_mysite_working('{}\n[Finished] \nUp-to-date: {} items\nChanged: {} items\n, New: {} items\n, Deleted: {} items'.format(cur_time, up_to_date, changed, new_item, deleted), job_id)
+          self.log_to_job_current_mysite_working('{}\n[Finished] \nUp-to-date: {} items\nChanged: {} items\n New: {} items\n Deleted: {} items\n'.format(cur_time, up_to_date, changed, new_item, deleted), job_id)
            
 
           print("# of up to date: ", up_to_date)
@@ -470,333 +507,6 @@ class GraphManager():
           self.pg_cur.execute(query)
           query = "drop table if exists job"+job_id+"_thumbnail_source_view_latest"
           self.pg_cur.execute(query)
-          self.pg_conn.commit()
-          return { "success": True}
-      except:
-          self.pg_conn.rollback()
-          print(traceback.format_exc())
-          return { "success": False, "traceback": str(traceback.format_exc()) }       
-
-
-
-
-  
-  def update_mysite_oldversion(self, job_id):
-      try:
-          #mpid, status, c_date, sm_date,  url, p_name, sku, list_price, price, origin, company, image_url, num_options, num_images, m_category
-          query = "create view job"+job_id+"_update_view as (select v1.price as prev_price, v2.price new_price, v1.url as v1_url, v2.url as v2_url, v1.stock as prev_stock, v2.stock as new_stock, v1.num_options as prev_num_options, v2.num_options as new_num_options, v1.job_id as job_id1, v2.job_id as job_id2, v1.mpid as mpid, v1.tpid, v2.mpid as prd2, v1.p_name_sha256 as prev_name, v2.p_name_sha256 as new_name from job_source_view as v1 full outer join job"+job_id+"_source_view_latest as v2 on v1.url_sha256 = v2.url_sha256)"
-          self.pg_cur.execute(query)
-          self.pg_conn.commit()
-          query = "select * from job"+job_id+"_update_view"
-          self.pg_cur.execute(query)
-          result = self.pg_cur.fetchall()
-          self.pg_conn.commit()
-          # 0 = up to date 1 = changed 2 = New 3 = Deleted
-
-          up_to_date = 0
-          changed = 0
-          new_item = 0
-          deleted = 0
-          prd_in_other_job = 0
-          print("# of product to compare: ", len(result))
-          for product in result:
-             # New
-             prd={}
-             prd['prev_price'] = product[0] if product[0] is not None else 0
-             prd['new_price'] = product[1] if product[1] is not None else 0
-             prd['v1_url'] = product[2] if product[2] is not None else ''
-             prd['v2_url'] = product[3] if product[3] is not None else ''
-             prd['prev_stock'] = product[4] if product[4] is not None else -1
-             prd['new_stock'] = product[5] if product[5] is not None else -1
-             prd['prev_num_options'] = product[6] if product[6] is not None else 0
-             prd['new_num_options'] = product[7] if product[7] is not None else 0
-             prd['job_id1'] = product[8] if product[8] is not None else -1
-             prd['job_id2'] = product[9] if product[9] is not None else -1
-             mpid = product[10]
-             tpid = product[11] if product[11] is not None else ''
-             new_prd_mpid = product[12]
-             prd['prev_name'] = product[13] if product[13] is not None else ''
-             prd['new_name'] = product[14] if product[14] is not None else ''
-             is_changed = False        
-             is_new = False        
-             
-             # different job_id, job_id1 == -1 job_id2 != -1
-             if prd.get('job_id1') != prd.get('job_id2') and prd.get('job_id1') == -1:
-                new_item += 1
-                is_new = True
-                query = "insert into job_source_view (job_id, mpid, status, c_date, sm_date, url, url_sha256, p_name, p_name_sha256, sku, list_price, price, origin, company, image_url, num_options, num_images, m_category, groupby_key_sha256, spid, stock) (select job_id, mpid, 2, c_date, sm_date, url, url_sha256, p_name, p_name_sha256, sku, list_price, price, origin, company, image_url, num_options, num_images, m_category, groupby_key_sha256, spid, stock from job"+job_id+"_source_view_latest where url = '{}');".format(prd['v2_url']) 
-                self.pg_cur.execute(query)
-                self.pg_conn.commit()              
-           
-             # different job_id, job_id2 == -1 -> job_id1 is same job -> deleted
-             elif prd.get('job_id1') != prd.get('job_id2') and prd.get('job_id2') == -1 and int(prd.get('job_id1')) == int(job_id):
-                deleted += 1
-                query = "update job_source_view set status = 3 where url = '{}'".format(prd['v1_url']) 
-                self.pg_cur.execute(query)
-                self.pg_conn.commit()
-             # different job_id, job_id2 == -1 -> job_id1 is other job
-             elif prd.get('job_id1') != prd.get('job_id2') and prd.get('job_id2') == -1  and int(prd.get('job_id1')) != int(job_id) :
-                prd_in_other_job += 1
-
-             elif (prd.get('job_id1') == prd.get('job_id2') and prd.get('job_id1') != -1):
-                # Deleted
-                if prd.get('v1_url') != '' and  prd.get('v2_url') == '':
-                   deleted += 1
-                   query = "update job_source_view set status = 3 where url = '{}'".format(prd['v1_url']) 
-                   self.pg_cur.execute(query)
-                   self.pg_conn.commit()
-
-                elif prd.get('prev_name') != prd.get('new_name'):
-                   is_changed = True
-                # Changed: num option 0 -> larger than 1 
-                elif prd.get('prev_num_options', 0) == 0 and  prd.get('new_num_options', 0) >= 1:
-                   query = "select option_name, option_value, price, stock from job_option_source_view where job_id = {} and mpid = {}".format(job_id, mpid)
-                   self.pg_cur.execute(query)
-                   res1 = self.pg_cur.fetchall()
-                   res1_list = []
-                   for idx, val in enumerate(res1):
-                      res1_list.append((val[0], val[1], val[2], val[3]))
-
-                   query = "select option_name, option_value, price, stock from job"+job_id+"_option_source_view_latest where mpid = {}".format(mpid)
-                   self.pg_cur.execute(query)
-                   res2 = self.pg_cur.fetchall()
-                   res2_list = []
-                   for idx, val in enumerate(res2):
-                      res2_list.append((val[0], val[1], val[2], val[3]))
-                   is_changed = True
-                # Changed: num option larger than 1 -> 0
-                elif prd.get('prev_num_options', 0) >= 1 and  prd.get('new_num_options', 0) == 0:
-                   is_changed = True
-                # Changed: both of num option larger than 1 but diff
-                elif prd.get('prev_num_options', 0) >=1 and prd.get('new_num_options', 0) >=1 and (prd.get('prev_num_options', 0) != prd.get('new_num_options', 0) ):
-                   is_changed = True
-                # both of num option larger than 1 and same -> check each option
-                # mpid integer, option_name varchar(2048), option_value varchar(2048), list_price varchar(64), price varchar(64), stock integer, stock_status integer, msg varchar(2048)
-                elif prd.get('prev_num_options', 0) >=1 and prd.get('new_num_options', 0) >=1 and (prd.get('prev_num_options', 0) == prd.get('new_num_options', 0)):
-                   query = "select option_name, option_value, price, stock from job_option_source_view where job_id = {} and mpid = {}".format(job_id, mpid)
-                   self.pg_cur.execute(query)
-                   res1 = self.pg_cur.fetchall()
-                   res1_list = []
-                   for idx, val in enumerate(res1):
-                      res1_list.append((val[0], val[1], val[2], val[3]))
-
-                   query = "select option_name, option_value, price, stock from job"+job_id+"_option_source_view_latest where mpid = {}".format(mpid)
-                   self.pg_cur.execute(query)
-                   res2 = self.pg_cur.fetchall()
-                   res2_list = []
-                   for idx, val in enumerate(res2):
-                      res2_list.append((val[0], val[1], val[2], val[3]))
-
-                   is_same = True
-                     
-                 
-                   if is_same == False:
-                      is_changed = True
-                   else:
-                      query = "select image_url_sha256 from job_thumbnail_source_view where mpid = {}".format(mpid)
-                      self.pg_cur.execute(query)
-                      res1 = self.pg_cur.fetchall()
-                      res1_list = []
-                      for idx, val in enumerate(res1):
-                         res1_list.append(val[0])
-
-                      query = "select image_url_sha256 from job"+job_id+"_thumbnail_source_view_latest where mpid = {}".format(mpid)
-                      self.pg_cur.execute(query)
-                      res2 = self.pg_cur.fetchall()
-                      res2_list = []
-                      for idx, val in enumerate(res2):
-                         res2_list.append(val[0])
-
-                      is_same_img_list = True
-                      if sorted(res1_list) != sorted(res2_list):
-                         is_same_img_list = False
-                      if is_same_img_list == False:
-                         is_changed = True
-                      elif is_same_img_list == True:
-                         query = "select value from job_description_source_view where mpid = {} and key = '{}'".format(mpid, 'description_sha256')
-                         self.pg_cur.execute(query)
-                         res = self.pg_cur.fetchone()
-                         res1_desc = res[0]
-
-                         query = "select value from job"+job_id+"_description_source_view_latest where mpid = {} and key = '{}'".format(mpid, 'description_sha256')
-                         self.pg_cur.execute(query)
-                         res = self.pg_cur.fetchone()
-                         res2_desc = res[0]
-
-
-                         if res1_desc != res2_desc:
-                            query = "select value from job_description_source_view where mpid = {} and key = '{}'".format(mpid, 'description')
-                            self.pg_cur.execute(query)
-                            res = self.pg_cur.fetchone()
-                            res1_desc = res[0]
-
-                            query = "select value from job"+job_id+"_description_source_view_latest where mpid = {} and key = '{}'".format(mpid, 'description')
-                            self.pg_cur.execute(query)
-                            res = self.pg_cur.fetchone()
-                            res2_desc = res[0]
-                            is_changed = True
-                         # New
-                         elif (prd.get('prev_price') == 0 and prd.get('new_price') != 0):
-                            #print('234 New item')
-                            new_item += 1
-                            is_new = True
-                            query = "insert into job_source_view (job_id, mpid, status, c_date, sm_date, url, url_sha256, p_name, p_name_sha256, sku, list_price, price, origin, company, image_url, num_options, num_images, m_category, groupby_key_sha256, spid, stock) (select job_id, mpid, 2, c_date, sm_date, url, url_sha256, p_name, p_name_sha256, sku, list_price, price, origin, company, image_url, num_options, num_images, m_category, groupby_key_sha256, spid, stock from job"+job_id+"_source_view_latest where url = '{}');".format(prd['v2_url']) 
-                            self.pg_cur.execute(query)
-                            self.pg_conn.commit()
-                            query = "update job_source_view set status = 2 where url = '{}'".format(prd['v2_url']) 
-                            self.pg_cur.execute(query)
-                            self.pg_conn.commit()
-                         # Deleted
-                         elif (prd.get('prev_price') != 0 and prd.get('new_price') == 0):
-                            deleted += 1
-                            query = "update job_source_view set status = 3 where url = '{}'".format(prd['v2_url']) 
-                            self.pg_cur.execute(query)
-                            self.pg_conn.commit()
-                         # Updated
-                         elif (prd.get('prev_price') != 0 and prd.get('new_price') != 0 and prd.get('prev_price') != prd.get('new_price')):
-                            is_changed = True
-                         # Same price
-                         elif (prd.get('prev_price') != 0 and prd.get('new_price') != 0 and prd.get('prev_price') == prd.get('new_price')):
-                            # stock changed 
-                            if (prd.get('new_stock') != prd.get('prev_stock')):
-                               is_changed = True
-                            # up to date
-                            else:
-                               up_to_date += 1
-                               query = "update job_source_view set status = 0 where url = '{}'".format(prd['v2_url']) 
-                               self.pg_cur.execute(query)
-                               self.pg_conn.commit()
-                  
-                # both of num option 0
-                elif prd.get('prev_num_options', 0) == 0 and prd.get('new_num_options', 0) == 0:
-                   query = "select image_url from job_thumbnail_source_view where mpid = {}".format(mpid)
-                   self.pg_cur.execute(query)
-                   res1 = self.pg_cur.fetchall()
-                   res1_list = []
-                   for idx, val in enumerate(res1):
-                      res1_list.append(val[0])
-
-                   query = "select image_url from job"+job_id+"_thumbnail_source_view_latest where mpid = {}".format(mpid)
-                   self.pg_cur.execute(query)
-                   res2 = self.pg_cur.fetchall()
-                   res2_list = []
-                   for idx, val in enumerate(res2):
-                      res2_list.append(val[0])
-
-                   is_same_img_list = True
-                   if sorted(res1_list) != sorted(res2_list):
-                      is_same_img_list = False
-
-                   if is_same_img_list == False:
-                      is_changed = True
-                   else:
-                      query = "select value from job_description_source_view where mpid = {} and key = '{}'".format(mpid, 'description_sha256')
-                      self.pg_cur.execute(query)
-                      res = self.pg_cur.fetchone()
-                      res1_desc = res[0]
-
-                      query = "select value from job"+job_id+"_description_source_view_latest where mpid = {} and key = '{}'".format(mpid, 'description_sha256')
-                      self.pg_cur.execute(query)
-                      res = self.pg_cur.fetchone()
-                      res2_desc = res[0]
-
-                      if res1_desc != res2_desc:
-                         is_changed = True
-                      # New
-                      elif (prd.get('prev_price') == 0 and prd.get('new_price') != 0):
-                         new_item += 1
-                         is_new = True
-                         query = "insert into job_source_view (job_id, mpid, status, c_date, sm_date, url, url_sha256, p_name, p_name_sha256, sku, list_price, price, origin, company, image_url, num_options, num_images, m_category, groupby_key_sha256, spid, stock) (select job_id, mpid, 2, c_date, sm_date, url, url_sha256, p_name, p_name_sha256, sku, list_price, price, origin, company, image_url, num_options, num_images, m_category, groupby_key_sha256, spid, stock from job"+job_id+"_source_view_latest where url = '{}');".format(prd['v2_url']) 
-                         self.pg_cur.execute(query)
-                         self.pg_conn.commit()
-                         query = "update job_source_view_latest set status = 2 where url = '{}'".format(prd['v2_url']) 
-                         self.pg_cur.execute(query)
-                         self.pg_conn.commit()
-                      # Deleted
-                      elif (prd.get('prev_price') != 0 and prd.get('new_price') == 0):
-                         deleted += 1
-                         query = "update job_source_view set status = 3 where url = '{}'".format(prd['v2_url']) 
-                         self.pg_cur.execute(query)
-                         self.pg_conn.commit()
-                      # Updated
-                      elif (prd.get('prev_price') != 0 and prd.get('new_price') != 0 and prd.get('prev_price') != prd.get('new_price')):
-                         is_changed = True
-                      # Same price
-                      elif (prd.get('prev_price') != 0 and prd.get('new_price') != 0 and prd.get('prev_price') == prd.get('new_price')):
-                         # stock changed 
-                         if (prd.get('new_stock') != prd.get('prev_stock')):
-                            is_changed = True
-                         # up to date
-                         else:
-                            up_to_date += 1
-                            query = "update job_source_view set status = 0 where url = '{}'".format(prd['v2_url']) 
-                            self.pg_cur.execute(query)
-                            self.pg_conn.commit()
-
-             if is_changed == True:
-                changed += 1
-                query = 'delete from job_source_view where mpid = {}'.format(mpid)
-                self.pg_cur.execute(query)
-                self.pg_conn.commit()
-                query = "insert into job_source_view( job_id, mpid, status, c_date, sm_date, url, url_sha256, p_name, p_name_sha256, sku, list_price, price, stock,origin, company, image_url, num_options, num_images, m_category, tpid, groupby_key_sha256, spid) (select  job_id, mpid, 1, c_date, sm_date, url, url_sha256, p_name, p_name_sha256, sku, list_price, price, stock, origin, company, image_url, num_options, num_images, m_category, '"+tpid+"', groupby_key_sha256, spid from job"+job_id+"_source_view_latest where mpid = {});".format(mpid)
-                self.pg_cur.execute(query)
-                self.pg_conn.commit()
-
-                query = 'delete from job_description_source_view where job_id = {} and mpid = {}'.format(job_id, mpid)
-                self.pg_cur.execute(query)
-                self.pg_conn.commit()
-                query = "insert into job_description_source_view select * from job"+job_id+"_description_source_view_latest where mpid = {};".format(mpid)
-                self.pg_cur.execute(query)
-                self.pg_conn.commit()
-
-                query = 'delete from job_option_source_view where job_id = {} and mpid = {}'.format(job_id, mpid)
-                self.pg_cur.execute(query)
-                self.pg_conn.commit()
-                query = "insert into job_option_source_view select  * from job"+job_id+"_option_source_view_latest where mpid = {};".format(mpid)
-                self.pg_cur.execute(query)
-                self.pg_conn.commit()
-
-                query = 'delete from job_thumbnail_source_view where job_id = {} and mpid = {}'.format(job_id, mpid)
-                self.pg_cur.execute(query)
-                self.pg_conn.commit()
-                query = "insert into job_thumbnail_source_view select * from job"+job_id+"_thumbnail_source_view_latest where mpid = {};".format(mpid)
-                self.pg_cur.execute(query)
-                self.pg_conn.commit()
-             elif is_new == True:
-                query = "insert into job_description_source_view select * from job"+job_id+"_description_source_view_latest where mpid = {};".format(new_prd_mpid)
-                self.pg_cur.execute(query)
-                self.pg_conn.commit()
-
-                query = "insert into job_option_source_view select  * from job"+job_id+"_option_source_view_latest where mpid = {};".format(new_prd_mpid)
-                self.pg_cur.execute(query)
-                self.pg_conn.commit()
-
-                query = "insert into job_thumbnail_source_view select * from job"+job_id+"_thumbnail_source_view_latest where mpid = {};".format(new_prd_mpid)
-                self.pg_cur.execute(query)
-                self.pg_conn.commit()                        
-
-
-          print("# of up to date: ", up_to_date)
-          print("# of changed: ", changed)
-          print("# of new item: ", new_item)
-          print("# of deleted item: ", deleted)
-          print("# of item in other job (deleted by unique constraint): ", prd_in_other_job)
-
-          query = "drop view if exists job"+job_id+"_update_view"
-          self.pg_cur.execute(query)
-          query = "drop table if exists job"+job_id+"_source_view"
-          self.pg_cur.execute(query)
-
-
-          query = "drop table if exists job"+job_id+"_source_view_latest"
-          self.pg_cur.execute(query)
-          query = "drop table if exists job"+job_id+"_option_source_view_latest"
-          self.pg_cur.execute(query)
-          query = "drop table if exists job"+job_id+"_description_source_view_latest"
-          self.pg_cur.execute(query)
-          query = "drop table if exists job"+job_id+"_thumbnail_source_view_latest"
-          self.pg_cur.execute(query)
-          #self.set_status_duplicated_data()
           self.pg_conn.commit()
           return { "success": True}
       except:
@@ -1337,7 +1047,8 @@ class GraphManager():
       job_id = self.gp_cur.fetchone()[0]
       self.gp_conn.commit()
 
-      query = "select mpid from job_source_view where job_id = {} and status != 4 and status !=3".format(job_id)
+      query = "select mpid from job_source_view where job_id = {} and status != 4 and status != 0".format(job_id)
+      #query = "select mpid from job_source_view where job_id = {} and status =3".format(job_id)
       self.gp_cur.execute(query)
       tmp = self.gp_cur.fetchall()
       self.gp_conn.commit()
@@ -2274,9 +1985,10 @@ class GraphManager():
       print(str(traceback.format_exc()))
       raise
 
-  def logging_all_uploaded_product(self, job_id, execution_id, mpid, origin_product, converted_product, targetsite_url):
+  def logging_all_uploaded_product(self, job_id, execution_id, mpid, origin_product, converted_product, targetsite_url, cnum):
     try:
-      query =  "insert into all_uploaded_product(job_id, execution_id, mpid, origin_product, converted_product, targetsite_url) values({}, {}, {}, '{}', '{}','{}')".format(job_id, execution_id, mpid,  json.dumps(origin_product), json.dumps(converted_product), targetsite_url)
+      #query =  "insert into all_uploaded_product(job_id, execution_id, mpid, origin_product, converted_product, targetsite_url, cnum) values({}, {}, {}, '{}', '{}','{}',{})".format(job_id, execution_id, mpid,  json.dumps(origin_product, default=self.json_default), json.dumps(converted_product,default=self.json_default ), targetsite_url, cnum)
+      query =  "insert into all_uploaded_product(job_id, execution_id, mpid, origin_product, converted_product, targetsite_url, cnum) values({}, {}, {}, '{}', '{}','{}',{})".format(job_id, execution_id, mpid,  json.dumps({}), json.dumps({}), targetsite_url, cnum)
       self.gp_cur.execute(query)
       self.gp_conn.commit()
       return 
@@ -2421,6 +2133,14 @@ class GraphManager():
       print(str(traceback.format_exc()))
       raise
 
+  def json_default(self, value):
+    if isinstance(value, date): 
+       return str(value.strftime('%Y-%m-%d %H:%M:%S'))
+    elif isinstance(value, set):
+       return ''
+    print(value.replace("'","\'"))
+    return value.replace("'","\'")
+    raise TypeError('not JSON serializable')
 
 
   def check_stock(self, input_dictionary):

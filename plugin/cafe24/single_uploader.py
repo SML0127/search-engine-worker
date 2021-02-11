@@ -122,7 +122,9 @@ class Cafe24SingleUploader(Resource):
     try:
       (args, mpids) = task
       cafe24manager = Cafe24Manager(args)
+      print("-----------------------Request auth code----------------------")
       cafe24manager.get_auth_code()
+      print("-----------------------Request token--------------------------")
       cafe24manager.get_token()
       cafe24manager.list_brands()
       #targetsite_url = 'https://{}.cafe24.com/'.format(args['mall_id'])
@@ -153,7 +155,8 @@ class Cafe24SingleUploader(Resource):
               tpid = self.graph_manager.get_tpid(job_id, targetsite_url, mpid)
               cafe24manager.update_exist_product(product, profiling_info, job_id, tpid)
               cafe24manager.refresh()
-            #self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid, original_product_information, product, targetsite_url) 
+            cnum  = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
+            self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid, original_product_information, product, targetsite_url, cnum) 
 
             successful_node += 1
           except:
@@ -175,6 +178,8 @@ class Cafe24SingleUploader(Resource):
                 product, original_product_information = exporter.export_from_mpid_onetime(job_id, args['execution_id'], mpid, tsid)
                 product['targetsite_url'] = targetsite_url
                 cafe24manager.upload_new_product(product, profiling_info, job_id)
+                cnum = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
+                self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid, original_product_information, product, targetsite_url, cnum) 
               else:
                 if status == 1:
                   product, original_product_information = exporter.export_from_mpid_onetime(job_id, args['execution_id'], mpid, tsid)
@@ -182,14 +187,20 @@ class Cafe24SingleUploader(Resource):
                   tpid = self.graph_manager.get_tpid(job_id, targetsite_url, mpid)
                   print('tpid : ', tpid)
                   cafe24manager.update_exist_product(product, profiling_info, job_id, tpid)
+                  cnum = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
+                  self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid, original_product_information, product, targetsite_url, cnum) 
                 elif status == 2:
                   product, original_product_information = exporter.export_from_mpid_onetime(job_id, args['execution_id'], mpid, tsid)
                   product['targetsite_url'] = targetsite_url
                   cafe24manager.upload_new_product(product, profiling_info, job_id)
+                  cnum = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
+                  self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid, original_product_information, product, targetsite_url, cnum) 
                 elif status == 3:
                   tpid = self.graph_manager.get_tpid(job_id, targetsite_url, mpid)
                   print('tpid : ', tpid)
                   cafe24manager.hide_exist_product(profiling_info, job_id, tpid)
+                  cnum  = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
+                  self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid, json.dumps({'status':'3'}), json.dumps({'status':'3'}), targetsite_url, cnum) 
 
               cafe24manager.refresh()
             #self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid, original_product_information, product, targetsite_url) 
@@ -202,8 +213,8 @@ class Cafe24SingleUploader(Resource):
         for mpid in mpids:
           node_time = time.time()
           try:
-            product, original_product_information = exporter.export_from_mpid(job_id, args['execution_id'], mpid)
-            product['targetsite_url'] = targetsite_url
+            #product, original_product_information = exporter.export_from_mpid_onetime(job_id, args['execution_id'], mpid, tsid)
+            #product['targetsite_url'] = targetsite_url
            
             status = self.graph_manager.check_status_of_product(job_id, mpid)
              
@@ -211,29 +222,44 @@ class Cafe24SingleUploader(Resource):
             print('status : ', status)
             if gateway.upper() == 'CAFE24':
               is_uploaded = self.graph_manager.check_is_item_uploaded(job_id, targetsite_url, mpid)
+              print('is uploaded proudct? : ', is_uploaded)
               if is_uploaded == False: # upload as new item
+                product, original_product_information = exporter.export_from_mpid_onetime(job_id, args['execution_id'], mpid, tsid)
+                product['targetsite_url'] = targetsite_url
                 cafe24manager.upload_new_product(product, profiling_info, job_id)
+                cnum  = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
+                self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid, original_product_information, product, targetsite_url, cnum) 
               else:
                 if status == 1:
+                  product, original_product_information = exporter.export_from_mpid_onetime(job_id, args['execution_id'], mpid, tsid)
+                  product['targetsite_url'] = targetsite_url
                   tpid = self.graph_manager.get_tpid(job_id, targetsite_url, mpid)
                   cafe24manager.update_exist_product(product, profiling_info, job_id, tpid)
+                  cnum  = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
+                  self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid, original_product_information, product, targetsite_url, cnum) 
                 elif status == 2:
+                  product, original_product_information = exporter.export_from_mpid_onetime(job_id, args['execution_id'], mpid, tsid)
+                  product['targetsite_url'] = targetsite_url
                   cafe24manager.upload_new_product(product, profiling_info, job_id)
+                  cnum  = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
+                  self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid, original_product_information, product, targetsite_url, cnum) 
                 elif status == 3:
                   tpid = self.graph_manager.get_tpid(job_id, targetsite_url, mpid)
-                  cafe24manager.hide_exist_product(product, profiling_info, job_id, tpid)
+                  print('tpid : ', tpid)
+                  cafe24manager.hide_exist_product(profiling_info, job_id, tpid)
+                  cnum = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
+                  self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid, json.dumps({'status':'3'}), json.dumps({'status':'3'}), targetsite_url, cnum) 
 
               cafe24manager.refresh()
-            #self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid, original_product_information, product, targetsite_url) 
 
             successful_node += 1
           except:
-            #print(traceback.format_exc())
+            print(traceback.format_exc())
             failed_node += 1
     except:
       profiling_info['total_time'] = time.time() - total_time
       #print(profiling_info)
-      #print(traceback.format_exc())
+      print(traceback.format_exc())
       return profiling_info
     print('s/f', successful_node, '/', failed_node)
     profiling_info['total_time'] = time.time() - total_time
