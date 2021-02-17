@@ -172,9 +172,9 @@ class pseWorker(Worker):
    
     def perform_task(self, task):
         task_id = self.lm.start_task(task['stage_id'], task['parent_task_id'], task.get('previous_task_id', 0), task['url'])
+        task['task_id'] = task_id
+        op, gvar = self.prepare_task(task)
         try:
-            task['task_id'] = task_id
-            op, gvar = self.prepare_task(task)
             op.run(gvar)
             self.complete_task(op, gvar)
             rv = gvar.results
@@ -188,6 +188,16 @@ class pseWorker(Worker):
             print("----------------------------------------")
             print("--------------STACK TRACE---------------")
             print(str(traceback.format_exc()))
+            try:
+                err_msg = '================================== URL ==================================\n'
+                err_msg += 'URL: ' + str(task['url']) + '\n\n'
+                err_msg += '============================== Opeartor ================================\n'
+                err_msg += 'Operator: ' + str(task['name']) + '\n\n'
+                err_msg += '================================STACK TRACE============================== \n' + str(traceback.format_exc())
+                gvar.graph_mgr.log_err_msg_of_task(task_id, err_msg)
+            except Exception as e:
+                print("--------------LOGERRRRRRRRR---------------")
+                print(str(traceback.format_exc()))
             print("----------------------------------------")
             raise
         except Exception as e:
@@ -198,6 +208,16 @@ class pseWorker(Worker):
             print("----------------------------------------")
             print("--------------STACK TRACE---------------")
             print(str(traceback.format_exc()))
+            try:
+                err_msg = '================================== URL ==================================\n'
+                err_msg += 'URL: ' + str(task['url']) + '\n\n'
+                err_msg += '============================== Opeartor ================================\n'
+                err_msg += 'Operator: ' + str(task['name']) + '\n\n'
+                err_msg += '================================STACK TRACE============================== \n' + str(traceback.format_exc())
+                gvar.graph_mgr.log_err_msg_of_task(task_id, err_msg)
+            except Exception as e:
+                print("--------------LOGERRRRRRRRR---------------")
+                print(str(traceback.format_exc()))
             print("----------------------------------------")
             raise
         self.lm.end_task(task_id, 1, {'profiling_info': gvar.profiling_info})

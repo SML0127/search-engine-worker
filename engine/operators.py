@@ -160,7 +160,7 @@ class BFSIterator(BaseOperator):
       op_time = time.time() - op_start
       gvar.profiling_info[op_id] = { 'op_time' : op_time }
     except Exception as e:
-      fname = '/home/pse/pse-driver/htmls/%s.html' % str(gvar.task_id)
+      fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
       gvar.web_mgr.store_page_source(fname)
       print("error html:", fname)
       if type(e) is OperatorError:
@@ -249,7 +249,7 @@ class ScrollOperator(BaseOperator):
       op_time = time.time() - op_start
       gvar.profiling_info[op_id] = { 'op_time' : op_time }
     except Exception as e:
-      fname = '/home/pse/pse-driver/htmls/%s.html' % str(gvar.task_id)
+      fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
       raise OperatorError(e, self.props['id'])
 
 
@@ -266,7 +266,7 @@ class HoverOperator(BaseOperator):
       op_time = time.time() - op_start
       gvar.profiling_info[op_id] = { 'op_time' : op_time }
     except Exception as e:
-      fname = '/home/pse/pse-driver/htmls/%s.html' % str(gvar.task_id)
+      fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
       raise OperatorError(e, self.props['id'])
 
 
@@ -284,7 +284,7 @@ class LoginOperator(BaseOperator):
       op_time = time.time() - op_start
       print("after login")
       print(gvar.web_mgr.get_current_url())
-      fname = '/home/pse/pse-driver/htmls/test.html'
+      fname = '/home/pse/PSE-engine/htmls/test.html'
       gvar.web_mgr.store_page_source(fname)
       gvar.profiling_info[op_id] = { 'op_time' : op_time }
     except Exception as e:

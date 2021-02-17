@@ -56,10 +56,10 @@ class WebManager():
       option.add_argument('--window-size=1920x1080')
       option.add_argument('--disable-gpu')
       option.add_argument('--start-maximized')
-      option.add_argument('no-proxy-server')
-      option.add_argument('disable-dev-shm-usage')
-      option.add_argument('no-sandbox')
-      option.add_argument('blink-settings=imagesEnabled=false')
+      option.add_argument('--no-proxy-server')
+      option.add_argument('--disable-dev-shm-usage')
+      option.add_argument('--no-sandbox')
+      option.add_argument('--blink-settings=imagesEnabled=false')
       option.add_argument('--lang=en_US')
       prefs = {"profile.managed_default_content_settings.images": 2}
       option.add_experimental_option("prefs", prefs)
@@ -99,20 +99,20 @@ class WebManager():
       time.sleep(sleep_time)
       num_driver = self.settings.get('num_driver', 1)
       option = webdriver.ChromeOptions()
-      option.add_argument('headless')
-      option.add_argument('window-size=1920x1080')
-      option.add_argument('disable-gpu')
-      option.add_argument('no-proxy-server')
-      option.add_argument('disable-dev-shm-usage')
-      option.add_argument('no-sandbox')
-      option.add_argument('blink-settings=imagesEnabled=false')
-      option.add_argument('lang=en_US')
+      option.add_argument('--headless')
+      option.add_argument('--window-size=1920x1080')
+      option.add_argument('--disable-gpu')
+      option.add_argument('--no-proxy-server')
+      option.add_argument('--disable-dev-shm-usage')
+      option.add_argument('--no-sandbox')
+      option.add_argument('--blink-settings=imagesEnabled=false')
+      option.add_argument('--lang=en_US')
       option.add_argument('--accept=*/*')
       option.add_argument('accept=*/*')
       prefs = {"profile.managed_default_content_settings.images": 2}
       option.add_experimental_option("prefs", prefs)
 
-      print(self.settings)
+      #print(self.settings)
       driver_path = self.settings.get('chromedriver_path', './web_drivers/chromedriver')
       
       self.javascripts = {
@@ -140,6 +140,7 @@ class WebManager():
 
   def close(self):
     try:
+      print(self.drivers)
       for driver in self.drivers:
         driver.quit()
     except Exception as e:
@@ -406,7 +407,10 @@ class WebManager():
         action.send_keys_to_element(element, txt)
       action.perform()
     except Exception as e:
-      raise WebMgrErr(e) 
+      elements = self.get_elements_by_selenium_(xpath)
+      num_elements = len(elements)
+      if num_elements == 0:
+        raise WebMgrErr(e) 
 
   def send_keys_to_elements_strong(self, xpath, txt):
     try:
@@ -455,7 +459,10 @@ class WebManager():
       #  action.click(element)
       #action.perform()
     except Exception as e:
-      raise WebMgrErr(e) 
+      elements = self.get_elements_by_selenium_(xpath)
+      num_elements = len(elements)
+      if num_elements == 0:
+        raise WebMgrErr(e) 
 
   def click_elements_strong(self, xpath):
     try:
@@ -600,48 +607,48 @@ class WebManager():
       raise WebMgrErr(e)    
 
 
-if __name__ == '__main__':
-  web_manager = WebManager()
-  web_manager.init(2)
-
-  try:
-    web_manager.load("https://www.amazon.com/Sensodyne-Pronamel-Whitening-Strengthening-Toothpaste/dp/B0762LYFKP?pf_rd_p=9dbbfba7-e756-51ca-b790-09e9b92beee1&pf_rd_r=EG4J8ZAJZNB9B3HBQ9G1&pd_rd_wg=W8hx6&ref_=pd_gw_ri&pd_rd_w=kynj4&pd_rd_r=6365323e-7c16-4273-a2c5-5d85b04565f5")
-    web_manager.wait_loading()
-
-    print(web_manager.get_value_by_selenium("//span[@id='productTitle']", "alltext"))
-    #print(web_manager.get_value_by_selenium("//span[@id='productTitle1']", "alltext"))
-    print(web_manager.get_value_by_selenium_strong("//span[@id='productTitle']", "alltext"))
-    #print(web_manager.get_value_by_selenium_strong("//span[@id='productTitle1']", "alltext"))
-    print(web_manager.get_values_by_selenium("//div[@id='centerCol']//li/span", "alltext"))
-    print(web_manager.get_values_by_selenium("//div[@id='centerCol']//li/span1", "alltext"))
-    print(web_manager.get_values_by_selenium_strong("//div[@id='centerCol']//li/span", "alltext"))
-    #print(web_manager.get_values_by_selenium_strong("//div[@id='centerCol']//li/span1", "alltext"))
-
-    print(web_manager.get_key_values_by_selenium("//div[@class='content']/ul/li", "./b", "alltext", ".", "alltext"))
-    print(web_manager.get_key_values_by_selenium("//div[@class='content']/ul/li1", "./b", "alltext", ".", "alltext"))
-    print(web_manager.get_key_values_by_selenium_strong("//div[@class='content']/ul/li", "./b", "alltext", ".", "alltext"))
-    #print(web_manager.get_key_values_by_selenium_strong("//div[@class='content']/ul/li1", "./b", "alltext", ".", "alltext"))
-
-    web_manager.build_lxml_tree()
-    print(web_manager.get_value_by_lxml("//span[@id='productTitle']", "alltext"))
-    #print(web_manager.get_value_by_lxml("//span[@id='productTitle1']", "alltext"))
-    print(web_manager.get_value_by_lxml_strong("//span[@id='productTitle']", "alltext"))
-    #print(web_manager.get_value_by_lxml_strong("//span[@id='productTitle1']", "alltext"))
-    print(web_manager.get_values_by_lxml("//div[@id='centerCol']//li/span", "alltext"))
-    print(web_manager.get_values_by_lxml("//div[@id='centerCol']//li/span1", "alltext"))
-    print(web_manager.get_values_by_lxml_strong("//div[@id='centerCol']//li/span", "alltext"))
-    #print(web_manager.get_values_by_lxml_strong("//div[@id='centerCol']//li/span1", "alltext"))
-
-    print(web_manager.get_key_values_by_lxml("//div[@class='content']/ul/li", "./b", "alltext", ".", "alltext"))
-    print(web_manager.get_key_values_by_lxml("//div[@class='content']/ul/li1", "./b", "alltext", ".", "alltext"))
-    print(web_manager.get_key_values_by_lxml_strong("//div[@class='content']/ul/li", "./b", "alltext", ".", "alltext"))
-    #print(web_manager.get_key_values_by_lxml_strong("//div[@class='content']/ul/li1", "./b", "alltext", ".", "alltext"))
-
-    print(web_manager.get_subtree_with_style("//ul[@class='a-unordered-list a-vertical a-spacing-none']"))
-    print(web_manager.get_subtree_with_style_strong("//ul[@class='a-unordered-list a-vertical a-spacing-none']"))
-
-  except Exception as e:
-    print(e)
-    pass
-  web_manager.close()
+#if __name__ == '__main__':
+#  web_manager = WebManager()
+#  web_manager.init(2)
+#
+#  try:
+#    web_manager.load("https://www.amazon.com/Sensodyne-Pronamel-Whitening-Strengthening-Toothpaste/dp/B0762LYFKP?pf_rd_p=9dbbfba7-e756-51ca-b790-09e9b92beee1&pf_rd_r=EG4J8ZAJZNB9B3HBQ9G1&pd_rd_wg=W8hx6&ref_=pd_gw_ri&pd_rd_w=kynj4&pd_rd_r=6365323e-7c16-4273-a2c5-5d85b04565f5")
+#    web_manager.wait_loading()
+#
+#    print(web_manager.get_value_by_selenium("//span[@id='productTitle']", "alltext"))
+#    #print(web_manager.get_value_by_selenium("//span[@id='productTitle1']", "alltext"))
+#    print(web_manager.get_value_by_selenium_strong("//span[@id='productTitle']", "alltext"))
+#    #print(web_manager.get_value_by_selenium_strong("//span[@id='productTitle1']", "alltext"))
+#    print(web_manager.get_values_by_selenium("//div[@id='centerCol']//li/span", "alltext"))
+#    print(web_manager.get_values_by_selenium("//div[@id='centerCol']//li/span1", "alltext"))
+#    print(web_manager.get_values_by_selenium_strong("//div[@id='centerCol']//li/span", "alltext"))
+#    #print(web_manager.get_values_by_selenium_strong("//div[@id='centerCol']//li/span1", "alltext"))
+#
+#    print(web_manager.get_key_values_by_selenium("//div[@class='content']/ul/li", "./b", "alltext", ".", "alltext"))
+#    print(web_manager.get_key_values_by_selenium("//div[@class='content']/ul/li1", "./b", "alltext", ".", "alltext"))
+#    print(web_manager.get_key_values_by_selenium_strong("//div[@class='content']/ul/li", "./b", "alltext", ".", "alltext"))
+#    #print(web_manager.get_key_values_by_selenium_strong("//div[@class='content']/ul/li1", "./b", "alltext", ".", "alltext"))
+#
+#    web_manager.build_lxml_tree()
+#    print(web_manager.get_value_by_lxml("//span[@id='productTitle']", "alltext"))
+#    #print(web_manager.get_value_by_lxml("//span[@id='productTitle1']", "alltext"))
+#    print(web_manager.get_value_by_lxml_strong("//span[@id='productTitle']", "alltext"))
+#    #print(web_manager.get_value_by_lxml_strong("//span[@id='productTitle1']", "alltext"))
+#    print(web_manager.get_values_by_lxml("//div[@id='centerCol']//li/span", "alltext"))
+#    print(web_manager.get_values_by_lxml("//div[@id='centerCol']//li/span1", "alltext"))
+#    print(web_manager.get_values_by_lxml_strong("//div[@id='centerCol']//li/span", "alltext"))
+#    #print(web_manager.get_values_by_lxml_strong("//div[@id='centerCol']//li/span1", "alltext"))
+#
+#    print(web_manager.get_key_values_by_lxml("//div[@class='content']/ul/li", "./b", "alltext", ".", "alltext"))
+#    print(web_manager.get_key_values_by_lxml("//div[@class='content']/ul/li1", "./b", "alltext", ".", "alltext"))
+#    print(web_manager.get_key_values_by_lxml_strong("//div[@class='content']/ul/li", "./b", "alltext", ".", "alltext"))
+#    #print(web_manager.get_key_values_by_lxml_strong("//div[@class='content']/ul/li1", "./b", "alltext", ".", "alltext"))
+#
+#    print(web_manager.get_subtree_with_style("//ul[@class='a-unordered-list a-vertical a-spacing-none']"))
+#    print(web_manager.get_subtree_with_style_strong("//ul[@class='a-unordered-list a-vertical a-spacing-none']"))
+#
+#  except Exception as e:
+#    print(e)
+#    pass
+#  web_manager.close()
 

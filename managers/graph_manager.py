@@ -2011,6 +2011,22 @@ class GraphManager():
       print(str(traceback.format_exc()))
       raise
 
+
+  def log_err_msg_of_task(self, task_id, err_msg):
+    try:
+      err_msg = err_msg.replace("'",'"')
+      query = "insert into failed_task_detail(task_id, err_msg) values({},'{}')".format(task_id,err_msg)
+      self.gp_cur.execute(query)
+      self.gp_conn.commit()
+      return 
+    except:
+      self.gp_conn.rollback()
+      print(str(traceback.format_exc()))
+      raise
+
+
+
+
   def log_to_job_current_targetsite_working(self, log, job_id):
     try:
       query = "update job_current_working set targetsite_working = targetsite_working || '{}' where job_id = {}".format(log, job_id)
