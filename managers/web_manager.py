@@ -14,6 +14,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait 
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.chrome.options import Options
 import time
 
 software_names = [SoftwareName.CHROME.value]
@@ -50,14 +51,14 @@ class WebManager():
     try:
       self.settings = settings
       num_driver = settings.get('num_driver', 1)
-      option = webdriver.ChromeOptions()
+      option = Options()
+      #option = webdriver.ChromeOptions()
       
       option.add_argument('--headless')
       option.add_argument('--window-size=1920x1080')
       option.add_argument('--disable-gpu')
       option.add_argument('--start-maximized')
       option.add_argument('--no-proxy-server')
-      option.add_argument('--disable-dev-shm-usage')
       option.add_argument('--no-sandbox')
       option.add_argument('--blink-settings=imagesEnabled=false')
       option.add_argument('--lang=en_US')
@@ -82,7 +83,8 @@ class WebManager():
         #user_agent = user_agent_rotator.get_random_user_agent()
         option.add_argument('--user-agent={}'.format(user_agent))
         
-        driver = webdriver.Chrome(driver_path, chrome_options = option)
+        #driver = webdriver.Chrome(driver_path, chrome_options = option)
+        driver = webdriver.Chrome(driver_path, options = option)
         driver.set_page_load_timeout(100)
         driver.get('about:blank')
         driver.execute_script("Object.defineProperty(navigator, 'plugins', {get: function() {return[1, 2, 3, 4, 5];},});")
@@ -98,17 +100,16 @@ class WebManager():
       self.drivers = []
       time.sleep(sleep_time)
       num_driver = self.settings.get('num_driver', 1)
-      option = webdriver.ChromeOptions()
+      option = Options()
+      #option = webdriver.ChromeOptions()
       option.add_argument('--headless')
       option.add_argument('--window-size=1920x1080')
       option.add_argument('--disable-gpu')
+      option.add_argument('--start-maximized')
       option.add_argument('--no-proxy-server')
-      option.add_argument('--disable-dev-shm-usage')
       option.add_argument('--no-sandbox')
       option.add_argument('--blink-settings=imagesEnabled=false')
       option.add_argument('--lang=en_US')
-      option.add_argument('--accept=*/*')
-      option.add_argument('accept=*/*')
       prefs = {"profile.managed_default_content_settings.images": 2}
       option.add_experimental_option("prefs", prefs)
 
@@ -129,7 +130,8 @@ class WebManager():
         user_agent = self.settings['chromedriver_user_agent']
         #user_agent = user_agent_rotator.get_random_user_agent()
         option.add_argument('--user-agent={}'.format(user_agent))
-        driver = webdriver.Chrome(driver_path, chrome_options = option)
+        driver = webdriver.Chrome(driver_path, options = option)
+        #driver = webdriver.Chrome(driver_path, chrome_options = option)
         driver.set_page_load_timeout(100)
         driver.get('about:blank')
         driver.execute_script("Object.defineProperty(navigator, 'plugins', {get: function() {return[1, 2, 3, 4, 5];},});")

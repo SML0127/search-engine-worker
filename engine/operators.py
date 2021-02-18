@@ -2,6 +2,7 @@ from util.pse_errors import *
 from lxml import html
 import time
 from lxml import etree
+import traceback
 
 
 class GlovalVariable():
@@ -69,6 +70,7 @@ class BaseOperator():
 class BFSIterator(BaseOperator):
 
   def run(self, gvar):
+    op_name = "BFSIterator"
     try:
       op_start = time.time()
       op_id = self.props['id']
@@ -155,7 +157,9 @@ class BFSIterator(BaseOperator):
       #+ 선택된 버튼의 값과 url의 page 값비교
 
       for op in self.operators:
+        op_name = op.props['name']
         op.run(gvar)
+        
       
       op_time = time.time() - op_start
       gvar.profiling_info[op_id] = { 'op_time' : op_time }
@@ -163,6 +167,13 @@ class BFSIterator(BaseOperator):
       fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
       gvar.web_mgr.store_page_source(fname)
       print("error html:", fname)
+      err_msg = '================================== URL ==================================\n'
+      err_msg += ' ' + str(gvar.task_url) + '\n\n'
+      err_msg += '=============================== Opeartor ==================================\n'
+      err_msg += ' ' + str(op_name) + '\n\n'
+      err_msg += '================================ STACK TRACE ============================== \n' + str(traceback.format_exc())
+      gvar.graph_mgr.log_err_msg_of_task(gvar.task_id, err_msg)
+
       if type(e) is OperatorError:
         raise e
       raise OperatorError(e, self.props['id'])
