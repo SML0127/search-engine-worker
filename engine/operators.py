@@ -3,7 +3,7 @@ from lxml import html
 import time
 from lxml import etree
 import traceback
-
+import random
 
 class GlovalVariable():
 
@@ -85,17 +85,18 @@ class BFSIterator(BaseOperator):
       print("task_url:", gvar.task_url)
       #print("task_zipcode_url:", gvar.task_zipcode_url)
 
-      if gvar.task_zipcode_url is not None:
-        print("Apply zipcode url")
-        print("task_zipcode_url:", gvar.task_zipcode_url)
-        gvar.web_mgr.load(gvar.task_zipcode_url)    
-        gvar.web_mgr.wait_loading()
-        time.sleep(self.props.get('delay', 0))
-        time.sleep(1)
-        if gvar.task_zipcode_url != gvar.web_mgr.get_current_url():
-          time.sleep(5)
+      #if gvar.task_zipcode_url is not None:
+      #  print("Apply zipcode url")
+      #  print("task_zipcode_url:", gvar.task_zipcode_url)
+      #  gvar.web_mgr.load(gvar.task_zipcode_url)    
+      #  gvar.web_mgr.wait_loading()
+      #  time.sleep(self.props.get('delay', 0))
+      #  time.sleep(1)
+      #  if gvar.task_zipcode_url != gvar.web_mgr.get_current_url():
+      #    time.sleep(5)
 
-      gvar.web_mgr.load(gvar.task_url)    
+      gvar.web_mgr.load(gvar.task_url)
+      time.sleep(1) 
       gvar.graph_mgr.insert_node_property(gvar.stack_nodes[-1], 'url', gvar.task_url)
       gvar.web_mgr.wait_loading()
       time.sleep(self.props.get('delay', 0))
@@ -107,22 +108,26 @@ class BFSIterator(BaseOperator):
       chaptcha_xpath = '//input[@id=\'captchacharacters\']' # for amazon
       check_chaptcha = gvar.web_mgr.get_elements_by_selenium_(chaptcha_xpath)
       sleep_time = 900
+      random_time = random.randrange(1,61)
+      sleep_time += int(random_time)
       while(len(check_chaptcha) != 0):
-         #gvar.web_mgr.restart(sleep_time)
+         print("Wait {} secs".format(str(sleep_time)))
          time.sleep(sleep_time)
          gvar.web_mgr.load(gvar.task_url)
          gvar.web_mgr.wait_loading()
-         sleep_time += 300
+         random_time = random.randrange(1,61)
+         sleep_time += 300 + int(random_time)
          check_chaptcha = gvar.web_mgr.get_elements_by_selenium_(chaptcha_xpath)
 
 
 
       chaptcha_xpath = '//body[contains(text(),\'Reference\')]' # for rakuten
       check_chaptcha = gvar.web_mgr.get_elements_by_selenium_(chaptcha_xpath)
-      sleep_time = 10
+      sleep_time = 1
       while(len(check_chaptcha) != 0):
          print('Restart chrome') # for rakuten.jp
          gvar.web_mgr.restart(sleep_time)
+         time.sleep(5)
          gvar.web_mgr.load(gvar.task_url)
          #gvar.graph_mgr.insert_node_property(gvar.stack_nodes[-1], 'url', gvar.task_url)
          gvar.web_mgr.wait_loading()

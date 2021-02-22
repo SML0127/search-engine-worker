@@ -15,6 +15,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait 
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 import time
 
 software_names = [SoftwareName.CHROME.value]
@@ -65,7 +66,6 @@ class WebManager():
       prefs = {"profile.managed_default_content_settings.images": 2}
       option.add_experimental_option("prefs", prefs)
 
-      print(settings)
       driver_path = settings.get('chromedriver_path', './web_drivers/chromedriver')
       
       self.javascripts = {
@@ -454,7 +454,7 @@ class WebManager():
       elements = self.get_elements_by_selenium_(xpath)
       num_elements = len(elements)
       if num_elements == 0: return
-      element = WebDriverWait(self.get_cur_driver_(), 3).until(EC.element_to_be_clickable((By.XPATH, xpath)))
+      element = WebDriverWait(self.get_cur_driver_(), 2).until(EC.element_to_be_clickable((By.XPATH, xpath)))
       element.click()
       #action = ActionChains(self.get_cur_driver_())
       #for element in elements:
