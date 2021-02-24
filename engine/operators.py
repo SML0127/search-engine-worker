@@ -76,24 +76,18 @@ class BFSIterator(BaseOperator):
       op_id = self.props['id']
       parent_node_id = self.props.get('parent_node_id', 0)
       label = self.props['label']
-      node_id = gvar.graph_mgr.create_node(gvar.task_id, parent_node_id, label)
-      gvar.stack_nodes.append(node_id)
-      gvar.stack_indices.append(0)
 
       print("task_id:", gvar.task_id)
       print("op_id:", op_id)
       print("task_url:", gvar.task_url)
 
+      # load page
       gvar.web_mgr.load(gvar.task_url)
       time.sleep(1) 
-      gvar.graph_mgr.insert_node_property(gvar.stack_nodes[-1], 'url', gvar.task_url)
-      gvar.web_mgr.wait_loading()
-      time.sleep(self.props.get('delay', 0))
-
       if gvar.task_url != gvar.web_mgr.get_current_url():
         time.sleep(5)
 
-
+      # check is blocked
       chaptcha_xpath = '//input[@id=\'captchacharacters\']' # for amazon
       check_chaptcha = gvar.web_mgr.get_elements_by_selenium_(chaptcha_xpath)
       sleep_time = 900
@@ -109,7 +103,6 @@ class BFSIterator(BaseOperator):
          check_chaptcha = gvar.web_mgr.get_elements_by_selenium_(chaptcha_xpath)
 
 
-
       chaptcha_xpath = '//body[contains(text(),\'Reference\')]' # for rakuten
       check_chaptcha = gvar.web_mgr.get_elements_by_selenium_(chaptcha_xpath)
       sleep_time = 1
@@ -118,7 +111,6 @@ class BFSIterator(BaseOperator):
          gvar.web_mgr.restart(sleep_time)
          time.sleep(5)
          gvar.web_mgr.load(gvar.task_url)
-         #gvar.graph_mgr.insert_node_property(gvar.stack_nodes[-1], 'url', gvar.task_url)
          gvar.web_mgr.wait_loading()
          time.sleep(self.props.get('delay', 0))
          sleep_time += 0
@@ -127,17 +119,19 @@ class BFSIterator(BaseOperator):
          check_chaptcha = gvar.web_mgr.get_elements_by_selenium_(chaptcha_xpath)
 
 
-
-
+      # check invalid page
       invalid_amazon_xpath = '//img[@alt=\'Dogs of Amazon\']'
-      invalid_jomashop_xpath = '//div[@class=\'image-404\'] | //div[@class=\'product-buttons\']//span[contains(text(),\'OUT OF STOCK\')] | //div[contains(text(),\'Sold Out\')] |  //span[contains(text(),\'Ships In\')] |  //span[contains(text(),\'Contact us for\')]'
+      invalid_jomashop_xpath = '//div[@class=\'image-404\'] | //div[@class=\'product-buttons\']//span[contains(text(),\'OUT OF STOCK\')] | //div[contains(text(),\'Sold Out\')] | //span[contains(text(),\'Ships In\')] | //span[contains(text(),\'Contact us for\')]'
       invalid_jalando_xpath = '//h2[contains(text(),\'Out of stock\')] | //h1[contains(text(),\'find this page\')]'
       invalid_page_xpath = invalid_amazon_xpath + ' | ' + invalid_jomashop_xpath + ' | ' + invalid_jalando_xpath 
       is_invalid_page = gvar.web_mgr.get_elements_by_selenium_(invalid_page_xpath)
       if len(is_invalid_page) != 0:
         return
 
-
+      node_id = gvar.graph_mgr.create_node(gvar.task_id, parent_node_id, label)
+      gvar.stack_nodes.append(node_id)
+      gvar.stack_indices.append(0)
+      gvar.graph_mgr.insert_node_property(gvar.stack_nodes[-1], 'url', gvar.task_url)
 
 
       if 'query' in self.props:
