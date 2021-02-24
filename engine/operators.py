@@ -83,17 +83,6 @@ class BFSIterator(BaseOperator):
       print("task_id:", gvar.task_id)
       print("op_id:", op_id)
       print("task_url:", gvar.task_url)
-      #print("task_zipcode_url:", gvar.task_zipcode_url)
-
-      #if gvar.task_zipcode_url is not None:
-      #  print("Apply zipcode url")
-      #  print("task_zipcode_url:", gvar.task_zipcode_url)
-      #  gvar.web_mgr.load(gvar.task_zipcode_url)    
-      #  gvar.web_mgr.wait_loading()
-      #  time.sleep(self.props.get('delay', 0))
-      #  time.sleep(1)
-      #  if gvar.task_zipcode_url != gvar.web_mgr.get_current_url():
-      #    time.sleep(5)
 
       gvar.web_mgr.load(gvar.task_url)
       time.sleep(1) 
@@ -136,6 +125,17 @@ class BFSIterator(BaseOperator):
          if gvar.task_url != gvar.web_mgr.get_current_url():
            time.sleep(5)
          check_chaptcha = gvar.web_mgr.get_elements_by_selenium_(chaptcha_xpath)
+
+
+
+
+      invalid_amazon_xpath = '//img[@alt=\'Dogs of Amazon\']'
+      invalid_jomashop_xpath = '//div[@class=\'image-404\'] | //div[@class=\'product-buttons\']//span[contains(text(),\'OUT OF STOCK\')] | //div[contains(text(),\'Sold Out\')] |  //span[contains(text(),\'Ships In\')] |  //span[contains(text(),\'Contact us for\')]'
+      invalid_jalando_xpath = '//h2[contains(text(),\'Out of stock\')] | //h1[contains(text(),\'find this page\')]'
+      invalid_page_xpath = invalid_amazon_xpath + ' | ' + invalid_jomashop_xpath + ' | ' + invalid_jalando_xpath 
+      is_invalid_page = gvar.web_mgr.get_elements_by_selenium_(invalid_page_xpath)
+      if len(is_invalid_page) != 0:
+        return
 
 
 
