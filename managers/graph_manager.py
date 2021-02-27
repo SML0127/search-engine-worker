@@ -1668,19 +1668,15 @@ class GraphManager():
       raise
 
 
-  def get_smpid_from_job_id(self, job_id):
+  def get_site_code_from_job_id(self, job_id):
     try:
-      query =  "select url from jobs where id = {}".format(job_id)
+     
+      query =  "select site_code from job_id_to_site_code where job_id = {}".format(job_id)
       self.gp_cur.execute(query)
       result = self.gp_cur.fetchone()
-      url = result[0]
+      site_code = result[0]
 
-      query =  "select smpid from src_url_to_mpid where url like '{}'".format(url)
-      self.gp_cur.execute(query)
-      result = self.gp_cur.fetchone()
-      smpid = result[0]
-
-      return smpid
+      return site_code
     except:
       self.gp_conn.rollback()
       print(str(traceback.format_exc()))
@@ -2157,6 +2153,43 @@ class GraphManager():
     print(value.replace("'","\'"))
     return value.replace("'","\'")
     raise TypeError('not JSON serializable')
+
+  def get_client(self, mall_id):
+    try:
+      query = "BEGIN;  Lock table cafe24_client_id in ACCESS EXCLUSIVE MODE;"
+      self.gp_cur.execute(query)
+      query = "update cafe24_client_id set use_now = 1 where id in (select min(id) from cafe24_client_id where use_now = -1 and mall_id = '{}') returning client_id, client_secret;".format(mall_id)
+      self.gp_cur.execute(query)
+      result = self.gp_cur.fetchone()
+      print(result)
+      query = "COMMIT;"
+      self.gp_cur.execute(query)
+      #query =  "update cafe24_client_id set use_now = 1 where id in (select min(id) from cafe24_client_id where use_now = -1 and mall_id = '{}') returning client_id, client_secret".format(mall_id)
+
+      #self.gp_cur.execute(query)
+      #self.gp_conn.commit()
+      #result = self.gp_cur.fetchone()
+      return result
+    except Exception as e:
+      print('Table is locked')
+      return None
+      #self.pg_conn.rollback()
+      #print(str(traceback.format_exc()))
+      #raise e
+
+  def return_client(self, cid, cs):
+    try:
+      query =  "update cafe24_client_id set use_now = -1 where client_id = '{}' and client_secret = '{}';".format(cid, cs)
+
+      self.gp_cur.execute(query)
+      self.gp_conn.commit()
+      return 
+    except Exception as e:
+      self.pg_conn.rollback()
+      print(str(traceback.format_exc()))
+      raise e
+
+
 
 
   def check_stock(self, input_dictionary):

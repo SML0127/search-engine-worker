@@ -23,8 +23,8 @@ class Cafe24Manager:
     self.mall_id = args['mall_id']
     self.user_id = args['user_id']
     self.user_pwd = args['user_pwd']
-    self.client_id = args['client_id']
-    self.client_secret = args['client_secret']
+    #self.client_id = args['client_id']
+    #self.client_secret = args['client_secret']
     self.redirect_uri = args['redirect_uri']
     self.scope = args['scope']
     self.setting_manager = SettingsManager()
@@ -32,12 +32,30 @@ class Cafe24Manager:
     settings = self.setting_manager.get_settings()
     self.graph_manager = GraphManager()
     self.graph_manager.init(settings)
-    #self.graph_manager.connect("dbname='pse' user='pse' host='127.0.0.1' port='5432' password='pse'")
+    client = self.graph_manager.get_client(self.mall_id)
+    print(client)
+    self.client_id = ""
+    self.client_secret = ""
+    if client is not None:
+      self.client_id = client[0]
+      self.client_secret = client[1]
+    else:
+      while client is None:   
+        client = self.graph_manager.get_client(self.mall_id)
+        if client is not None:
+          self.client_id = client[0]
+          self.client_secret = client[1]
+          print(self.client_id, self.client_secret)
+          break;
+        print('Waiting for available client id, secret .....')
+        time.sleep(10)
+      #self.graph_manager.connect("dbname='pse' user='pse' host='127.0.0.1' port='5432' password='pse'")
     self.brands = {}
 
 
   def close(self):
-    self.graph_manager.close()
+    self.graph_manager.return_client(self.client_id, self.client_secret)
+    self.graph_manager.disconnect()
 
   def get_auth_code(self):
     option = webdriver.ChromeOptions()
@@ -50,48 +68,64 @@ class Cafe24Manager:
     url = 'https://{}.cafe24api.com/api/v2/oauth/authorize?response_type=code&client_id={}&state=test&redirect_uri={}&scope={}'.format(self.mall_id, self.client_id, self.redirect_uri, self.scope)
     print(url)
 
-    driver.get(url)
-    cur_url = driver.current_url
-    login_url = 'https://ec'
-    agreement_url = 'https://{}'.format(self.mall_id)
+    #driver.get(url)
+    #cur_url = driver.current_url
+    #login_url = 'https://ec'
+    #agreement_url = 'https://{}'.format(self.mall_id)
+    
+    cnt = 0
+    max_try = 3
+    while cnt < max_try:
+      cnt = cnt + 1
+      print("=============== Try get auth code {} time ==============".format(cnt))
+      try:
+        driver.get(url)
+        cur_url = driver.current_url
+        login_url = 'https://ec'
+        agreement_url = 'https://{}'.format(self.mall_id)
+        print(cur_url)
+        if (cur_url[0:len(login_url)] == login_url):
+          print('try to log in')
+          inputElement = driver.find_element_by_id("mall_id")
+          inputElement.send_keys(self.user_id)
+          print('user_id:', self.user_id)
+          inputElement = driver.find_element_by_id("userpasswd")
+          inputElement.send_keys(self.user_pwd)
+          time.sleep(3)
+          print('user_pwd:', self.user_pwd)
+          inputElement = driver.find_element_by_class_name('mButton')
+          inputElement.click()
+          time.sleep(5)
+          cur_url = driver.current_url
+        
+        # Check is change password page
+        if (cur_url == 'https://user.cafe24.com/comLogin/?action=comForce&req=hosting'):
+          print('@@@@@@@@@@@ Please change password')
+          inputElement = driver.find_element_by_class_name('btnEm')
+          inputElement.click()
+          time.sleep(5)
 
-    print(cur_url)
-    if (cur_url[0:len(login_url)] == login_url):
-      print('try to log in')
-      inputElement = driver.find_element_by_id("mall_id")
-      inputElement.send_keys(self.user_id)
-      print('user_id:', self.user_id)
-      inputElement = driver.find_element_by_id("userpasswd")
-      inputElement.send_keys(self.user_pwd)
-      time.sleep(3)
-      print('user_pwd:', self.user_pwd)
-      inputElement = driver.find_element_by_class_name('mButton')
-      inputElement.click()
-      time.sleep(10)
-      cur_url = driver.current_url
-    if (cur_url[0:len(agreement_url)] == agreement_url):
-      print('try to agree')
-      time.sleep(1)
-      print(cur_url)
-      if driver.current_url[0:len('google')] != 'google':
-        inputElement = driver.find_element_by_class_name('btnSubmit')
-        inputElement.click()
-        time.sleep(10)
-      cur_url = driver.current_url
-    if (cur_url == 'https://user.cafe24.com/comLogin/?action=comForce&req=hosting'):
-      print('Please change pwd')
-    if (cur_url == 'https://user.cafe24.com/comLogin/?action=comAuth&req=hosting'):
-      page_source = driver.execute_script("return document.body.innerHTML")
-      #f = open('fuck.html', 'w')
-      #f.write(page_source)
-      #f.close()
-    print(cur_url)
-    try:
-      self.auth_code = furl(cur_url).args['code']
-    except:
-      print("No auth code in url. quit driver")
-      driver.quit()
-      raise
+        if (cur_url[0:len(agreement_url)] == agreement_url):
+          print('try to agree')
+          time.sleep(1)
+          print(cur_url)
+          if driver.current_url[0:len('google')] != 'google':
+            inputElement = driver.find_element_by_class_name('btnSubmit')
+            inputElement.click()
+            time.sleep(5)
+          cur_url = driver.current_url
+
+        if (cur_url == 'https://user.cafe24.com/comLogin/?action=comAuth&req=hosting'):
+          page_source = driver.execute_script("return document.body.innerHTML")
+        print(cur_url)
+        self.auth_code = furl(cur_url).args['code']
+        break;
+      except:
+        if cnt < max_try : 
+          pass
+        else:
+          driver.quit()
+          raise
     driver.quit()
 
   def do_post(self, url, data, headers):
@@ -159,7 +193,7 @@ class Cafe24Manager:
     
     response = self.do_post(url, data, headers)
     
-    #print(response)
+    print(response)
 
     self.token = response['access_token']
     self.refresh_token = response['refresh_token']
@@ -628,9 +662,8 @@ class Cafe24Manager:
         raise
 
       tpid = product_result['product']['product_no']
-      print(product_result['product']) 
+      #print(product_result['product']) 
       # upload new product and then store target site product it to my site
-      self.graph_manager.update_tpid_into_mapping_table(job_id, tpid, product['mpid'], product['targetsite_url'])
 
       # update quantity, inventory.. 
       if 'memo' in product:
@@ -663,6 +696,7 @@ class Cafe24Manager:
         self.update_additional_images(tpid, additional_image)
 
       profiling_info['successful_node'] = profiling_info.get('successful_node', 0) + 1
+      self.graph_manager.update_tpid_into_mapping_table(job_id, tpid, product['mpid'], product['targetsite_url'])
     except:
       profiling_info['failed_node'] = profiling_info.get('failed_node', 0) + 1
       raise

@@ -174,7 +174,7 @@ class Cafe24SingleUploader(Resource):
             if gateway.upper() == 'CAFE24':
               is_uploaded = self.graph_manager.check_is_item_uploaded(job_id, targetsite_url, mpid)
               print('is uploaded proudct? : ', is_uploaded)
-              if is_uploaded == False: # upload as new item
+              if is_uploaded == False and status != 3: # upload as new item
                 product, original_product_information = exporter.export_from_mpid_onetime(job_id, args['execution_id'], mpid, tsid)
                 product['targetsite_url'] = targetsite_url
                 cafe24manager.upload_new_product(product, profiling_info, job_id)
@@ -223,7 +223,7 @@ class Cafe24SingleUploader(Resource):
             if gateway.upper() == 'CAFE24':
               is_uploaded = self.graph_manager.check_is_item_uploaded(job_id, targetsite_url, mpid)
               print('is uploaded proudct? : ', is_uploaded)
-              if is_uploaded == False: # upload as new item
+              if is_uploaded == False and status != 3: # upload as new item
                 product, original_product_information = exporter.export_from_mpid_onetime(job_id, args['execution_id'], mpid, tsid)
                 product['targetsite_url'] = targetsite_url
                 cafe24manager.upload_new_product(product, profiling_info, job_id)
@@ -256,10 +256,14 @@ class Cafe24SingleUploader(Resource):
           except:
             print(traceback.format_exc())
             failed_node += 1
+      print("Close cafe24 manager (no except)")
+      cafe24manager.close()
     except:
       profiling_info['total_time'] = time.time() - total_time
       #print(profiling_info)
+      print("Close cafe24 manager (in except)")
       print(traceback.format_exc())
+      cafe24manager.close()
       return profiling_info
     print('s/f', successful_node, '/', failed_node)
     profiling_info['total_time'] = time.time() - total_time
@@ -271,80 +275,80 @@ class Cafe24SingleUploader(Resource):
 
 
 
-  def upload_products_of_nodes(self, args, node_ids):
-    total_time = time.time()
-    profiling_info = {}
-    num_threads = args.get('num_threads', 1)
-    pool = ThreadPool(num_threads)
-    try:
-      num_threads = args['num_threads']
-      chunk_size = (len(node_ids) // num_threads) + 1
-      node_id_chunks = [node_ids[i:i + chunk_size] for i in range(0, len(node_ids), chunk_size)]
-      pool = ThreadPool(num_threads)
-      tasks = []
-      for i in range(len(node_id_chunks)):
-        nargs = args.copy()
-        nargs.update(args['clients'][i])
-        tasks.append((nargs, node_id_chunks[i]))
-      results = pool.map(self.upload_products_of_task, tasks)
-      print(results)
-      profiling_info['threads'] = results
-    except:
-      pool.close()
-      pool.join()
-      profiling_info['total_time'] = time.time() - total_time
-      print(profiling_info)
-      print(traceback.format_exc())
-      return profiling_info
-    profiling_info['total_time'] = time.time() - total_time
-    print(profiling_info)
-    pool.close()
-    pool.join()
-    return profiling_info
+  #def upload_products_of_nodes(self, args, node_ids):
+  #  total_time = time.time()
+  #  profiling_info = {}
+  #  num_threads = args.get('num_threads', 1)
+  #  pool = ThreadPool(num_threads)
+  #  try:
+  #    num_threads = args['num_threads']
+  #    chunk_size = (len(node_ids) // num_threads) + 1
+  #    node_id_chunks = [node_ids[i:i + chunk_size] for i in range(0, len(node_ids), chunk_size)]
+  #    pool = ThreadPool(num_threads)
+  #    tasks = []
+  #    for i in range(len(node_id_chunks)):
+  #      nargs = args.copy()
+  #      nargs.update(args['clients'][i])
+  #      tasks.append((nargs, node_id_chunks[i]))
+  #    results = pool.map(self.upload_products_of_task, tasks)
+  #    print(results)
+  #    profiling_info['threads'] = results
+  #  except:
+  #    pool.close()
+  #    pool.join()
+  #    profiling_info['total_time'] = time.time() - total_time
+  #    print(profiling_info)
+  #    print(traceback.format_exc())
+  #    return profiling_info
+  #  profiling_info['total_time'] = time.time() - total_time
+  #  print(profiling_info)
+  #  pool.close()
+  #  pool.join()
+  #  return profiling_info
 
 
 
-  def upload_products_of_task(self, task):
-    total_time = time.time()
-    successful_node = 0
-    failed_node = 0
-    profiling_info = {}
-    try:
-      (args, node_ids) = task
-      cafe24manager = Cafe24Manager(args)
-      cafe24manager.get_auth_code()
-      cafe24manager.get_token()
-      cafe24manager.list_brands()
+  #def upload_products_of_task(self, task):
+  #  total_time = time.time()
+  #  successful_node = 0
+  #  failed_node = 0
+  #  profiling_info = {}
+  #  try:
+  #    (args, node_ids) = task
+  #    cafe24manager = Cafe24Manager(args)
+  #    cafe24manager.get_auth_code()
+  #    cafe24manager.get_token()
+  #    cafe24manager.list_brands()
 
-      exporter = Exporter()
-      exporter.init()
-      exporter.import_rules_from_code(args['code'])
+  #    exporter = Exporter()
+  #    exporter.init()
+  #    exporter.import_rules_from_code(args['code'])
 
-      #print(exec_id, label)
-      #print(node_ids)
-      for node_id in node_ids:
-        node_time = time.time()
-        try:
-          product = exporter.export(node_id)
-          cafe24manager.upload_new_product(product, profiling_info)
-          cafe24manager.refresh()
-          successful_node += 1
-        except:
-          print(traceback.format_exc())
-          failed_node += 1
-        #print('node time: ', time.time() - node_time)
-        #print(profiling_info)
-    except:
-      profiling_info['total_time'] = time.time() - total_time
-      print(profiling_info)
-      print(traceback.format_exc())
-      return profiling_info
-    print('s/f', successful_node, '/', failed_node)
-    profiling_info['total_time'] = time.time() - total_time
-    profiling_info['successful_node'] = successful_node
-    profiling_info['failed_node'] = failed_node
-    print(profiling_info)
-    return profiling_info
+  #    #print(exec_id, label)
+  #    #print(node_ids)
+  #    for node_id in node_ids:
+  #      node_time = time.time()
+  #      try:
+  #        product = exporter.export(node_id)
+  #        cafe24manager.upload_new_product(product, profiling_info)
+  #        cafe24manager.refresh()
+  #        successful_node += 1
+  #      except:
+  #        print(traceback.format_exc())
+  #        failed_node += 1
+  #      #print('node time: ', time.time() - node_time)
+  #      #print(profiling_info)
+  #  except:
+  #    profiling_info['total_time'] = time.time() - total_time
+  #    print(profiling_info)
+  #    print(traceback.format_exc())
+  #    return profiling_info
+  #  print('s/f', successful_node, '/', failed_node)
+  #  profiling_info['total_time'] = time.time() - total_time
+  #  profiling_info['successful_node'] = successful_node
+  #  profiling_info['failed_node'] = failed_node
+  #  print(profiling_info)
+  #  return profiling_info
 
   def post(self):
     parser = reqparse.RequestParser()
