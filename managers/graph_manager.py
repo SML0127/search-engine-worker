@@ -2154,11 +2154,11 @@ class GraphManager():
     return value.replace("'","\'")
     raise TypeError('not JSON serializable')
 
-  def get_client(self, mall_id):
+  def get_client(self, mall_id, job_id):
     try:
       query = "BEGIN;  Lock table cafe24_client_id in ACCESS EXCLUSIVE MODE;"
       self.gp_cur.execute(query)
-      query = "update cafe24_client_id set use_now = 1 where id in (select min(id) from cafe24_client_id where use_now = -1 and mall_id = '{}') returning client_id, client_secret;".format(mall_id)
+      query = "update cafe24_client_id set use_now = 1, get_time = now(), job_id = {} where id in (select min(id) from cafe24_client_id where use_now = -1 and mall_id = '{}') returning client_id, client_secret;".format(mall_id, job_id)
       self.gp_cur.execute(query)
       result = self.gp_cur.fetchone()
       print(result)
@@ -2179,7 +2179,7 @@ class GraphManager():
 
   def return_client(self, cid, cs):
     try:
-      query =  "update cafe24_client_id set use_now = -1 where client_id = '{}' and client_secret = '{}';".format(cid, cs)
+      query =  "update cafe24_client_id set use_now = -1,get_time = Null, job_id = Null where client_id = '{}' and client_secret = '{}';".format(cid, cs)
 
       self.gp_cur.execute(query)
       self.gp_conn.commit()

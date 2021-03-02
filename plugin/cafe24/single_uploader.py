@@ -256,14 +256,18 @@ class Cafe24SingleUploader(Resource):
           except:
             print(traceback.format_exc())
             failed_node += 1
-      print("Close cafe24 manager (no except)")
       cafe24manager.close()
+      print("Close cafe24 manager (no except)")
     except:
       profiling_info['total_time'] = time.time() - total_time
       #print(profiling_info)
+      try:
+         cafe24manager.close()
+      except:
+         print("Error in close cafe24 manager")
+         print(traceback.format_exc())
       print("Close cafe24 manager (in except)")
       print(traceback.format_exc())
-      cafe24manager.close()
       return profiling_info
     print('s/f', successful_node, '/', failed_node)
     profiling_info['total_time'] = time.time() - total_time

@@ -32,8 +32,7 @@ class Cafe24Manager:
     settings = self.setting_manager.get_settings()
     self.graph_manager = GraphManager()
     self.graph_manager.init(settings)
-    client = self.graph_manager.get_client(self.mall_id)
-    print(client)
+    client = self.graph_manager.get_client(self.mall_id, args['job_id'])
     self.client_id = ""
     self.client_secret = ""
     if client is not None:
@@ -45,12 +44,12 @@ class Cafe24Manager:
         if client is not None:
           self.client_id = client[0]
           self.client_secret = client[1]
-          print(self.client_id, self.client_secret)
           break;
         print('Waiting for available client id, secret .....')
         time.sleep(10)
       #self.graph_manager.connect("dbname='pse' user='pse' host='127.0.0.1' port='5432' password='pse'")
     self.brands = {}
+    print(client)
 
 
   def close(self):
