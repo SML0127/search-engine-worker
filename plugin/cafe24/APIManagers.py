@@ -40,7 +40,7 @@ class Cafe24Manager:
       self.client_secret = client[1]
     else:
       while client is None:   
-        client = self.graph_manager.get_client(self.mall_id)
+        client = self.graph_manager.get_client(self.mall_id, args['job_id'])
         if client is not None:
           self.client_id = client[0]
           self.client_secret = client[1]
