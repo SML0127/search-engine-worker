@@ -1943,7 +1943,7 @@ class GraphManager():
       result['margin_rate'] = row[13]
       result['min_margin'] = row[14]
       result['delivery_company'] = row[15]
-      result['shipping_cost'] = row[16]
+      result['default_weight'] = row[18]
       query =  "select exchange_rate from exchange_rate order by id desc limit 1"
       self.gp_cur.execute(query)
       row = self.gp_cur.fetchone()[0]

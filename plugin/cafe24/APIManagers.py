@@ -104,6 +104,7 @@ class Cafe24Manager:
           inputElement = driver.find_element_by_class_name('btnEm')
           inputElement.click()
           time.sleep(5)
+          cur_url = driver.current_url
 
         if (cur_url[0:len(agreement_url)] == agreement_url):
           print('try to agree')
@@ -113,19 +114,25 @@ class Cafe24Manager:
             inputElement = driver.find_element_by_class_name('btnSubmit')
             inputElement.click()
             time.sleep(5)
-          cur_url = driver.current_url
+            try:
+               cur_url = driver.current_url
+            except:
+               pass
 
         if (cur_url == 'https://user.cafe24.com/comLogin/?action=comAuth&req=hosting'):
           page_source = driver.execute_script("return document.body.innerHTML")
-        print(cur_url)
+        cur_url = driver.current_url
         self.auth_code = furl(cur_url).args['code']
         break;
       except:
-        if cnt < max_try : 
+        if cnt < max_try :
+          print('There is no auth code')
+          print('URL: ', driver.current_url)
           pass
         else:
           driver.quit()
           raise
+
     driver.quit()
 
   def do_post(self, url, data, headers):
