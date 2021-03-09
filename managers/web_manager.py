@@ -57,12 +57,15 @@ class WebManager():
       
       option.add_argument('--headless')
       option.add_argument('--window-size=1920x1080')
+      option.add_argument('window-size=1920x1080')
       option.add_argument('--disable-gpu')
       option.add_argument('--start-maximized')
       option.add_argument('--no-proxy-server')
       option.add_argument('--no-sandbox')
       option.add_argument('--blink-settings=imagesEnabled=false')
       option.add_argument('--lang=en_US')
+      option.add_argument('--disable-dev-shm-usage')
+      option.add_argument('disable-dev-shm-usage')
       prefs = {"profile.managed_default_content_settings.images": 2}
       option.add_experimental_option("prefs", prefs)
 
@@ -104,12 +107,15 @@ class WebManager():
       #option = webdriver.ChromeOptions()
       option.add_argument('--headless')
       option.add_argument('--window-size=1920x1080')
+      option.add_argument('window-size=1920x1080')
       option.add_argument('--disable-gpu')
       option.add_argument('--start-maximized')
       option.add_argument('--no-proxy-server')
       option.add_argument('--no-sandbox')
       option.add_argument('--blink-settings=imagesEnabled=false')
       option.add_argument('--lang=en_US')
+      option.add_argument('--disable-dev-shm-usage')
+      option.add_argument('disable-dev-shm-usage')
       prefs = {"profile.managed_default_content_settings.images": 2}
       option.add_experimental_option("prefs", prefs)
 
@@ -185,6 +191,7 @@ class WebManager():
       driver = self.get_cur_driver_()
       page_source = driver.page_source 
       self.lxml_tree = html.fromstring(page_source)
+      time.sleep(5)
     except Exception as e:
       raise WebMgrErr(e)
 
@@ -279,16 +286,14 @@ class WebManager():
 
 
   def get_elements_by_selenium_strong_(self, xpath):
+    element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, xpath)))
     elements = self.get_elements_by_selenium_(xpath)
     if len(elements) == 0:
-      time.sleep(5)
-      elements = self.get_elements_by_selenium_(xpath)
-      if len(elements) == 0:
-        raise NoElementFoundError(xpath)
+      raise NoElementFoundError(xpath)
     return elements
 
   def get_elements_by_lxml_(self, xpath):
-    self.build_lxml_tree()
+    #self.build_lxml_tree()
     elements = self.lxml_tree.xpath(xpath)
     print(len(elements), xpath)
     return elements
@@ -296,9 +301,11 @@ class WebManager():
   def get_elements_by_lxml_strong_(self, xpath):
     elements = self.get_elements_by_lxml_(xpath)
     if len(elements) == 0:
-      time.sleep(5)
+      print("Re-build lxml tree and retry")
+      self.build_lxml_tree()
       elements = self.get_elements_by_lxml_(xpath)
-      raise NoElementFoundError(xpath)
+      if len(elements) == 0:
+        raise NoElementFoundError(xpath)
     return elements
 
 
@@ -306,7 +313,6 @@ class WebManager():
     if attr == 'alltext':
       return element.text.strip()
     else:
-      print(element.get_attribute(attr))
       return element.get_attribute(attr)
 
   def get_attribute_by_selenium_strong_(self, element, attr):
@@ -319,7 +325,6 @@ class WebManager():
     elif attr == 'text': val = element.text.strip()
     elif attr == 'innerHTML': val = etree.tostring(element, pretty_print=True)
     else: val = element.get(attr)
-    print(val)
     if val != None: val = val.strip()
     print(val)
     return val
@@ -390,6 +395,7 @@ class WebManager():
   def get_values_by_selenium(self, xpath, attr):
     try:
       elements = self.get_elements_by_selenium_(xpath)
+      print(len(elements), xpath)
       if len(elements) == 0: return []
       result = []
       for element in elements:
@@ -443,11 +449,22 @@ class WebManager():
         elements = self.get_elements_by_selenium_(xpath)
         num_elements = len(elements)
         if num_elements == 0: break
-        elements[0].click()
-        time.sleep(time_sleep)
-
+        while True:
+          try:
+            element = WebDriverWait(self.get_cur_driver_(), 30).until(EC.element_to_be_clickable((By.XPATH, xpath)))  
+            self.get_cur_driver_().execute_script("window.scrollTo(0, document.body.scrollHeight)")
+            time.sleep(3)
+            element.click()
+            break;
+          except:
+            print("Element is not clickable, so retry")
+            pass
+      time.sleep(time_sleep)
+      return
     except Exception as e:
       raise WebMgrErr(e)
+      return
+    return;
 
   def click_elements(self, xpath):
     try:
@@ -516,6 +533,7 @@ class WebManager():
         val = self.get_attribute_by_selenium_(element, attr)
         if val != None: result.append(val)
       if len(result) == 0: raise NoElementFoundError(xpath)
+      print(result)
       return result
     except Exception as e:
       raise WebMgrErr(e) 

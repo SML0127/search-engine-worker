@@ -182,22 +182,11 @@ class pseWorker(Worker):
         except OperatorError as e:
             err_name = e.error.__class__.__name__
             err = {'type': 0, 'op_id': e.op_id, 'error': str(e), 'err_msg': gvar.err_msg, 'traceback': traceback.format_exc()}
-            print(err)
             self.lm.end_task(task_id, ErrorDict.get(err_name, -1), err)
             print("-------Raised Exception in WORKER-------")
             print("----------------------------------------")
             print("--------------STACK TRACE---------------")
             print(str(traceback.format_exc()))
-            #try:
-            #    err_msg = '================================== URL ==================================\n'
-            #    err_msg += 'URL: ' + str(task['url']) + '\n\n'
-            #    err_msg += '============================== Opeartor ================================\n'
-            #    err_msg += 'Operator: ' + str(task['name']) + '\n\n'
-            #    err_msg += '================================STACK TRACE============================== \n' + str(traceback.format_exc())
-            #    gvar.graph_mgr.log_err_msg_of_task(task_id, err_msg)
-            #except Exception as e:
-            #    print("--------------LOGERRRRRRRRR---------------")
-            #    print(str(traceback.format_exc()))
             print("----------------------------------------")
             raise
         except Exception as e:
@@ -208,16 +197,6 @@ class pseWorker(Worker):
             print("----------------------------------------")
             print("--------------STACK TRACE---------------")
             print(str(traceback.format_exc()))
-            #try:
-            #    err_msg = '================================== URL ==================================\n'
-            #    err_msg += 'URL: ' + str(task['url']) + '\n\n'
-            #    err_msg += '============================== Opeartor ================================\n'
-            #    err_msg += 'Operator: ' + str(task['name']) + '\n\n'
-            #    err_msg += '================================STACK TRACE============================== \n' + str(traceback.format_exc())
-            #    gvar.graph_mgr.log_err_msg_of_task(task_id, err_msg)
-            #except Exception as e:
-            #    print("--------------LOGERRRRRRRRR---------------")
-            #    print(str(traceback.format_exc()))
             print("----------------------------------------")
             raise
         self.lm.end_task(task_id, 1, {'profiling_info': gvar.profiling_info})
@@ -260,9 +239,11 @@ class pseWorker(Worker):
             job.ended_at = utcnow()
             # added by smlee
             exc_info = sys.exc_info()
-            exc_string = self._get_safe_exception_string(
-                traceback.format_exception(*exc_info)
-            )
+            exc_info = sys.exc_info()
+            exc_string = ''.join(traceback.format_exception(*exc_info))
+            #exc_string = self._get_safe_exception_string(
+            #    traceback.format_exception(*exc_info)
+            #)
             self.handle_job_failure(job=job, exc_string=exc_string,
                                     started_job_registry=started_job_registry)
             self.handle_exception(job, *exc_info)

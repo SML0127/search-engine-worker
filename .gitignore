@@ -8,6 +8,7 @@ htmls/
 node_modules/
 dist/
 
+share*
 dump*
 .dump*
 # Compiled Java class files

@@ -119,8 +119,11 @@ class Cafe24SingleUploader(Resource):
     successful_node = 0
     failed_node = 0
     profiling_info = {}
+    log_mpid = -1
+    log_mt_history_id = -1
     try:
       (args, mpids) = task
+      log_mt_history_id = args['mt_history_id']
       cafe24manager = Cafe24Manager(args)
       print("-----------------------Request auth code----------------------")
       cafe24manager.get_auth_code()
@@ -142,11 +145,12 @@ class Cafe24SingleUploader(Resource):
       print("targetsite: ", targetsite_url)
       if 'selected' in args:
         for mpid in mpids:
+          log_mpid = mpid
           node_time = time.time()
           try:
             product, original_product_information = exporter.export_from_selected_mpid(job_id, args['execution_id'], mpid)
             product['targetsite_url'] = targetsite_url
-           
+             
             status = self.graph_manager.check_status_of_product(job_id, mpid)
              
             #Status 0 = up to date, 1 = changed, 2 = New, 3 = Deleted 4 = Duplicated
@@ -160,13 +164,15 @@ class Cafe24SingleUploader(Resource):
 
             successful_node += 1
           except:
-            #print(traceback.format_exc())
             failed_node += 1
+            err_msg = '================================ STACK TRACE ============================== \n' + str(traceback.format_exc())
+            self.graph_manager.log_err_msg_of_upload(log_mpid, err_msg, log_mt_history_id )
+
       elif 'onetime' in args:
         for mpid in mpids:
+          log_mpid = mpid
           node_time = time.time()
           try:
-           
             status = self.graph_manager.check_status_of_product(job_id, mpid)
              
             #Status 0 = up to date, 1 = changed, 2 = New, 3 = Deleted 4 = Duplicated
@@ -207,10 +213,12 @@ class Cafe24SingleUploader(Resource):
 
             successful_node += 1
           except:
-            print(traceback.format_exc())
             failed_node += 1     
+            err_msg = '================================ STACK TRACE ============================== \n' + str(traceback.format_exc())
+            self.graph_manager.log_err_msg_of_upload(log_mpid, err_msg, log_mt_history_id )
       else:
         for mpid in mpids:
+          log_mpid = mpid
           node_time = time.time()
           try:
             #product, original_product_information = exporter.export_from_mpid_onetime(job_id, args['execution_id'], mpid, tsid)
@@ -254,8 +262,9 @@ class Cafe24SingleUploader(Resource):
 
             successful_node += 1
           except:
-            print(traceback.format_exc())
             failed_node += 1
+            err_msg = '================================ STACK TRACE ============================== \n' + str(traceback.format_exc())
+            self.graph_manager.log_err_msg_of_upload(log_mpid, err_msg, log_mt_history_id )
       cafe24manager.close()
       print("Close cafe24 manager (no except)")
     except:

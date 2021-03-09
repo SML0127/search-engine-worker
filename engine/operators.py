@@ -88,6 +88,7 @@ class BFSIterator(BaseOperator):
         time.sleep(5)
 
       # check is blocked
+      print("Check is blocked")
       chaptcha_xpath = '//input[@id=\'captchacharacters\']' # for amazon
       check_chaptcha = gvar.web_mgr.get_elements_by_selenium_(chaptcha_xpath)
       sleep_time = 900
@@ -120,8 +121,9 @@ class BFSIterator(BaseOperator):
 
 
       # check invalid page
+      print("Check is invalid page")
       invalid_amazon_xpath = '//img[@alt=\'Dogs of Amazon\']'
-      invalid_jomashop_xpath = '//div[@class=\'image-404\'] | //div[@class=\'product-buttons\']//span[contains(text(),\'OUT OF STOCK\')] | //div[contains(text(),\'Sold Out\')] | //span[contains(text(),\'Ships In\')] | //span[contains(text(),\'Contact us for\')]'
+      invalid_jomashop_xpath = '//div[@class=\'image-404\'] | //div[@class=\'product-buttons\']//span[contains(text(),\'OUT OF STOCK\')] | //div[contains(text(),\'Sold Out\')] | //span[contains(text(),\'Ships In\')] | //span[contains(text(),\'Contact us for\')] | //*[text()=\'Unable to fetch data\'] '
       invalid_jalando_xpath = '//h2[contains(text(),\'Out of stock\')] | //h1[contains(text(),\'find this page\')]'
       invalid_page_xpath = invalid_amazon_xpath + ' | ' + invalid_jomashop_xpath + ' | ' + invalid_jalando_xpath 
       is_invalid_page = gvar.web_mgr.get_elements_by_selenium_(invalid_page_xpath)
@@ -214,10 +216,13 @@ class OpenNode(BaseOperator):
         gvar.stack_indices.pop()
       op_time = time.time() - op_start
       gvar.profiling_info[op_id] = { 'op_time' : op_time }
+      return
     except Exception as e:
       if type(e) is OperatorError:
         raise e
       raise OperatorError(e, self.props['id'])
+      return
+    return
 
 class SendPhoneKeyOperator(BaseOperator):
   def run(self, gvar):
@@ -233,8 +238,11 @@ class SendPhoneKeyOperator(BaseOperator):
 
       op_time = time.time() - op_start
       gvar.profiling_info[op_id] = { 'op_time' : op_time }
+      return
     except Exception as e:
       raise OperatorError(e, self.props['id'])
+      return
+    return
 
 
 
@@ -244,8 +252,11 @@ class WaitOperator(BaseOperator):
       op_id = self.props['id']
       print("Do Wait {} secs".format(self.props.get('wait',0)))
       time.sleep(int(self.props.get('wait', 0)))
+      return
     except Exception as e:
       raise OperatorError(e, self.props['id'])
+      return
+    return
 
 
 class ScrollOperator(BaseOperator):
@@ -258,9 +269,12 @@ class ScrollOperator(BaseOperator):
 
       op_time = time.time() - op_start
       gvar.profiling_info[op_id] = { 'op_time' : op_time }
+      return
     except Exception as e:
       fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
       raise OperatorError(e, self.props['id'])
+      return
+    return
 
 
 
@@ -275,9 +289,12 @@ class HoverOperator(BaseOperator):
 
       op_time = time.time() - op_start
       gvar.profiling_info[op_id] = { 'op_time' : op_time }
+      return
     except Exception as e:
       fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
       raise OperatorError(e, self.props['id'])
+      return
+    return
 
 
 
@@ -343,8 +360,11 @@ class ClickOperator(BaseOperator):
         time.sleep(int(column.get('delay', 5)))
       op_time = time.time() - op_start
       gvar.profiling_info[op_id] = { 'op_time' : op_time }
+      return
     except Exception as e:
       raise OperatorError(e, self.props['id'])
+      return
+    return
 
 class MoveCursorOperator(BaseOperator):
 
@@ -384,10 +404,13 @@ class Expander(BaseOperator):
 
     op_id = self.props['id']
     query = self.props['query']
+    #query = "//div[@class='productItemBlock']"
     if 'indices' in self.props:
       query = self.set_query(query, gvar.stack_indices, self.props['indices'])
     attr = self.props["attr"]
-    site = self.props.get("site", None)
+    #attr="data-product-scroll-target"
+
+    site = self.props.get("prefix", None)
     attr_delimiter = self.props.get("attr_delimiter", None)
     attr_idx = self.props.get("attr_idx", None)
     suffix = self.props.get("suffix", "")
@@ -399,6 +422,7 @@ class Expander(BaseOperator):
 
     xpaths_time = time.time()
     result = gvar.web_mgr.get_values_by_selenium(query, attr)
+    #result = gvar.web_mgr.get_values_by_lxml(query, attr)
     xpaths_time = time.time() - xpaths_time
 
 
@@ -421,30 +445,27 @@ class Expander(BaseOperator):
       else:
         self_url = 0
 
-    #if site is not None:
-    #  if len(result) == 0:
-    #    if self_url == 1: result = [gvar.web_mgr.get_current_url()]
-    #    else:
-    #      essential = self.props.get("essential", False)
-    #      if type(essential) != type(True): essential = eval(essential)
-    #      if essential: raise
-    #    print(result)
-    #  else:
-    #    for idx, res in enumerate(result):
-    #        result[idx] = str(site) + str(res)
-    #    if no_matching_then_self == 1:
-    #      result.append(gvar.web_mgr.get_current_url())
-    #    while str(site) in result: result.remove(str(site))
-    #    print(result)
-    if len(result) == 0:
-      if no_matching_then_self == 1: result = [gvar.web_mgr.get_current_url()]
+    if site is not None:
+      if len(result) == 0:
+        if no_matching_then_self == 1: result = [gvar.web_mgr.get_current_url()]
+        #else:
+        #  essential = self.props.get("essential", False)
+        #  if type(essential) != type(True): essential = eval(essential)
+        #  if essential: raise
       else:
-        essential = self.props.get("essential", False)
-        if type(essential) != type(True): essential = eval(essential)
-        if essential: raise
-    else:
-      if self_url == 1:
-        result.append(gvar.web_mgr.get_current_url())
+        for idx, res in enumerate(result):
+          result[idx] = str(site) + str(res)
+        if self_url == 1: result.append(gvar.web_mgr.get_current_url())
+    else: 
+      if len(result) == 0:
+        if no_matching_then_self == 1: result = [gvar.web_mgr.get_current_url()]
+        #else:
+        #  essential = self.props.get("essential", False)
+        #  if type(essential) != type(True): essential = eval(essential)
+        #  if essential: raise
+      else:
+        if self_url == 1:
+          result.append(gvar.web_mgr.get_current_url())
 
 
     gvar.results[op_id] = [(gvar.task_id, gvar.stack_nodes[-1], result)]
@@ -454,7 +475,6 @@ class Expander(BaseOperator):
       'xpaths_time': xpaths_time, 
       'num_elements':  len(result)
     }
-    print(result)
     return
 
   def run(self, gvar):
@@ -529,8 +549,11 @@ class ValuesScrapper(BaseOperator):
         'db_num': len(result), 
         'db_time': db_time 
       }
+      return; 
     except Exception as e:
       raise OperatorError(e, self.props['id'])
+      return;
+    return;
 
 
 class ListsScrapper(BaseOperator):
@@ -566,7 +589,6 @@ class ListsScrapper(BaseOperator):
       
       xpaths_time = time.time() - xpaths_time
 
-      print(result)
 
       db_time = time.time()
       for key, value in result.items():
@@ -581,8 +603,11 @@ class ListsScrapper(BaseOperator):
         'db_time': db_time,
         'num_results': len(result)
       }
+      return
     except Exception as e:
       raise OperatorError(e, self.props['id'])
+      return;
+    return;
 
 
 
@@ -634,7 +659,6 @@ class DictsScrapper(BaseOperator):
         gvar.graph_mgr.insert_node_property(gvar.stack_nodes[-1], key, value)
       db_time = time.time() - db_time
       
-      print(result)
     
       op_time = time.time() - op_time
       gvar.profiling_info[op_id] = { 
@@ -644,8 +668,11 @@ class DictsScrapper(BaseOperator):
         'db_time': db_time,
         'num_results': len(result)
       }
+      return
     except Exception as e:
       raise OperatorError(e, self.props['id'])
+      return
+    return
 
 
 worker_operators = {

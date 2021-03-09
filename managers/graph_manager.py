@@ -1456,6 +1456,20 @@ class GraphManager():
       print(str(traceback.format_exc()))
       raise
 
+
+  def delete_from_tpid_mapping_table(self, tpid):
+    try:
+      query = "delete from tpid_mapping where tpid = {}".format(tpid)
+      self.gp_cur.execute(query)
+      self.gp_conn.commit()
+      return 
+    except:
+      self.gp_conn.rollback()
+      print(str(traceback.format_exc()))
+      raise
+
+
+
   def update_tpid_into_mapping_table(self, job_id, tpid, mpid, targetsite_url):
     try:
       query = "select count(*) from tpid_mapping where job_id = {} and targetsite_url = '{}' and mpid = {}".format(job_id, targetsite_url, mpid)
@@ -1557,6 +1571,32 @@ class GraphManager():
       self.gp_conn.rollback()
       print(str(traceback.format_exc()))
       raise
+
+  #(id integer primary key generated always as identity, sm_history_id bigint, start_time timestamp, end_time timestamp, targetsite text, job_id integer);
+  def insert_mt_history(self, targetsite, start_time, job_id):
+    try:
+      query =  "insert into mt_history(job_id, targetsite, start_time) values({},'{}','{}') returning id".format(job_id, targetsite, start_time)
+      self.gp_cur.execute(query)
+      rows = self.gp_cur.fetchone()
+      self.gp_conn.commit()
+      result = rows[0]
+      return result
+    except:
+      self.gp_conn.rollback()
+      print(str(traceback.format_exc()))
+      raise
+
+  def update_mt_history(self, end_date, input_id):
+    try:
+      query =  "update mt_history set end_time = '{}' where id = {}".format(end_date, input_id)
+      self.gp_cur.execute(query)
+      self.gp_conn.commit()
+      return 
+    except:
+      self.gp_conn.rollback()
+      print(str(traceback.format_exc()))
+      raise
+
 
 
   def get_num_threads_in_job_configuration_onetime(self, job_id):
@@ -2018,6 +2058,18 @@ class GraphManager():
     except:
       self.gp_conn.rollback()
       print(str(traceback.format_exc()))
+      raise
+
+  #failed_target_site_detail (id integer primary key generated always as identity, sm_history_id integer, mpid bigint, err_msg text);
+  def log_err_msg_of_upload(self, mpid, err_msg, mt_history_id):
+    try:
+      err_msg = err_msg.replace("'",'"')
+      query = "insert into failed_target_site_detail(mpid, err_msg, mt_history_id) values({},'{}',{})".format(mpid,err_msg, mt_history_id)
+      self.gp_cur.execute(query)
+      self.gp_conn.commit()
+      return 
+    except:
+      self.gp_conn.rollback()
       raise
 
 

@@ -830,6 +830,7 @@ class Cafe24Manager:
       profiling_info['update_product'] = profiling_info.get('update_product', 0) + time.time() - tmp_time
 
       profiling_info['successful_node'] = profiling_info.get('successful_node', 0) + 1
+      self.graph_manager.delete_from_tpid_mapping_table(tpid)
     except:
       profiling_info['failed_node'] = profiling_info.get('failed_node', 0) + 1
       raise
