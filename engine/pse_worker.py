@@ -239,14 +239,16 @@ class pseWorker(Worker):
             job.ended_at = utcnow()
             # added by smlee
             exc_info = sys.exc_info()
-            exc_info = sys.exc_info()
             exc_string = ''.join(traceback.format_exception(*exc_info))
             #exc_string = self._get_safe_exception_string(
             #    traceback.format_exception(*exc_info)
             #)
-            self.handle_job_failure(job=job, exc_string=exc_string,
-                                    started_job_registry=started_job_registry)
-            self.handle_exception(job, *exc_info)
+            try:
+                self.handle_job_failure(job=job, exc_string=exc_string, queue=queue,
+                                        started_job_registry=started_job_registry)
+                self.handle_exception(job, *exc_info)
+            except:
+                raise
             raise
         finally:
             pop_connection()

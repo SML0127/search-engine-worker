@@ -351,7 +351,9 @@ class ClickOperator(BaseOperator):
         if type(essential) != type(True): essential = eval(essential)
         if type(repeat) != type(True): repeat = eval(repeat)
         if repeat:
-          gvar.web_mgr.click_elements_repeat(query, time_sleep)
+          # SML
+          #gvar.web_mgr.click_elements_repeat(query, time_sleep)
+          gvar.web_mgr.click_elements(query)
         else:
           if essential:
             gvar.web_mgr.click_elements_strong(query)
@@ -508,6 +510,11 @@ class ValuesScrapper(BaseOperator):
         xpath = pair['query']
         attr = pair['attr']
         print(pair)
+        # SML
+        random_time = random.randrange(1,11)
+        if int(random_time) < 8:
+          print(random_time)
+          raise
         if xpath == '':
           if attr == 'url': result[key] = str(gvar.web_mgr.get_current_url()).strip()
         else:

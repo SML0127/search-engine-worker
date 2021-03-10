@@ -88,7 +88,7 @@ class WebManager():
         
         #driver = webdriver.Chrome(driver_path, chrome_options = option)
         driver = webdriver.Chrome(driver_path, options = option)
-        driver.set_page_load_timeout(100)
+        driver.set_page_load_timeout(600)
         driver.get('about:blank')
         driver.execute_script("Object.defineProperty(navigator, 'plugins', {get: function() {return[1, 2, 3, 4, 5];},});")
         self.drivers.append(driver)
@@ -138,7 +138,7 @@ class WebManager():
         option.add_argument('--user-agent={}'.format(user_agent))
         driver = webdriver.Chrome(driver_path, options = option)
         #driver = webdriver.Chrome(driver_path, chrome_options = option)
-        driver.set_page_load_timeout(100)
+        driver.set_page_load_timeout(600)
         driver.get('about:blank')
         driver.execute_script("Object.defineProperty(navigator, 'plugins', {get: function() {return[1, 2, 3, 4, 5];},});")
         self.drivers.append(driver)
@@ -627,9 +627,11 @@ class WebManager():
       raise WebMgrErr(e)    
 
 
-#if __name__ == '__main__':
-#  web_manager = WebManager()
-#  web_manager.init(2)
+if __name__ == '__main__':
+  web_manager = WebManager()
+  web_manager.init({"chromedriver_user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.182"})
+  web_manager.get_cur_driver_().delete_all_cookies()
+  web_manager.close()
 #
 #  try:
 #    web_manager.load("https://www.amazon.com/Sensodyne-Pronamel-Whitening-Strengthening-Toothpaste/dp/B0762LYFKP?pf_rd_p=9dbbfba7-e756-51ca-b790-09e9b92beee1&pf_rd_r=EG4J8ZAJZNB9B3HBQ9G1&pd_rd_wg=W8hx6&ref_=pd_gw_ri&pd_rd_w=kynj4&pd_rd_r=6365323e-7c16-4273-a2c5-5d85b04565f5")

@@ -11,7 +11,7 @@ graph_db_conn_info: "host=141.223.197.35 port=54320 user=pse password=pse dbname
 
 # 3. Chromedriver path
 chromedriver_path: "./web_drivers/chromedriver"
-chromedriver_user_agent: "Mozilla/5.0 AppleWebKit/537.36 (KHTML like Gecko) Chrome/79.0.3883.121"
+chromedriver_user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.182"
 num_driver: 1
 #proxy_server: ""
 
