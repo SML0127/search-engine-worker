@@ -239,11 +239,20 @@ class Cafe24Manager:
 
 
   def upload_image_from_link(self, link):
-    image = self.get_image_from_link(link)
-    #print("upload_image_from_link: ", image)
-    return self.upload_image(image)
-
-
+    cnt = 0
+    max_try = 3
+    while cnt < max_try:
+      print("=============== Try download & upload detail image {} time ==============".format(cnt))
+      try:
+        image = self.get_image_from_link(link)
+        #print("upload_image_from_link: ", image)
+        return self.upload_image(image)
+      except:
+        if cnt < max_try:
+          cnt = cnt + 1
+          pass
+        else:
+          raise
 
   def get_image_from_link(self, link):
     if link[:12] == 'https://cdn2':
@@ -251,7 +260,6 @@ class Cafe24Manager:
       r = scraper.get(link)
       u = r.content
       im = Image.open(BytesIO(u))
-
 
     elif link[:len("data:image/webp;base64,")] == "data:image/webp;base64,":
       im = link[len("data:image/webp;base64,"):]
@@ -380,23 +388,34 @@ class Cafe24Manager:
     return response
 
   def create_brand(self, args):
-    url = "https://{}.cafe24api.com/api/v2/admin/brands".format(self.mall_id)
-    headers = {
-      'Authorization': "Bearer {}".format(self.token),
-      'Content-Type': "application/json",
-      'Accept-Encoding': "gzip, deflate",
-      'Connection': "keep-alive",
-    }
-    data = {
-      'shop_no': 1,
-      'request': args
-    }
-    response = self.do_post(url, json.dumps(data), headers)
-    if 'brand' not in response:
-      print(response)
-    brand = response['brand']
-    self.brands[brand['brand_name']] = brand['brand_code']
-    return brand['brand_code']
+    cnt = 0
+    max_try = 3
+    while cnt < max_try:
+      print("=============== Try create brand code {} time ==============".format(cnt))
+      try:
+        url = "https://{}.cafe24api.com/api/v2/admin/brands".format(self.mall_id)
+        headers = {
+          'Authorization': "Bearer {}".format(self.token),
+          'Content-Type': "application/json",
+          'Accept-Encoding': "gzip, deflate",
+          'Connection': "keep-alive",
+        }
+        data = {
+          'shop_no': 1,
+          'request': args
+        }
+        response = self.do_post(url, json.dumps(data), headers)
+        if 'brand' not in response:
+          print(response)
+        brand = response['brand']
+        self.brands[brand['brand_name']] = brand['brand_code']
+        return brand['brand_code']
+      except:
+        if cnt < max_try:
+          cnt = cnt + 1
+          pass
+        else:
+          raise
 
 
   def list_brands(self):
@@ -472,28 +491,39 @@ class Cafe24Manager:
 
   def update_additional_images(self, product_no, links):
     if len(links) == 0: return None
+    cnt = 0
+    max_try = 3
+    while cnt < max_try:
+      print("=============== Try download & upload additional images {} time ==============".format(cnt))
+      try:
+        additional_image = []
+        for link in links:
+          additional_image.append(self.get_image_from_link(link))
 
-    additional_image = []
-    for link in links:
-      additional_image.append(self.get_image_from_link(link))
+        url = "https://{}.cafe24api.com/api/v2/admin/products/{}/additionalimages".format(self.mall_id, product_no)
+        headers = {
+          'Authorization': "Bearer {}".format(self.token),
+          'Content-Type': "application/json",
+          'Accept-Encoding': "gzip, deflate",
+          'Connection': "keep-alive",
+        }
 
-    url = "https://{}.cafe24api.com/api/v2/admin/products/{}/additionalimages".format(self.mall_id, product_no)
-    headers = {
-      'Authorization': "Bearer {}".format(self.token),
-      'Content-Type': "application/json",
-      'Accept-Encoding': "gzip, deflate",
-      'Connection': "keep-alive",
-    }
-
-    data = {
-       'shop_no': 1,
-       'request': {
-        "additional_image": additional_image
-       }
-    }
-    response = self.do_put(url, json.dumps(data), headers)
-    #print(response)
-    return response
+        data = {
+           'shop_no': 1,
+           'request': {
+            "additional_image": additional_image
+           }
+        }
+        response = self.do_put(url, json.dumps(data), headers)
+        #print(response)
+        return response
+      except:
+        if cnt < max_try:
+          cnt = cnt + 1
+          pass
+        else:
+          raise
+     
 
     
   def create_option(self, product_no, option):
