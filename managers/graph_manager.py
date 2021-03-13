@@ -1948,10 +1948,11 @@ class GraphManager():
 
   def get_shipping_fee(self, delivery_company):
     try:
-      query = "select id from delivery_companies where name like '%{}%'".format(delivery_company)
+      delivery_company = delivery_company.encode('UTF-8').hex()
+      query = "select id from delivery_companies where name like '{}'".format(delivery_company)
       self.gp_cur.execute(query)
       dcid = self.gp_cur.fetchone()[0]
-
+      
       query =  "select min_kg, max_kg, fee from shipping_fee where delivery_company_id = {}".format(dcid)
       self.gp_cur.execute(query)
       rows = self.gp_cur.fetchall()

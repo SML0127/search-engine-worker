@@ -135,29 +135,73 @@ class Cafe24Manager:
     driver.quit()
 
   def do_post(self, url, data, headers):
-    response = requests.request("POST", url, data=data, headers=headers)
-    response = json.loads(response.text)
-    while 'error' in response and type(response['error']) == type({}) and response['error'].get('code', 0) == 429:
-      response = requests.request("POST", url, data=data, headers=headers)
-      response = json.loads(response.text)
-    if 'error' in response: print(response)
-    return response
+    cnt = 0
+    max_try = 3
+    while cnt < max_try:
+      print("=============== Try do post {} time ==============".format(cnt))
+      try:
+        response = requests.request("POST", url, data=data, headers=headers)
+        response = json.loads(response.text)
+        print(response)
+        while 'error' in response and type(response['error']) == type({}) and response['error'].get('code', 0) == 429:
+          response = requests.request("POST", url, data=data, headers=headers)
+          response = json.loads(response.text)
+          print(response)
+        if 'error' in response: print(response)
+        return response
+      except:
+        if cnt < max_try:
+          cnt = cnt + 1
+          pass
+        else:
+          raise
+
+
   
   def do_put(self, url, data, headers):
-    response = requests.request("PUT", url, data=data, headers=headers)
-    response = json.loads(response.text)
-    while 'error' in response and response['error']['code'] == 429:
-      response = requests.request("PUT", url, data=data, headers=headers)
-      response = json.loads(response.text)
-    return response
+    cnt = 0
+    max_try = 3
+    while cnt < max_try:
+      print("=============== Try do put {} time ==============".format(cnt))
+      try:
+        response = requests.request("PUT", url, data=data, headers=headers)
+        print(response)
+        response = json.loads(response.text)
+        while 'error' in response and response['error']['code'] == 429:
+          response = requests.request("PUT", url, data=data, headers=headers)
+          print(response)
+          response = json.loads(response.text)
+        return response
+      except:
+        if cnt < max_try:
+          cnt = cnt + 1
+          pass
+        else:
+          raise
+
+
   
   def do_get(self, url, headers):
-    response = requests.request("GET", url, headers=headers)
-    response = json.loads(response.text)
-    while 'error' in response and response['error']['code'] == 429:
-      response = requests.request("GET", url, headers=headers)
-      response = json.loads(response.text)
-    return response
+    cnt = 0
+    max_try = 3
+    while cnt < max_try:
+      print("=============== Try do get {} time ==============".format(cnt))
+      try:
+        response = requests.request("GET", url, headers=headers)
+        print(response)
+        response = json.loads(response.text)
+        while 'error' in response and response['error']['code'] == 429:
+          response = requests.request("GET", url, headers=headers)
+          response = json.loads(response.text)
+        return response
+      except:
+        if cnt < max_try:
+          cnt = cnt + 1
+          pass
+        else:
+          raise
+
+
 
   def get_token(self):
     auth = (self.client_id + ':' + self.client_secret).encode('ascii')
@@ -183,27 +227,39 @@ class Cafe24Manager:
 
 
   def refresh(self):
-    auth = (self.client_id + ':' + self.client_secret).encode('ascii')
-    auth = 'Basic ' + str(base64.b64encode(auth))[2:-1]
-    url = 'https://{}.cafe24api.com/api/v2/oauth/token'.format(self.mall_id)
-    
-    headers = {
-      'Authorization': auth,
-      'Content-Type': "application/x-www-form-urlencoded"
-    }
+    cnt = 0
+    max_try = 3
+    while cnt < max_try:
+      print("=============== Try refresh token {} time ==============".format(cnt))
+      time.sleep(10)
+      try:
+        auth = (self.client_id + ':' + self.client_secret).encode('ascii')
+        auth = 'Basic ' + str(base64.b64encode(auth))[2:-1]
+        url = 'https://{}.cafe24api.com/api/v2/oauth/token'.format(self.mall_id)
+        
+        headers = {
+          'Authorization': auth,
+          'Content-Type': "application/x-www-form-urlencoded"
+        }
 
-    data = {
-      'grant_type': 'refresh_token',
-      'refresh_token': self.refresh_token
-    }
-    
-    response = self.do_post(url, data, headers)
-    
-    print(response)
+        data = {
+          'grant_type': 'refresh_token',
+          'refresh_token': self.refresh_token
+        }
+        
+        response = self.do_post(url, data, headers)
 
-    self.token = response['access_token']
-    self.refresh_token = response['refresh_token']
-    #print('refresh token', self.token, self.refresh_token)
+        self.token = response['access_token']
+        self.refresh_token = response['refresh_token']
+        break;
+        #print('refresh token', self.token, self.refresh_token)
+      except:
+        if cnt < max_try:
+          cnt = cnt + 1
+          pass
+        else:
+          raise
+
 
   def upload_image(self, image):
     url = "https://{}.cafe24api.com/api/v2/admin/products/images".format(self.mall_id)
@@ -222,15 +278,19 @@ class Cafe24Manager:
     #print(headers)
     #print(data)
     response = self.do_post(url, json.dumps(data), headers)
-    #print(response)
 
     try:
       image_path = response['images'][0]['path']
+      print(response['images'])
+      print(image_path)
     except Exception as e:
       print(e)
       print(response)
       raise e
-    return image_path[len('http://{}.cafe24api.com'.format(self.mall_id))-3:]
+    #print(image_path[len('http://{}.cafe24api.com'.format(self.mall_id))-3:])
+    print(image_path[len('http://{}.shop'.format(self.mall_id)):])
+    #return image_path[len('http://{}.cafe24api.com'.format(self.mall_id))-3:]
+    return image_path[len('http://{}.shop'.format(self.mall_id)):]
 
   def upload_image_from_file(self, fpath):
     imgFile = open(fpath, 'rb')
