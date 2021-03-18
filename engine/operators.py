@@ -122,9 +122,9 @@ class BFSIterator(BaseOperator):
 
       # check invalid page
       print("Check is invalid page")
-      invalid_amazon_xpath = '//img[@alt=\'Dogs of Amazon\']'
-      invalid_jomashop_xpath = '//div[@class=\'image-404\'] | //div[@class=\'product-buttons\']//span[contains(text(),\'OUT OF STOCK\')] | //div[contains(text(),\'Sold Out\')] | //span[contains(text(),\'Ships In\')] | //span[contains(text(),\'Contact us for\')] | //*[text()=\'Unable to fetch data\'] '
-      invalid_jalando_xpath = '//h2[contains(text(),\'Out of stock\')] | //h1[contains(text(),\'find this page\')]'
+      invalid_amazon_xpath = "//img[@alt='Dogs of Amazon']"
+      invalid_jomashop_xpath = "//div[@class='image-404'] | //div[@class='product-buttons']//span[contains(text(),'OUT OF STOCK')] | //div[contains(text(),'Sold Out')] | //span[contains(text(),'Ships In')] | //span[contains(text(),'Contact us for')] | //*[text()='Unable to fetch data']"
+      invalid_jalando_xpath = "//h2[contains(text(),'Out of stock')] | //h1[contains(text(),'find this page')]"
       invalid_page_xpath = invalid_amazon_xpath + ' | ' + invalid_jomashop_xpath + ' | ' + invalid_jalando_xpath 
       is_invalid_page = gvar.web_mgr.get_elements_by_selenium_(invalid_page_xpath)
       if len(is_invalid_page) != 0:

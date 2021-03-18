@@ -17,6 +17,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 import time
+import requests
+import http
 
 software_names = [SoftwareName.CHROME.value]
 operating_systems = [OperatingSystem.WINDOWS.value, OperatingSystem.LINUX.value]
@@ -85,6 +87,18 @@ class WebManager():
         user_agent = settings['chromedriver_user_agent']
         #user_agent = user_agent_rotator.get_random_user_agent()
         option.add_argument('--user-agent={}'.format(user_agent))
+        #user_agent = user_agent_rotator.get_random_user_agent()
+        #option.add_argument('--anti-csrftoken-a2z={}'.format(token))
+        #option.add_argument('anti-csrftoken-a2z={}'.format(token))
+        ##option.add_argument('Anti-Csrftoken-A2z={}'.format(token))
+        ##option.add_argument('--Anti-Csrftoken-A2z={}'.format(token))
+        ##option.add_argument('Anti-Csrftoken-a2z={}'.format(token))
+        #option.add_argument('anti-csrf-token={}'.format(token))
+        #option.add_argument('--anti-csrf-token={}'.format(token))
+        #option.add_argument('x-csrf-token={}'.format(token))
+        #option.add_argument('--x-csrf-token={}'.format(token))
+        #option.add_argument('--Content-Type=application/json;charset=utf-8')
+        #option.add_argument('Content-Type=application/json;charset=utf-8')
         
         #driver = webdriver.Chrome(driver_path, chrome_options = option)
         driver = webdriver.Chrome(driver_path, options = option)
@@ -443,28 +457,40 @@ class WebManager():
 
   def click_elements_repeat(self, xpath, time_sleep):
     try:
+      outer_cnt = 0
+      outer_max_try = 10
       while True:
         self.get_cur_driver_().execute_script("window.scrollTo(0, document.body.scrollHeight)")
         time.sleep(3)
         elements = self.get_elements_by_selenium_(xpath)
         num_elements = len(elements)
+        # End outer loop if there is no button
         if num_elements == 0: break
+        inner_cnt = 0
+        inner_max_try = 10
         while True:
           try:
-            element = WebDriverWait(self.get_cur_driver_(), 30).until(EC.element_to_be_clickable((By.XPATH, xpath)))  
+            element = WebDriverWait(self.get_cur_driver_(), 60).until(EC.element_to_be_clickable((By.XPATH, xpath)))  
             self.get_cur_driver_().execute_script("window.scrollTo(0, document.body.scrollHeight)")
             time.sleep(3)
             element.click()
             break;
           except:
             print("Element is not clickable, so retry")
-            pass
+            time.sleep(3)
+            if inner_cnt < inner_max_try:
+              inner_cnt = inner_cnt + 1
+              pass
+            else:
+              outer_cnt = outer_cnt + 1
+              break
+        if outer_cnt > outer_max_try:
+          break
       time.sleep(time_sleep)
       return
     except Exception as e:
-      raise WebMgrErr(e)
       return
-    return;
+    return
 
   def click_elements(self, xpath):
     try:
@@ -628,9 +654,19 @@ class WebManager():
 
 
 if __name__ == '__main__':
+  url = "https://www.amazon.com/gp/glow/get-address-selections.html?deviceType=desktop&pageType=Gateway&storeContext=NoStoreName"
+  headers = {'User-Agent':'PostmanRuntime/7.19.0'}
+  response = requests.request("POST", url, headers=headers)
+  print(response.text.split('CSRF_TOKEN : "')[1].split('", IDs')[0])
+  token = response.text.split('CSRF_TOKEN : "')[1].split('", IDs')[0]
+
   web_manager = WebManager()
-  web_manager.init({"chromedriver_user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.182"})
+  web_manager.init({"chromedriver_user_agent":"PostmanRuntime/7.19.0", 'token': token})
+  #web_manager.load('https://www.amazon.com/gp/glow/get-address-selections.html?deviceType=desktop&pageType=Gateway&storeContext=NoStoreName')
+  #print(web_manager.get_html().split('CSRF_TOKEN : "')[1].split('", IDs')[0])
   web_manager.get_cur_driver_().delete_all_cookies()
+  web_manager.load('http://www.amazon.com/gp/delivery/ajax/address-change.html?locationType=LOCATION_INPUT&zipCode=94024&storeContext=office-products&deviceType=web&pageType=Detail&actionSource=glow&almBrandId=undefined')
+  print(web_manager.get_html())
   web_manager.close()
 #
 #  try:
