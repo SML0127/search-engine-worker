@@ -88,17 +88,9 @@ class WebManager():
         #user_agent = user_agent_rotator.get_random_user_agent()
         option.add_argument('--user-agent={}'.format(user_agent))
         #user_agent = user_agent_rotator.get_random_user_agent()
-        #option.add_argument('--anti-csrftoken-a2z={}'.format(token))
-        #option.add_argument('anti-csrftoken-a2z={}'.format(token))
-        ##option.add_argument('Anti-Csrftoken-A2z={}'.format(token))
-        ##option.add_argument('--Anti-Csrftoken-A2z={}'.format(token))
-        ##option.add_argument('Anti-Csrftoken-a2z={}'.format(token))
-        #option.add_argument('anti-csrf-token={}'.format(token))
-        #option.add_argument('--anti-csrf-token={}'.format(token))
-        #option.add_argument('x-csrf-token={}'.format(token))
-        #option.add_argument('--x-csrf-token={}'.format(token))
-        #option.add_argument('--Content-Type=application/json;charset=utf-8')
-        #option.add_argument('Content-Type=application/json;charset=utf-8')
+        token = settings.get('token','')
+        option.add_argument('--anti-csrftoken-a2z={}'.format(token))
+        option.add_argument('anti-csrftoken-a2z={}'.format(token))
         
         #driver = webdriver.Chrome(driver_path, chrome_options = option)
         driver = webdriver.Chrome(driver_path, options = option)
@@ -300,8 +292,7 @@ class WebManager():
 
 
   def get_elements_by_selenium_strong_(self, xpath):
-    #driver = self.get_cur_driver_()
-    #element = WebDriverWait(driver, 60).until(EC.presence_of_element_located((By.XPATH, xpath)))
+    element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, xpath)))
     elements = self.get_elements_by_selenium_(xpath)
     if len(elements) == 0:
       raise NoElementFoundError(xpath)
@@ -458,17 +449,12 @@ class WebManager():
 
   def click_elements_repeat(self, xpath, time_sleep):
     try:
-      outer_cnt = 0
-      outer_max_try = 10
       while True:
         self.get_cur_driver_().execute_script("window.scrollTo(0, document.body.scrollHeight)")
         time.sleep(3)
         elements = self.get_elements_by_selenium_(xpath)
         num_elements = len(elements)
-        # End outer loop if there is no button
         if num_elements == 0: break
-        inner_cnt = 0
-        inner_max_try = 10
         while True:
           try:
             element = WebDriverWait(self.get_cur_driver_(), 60).until(EC.element_to_be_clickable((By.XPATH, xpath)))  
@@ -478,20 +464,14 @@ class WebManager():
             break;
           except:
             print("Element is not clickable, so retry")
-            time.sleep(3)
-            if inner_cnt < inner_max_try:
-              inner_cnt = inner_cnt + 1
-              pass
-            else:
-              outer_cnt = outer_cnt + 1
-              break
-        if outer_cnt > outer_max_try:
-          break
+            time.sleep(10)
+            pass
       time.sleep(time_sleep)
       return
     except Exception as e:
+      raise WebMgrErr(e)
       return
-    return
+    return;
 
   def click_elements(self, xpath):
     try:
@@ -655,19 +635,59 @@ class WebManager():
 
 
 if __name__ == '__main__':
-  url = "https://www.amazon.com/gp/glow/get-address-selections.html?deviceType=desktop&pageType=Gateway&storeContext=NoStoreName"
-  headers = {'User-Agent':'PostmanRuntime/7.19.0'}
-  response = requests.request("POST", url, headers=headers)
-  print(response.text.split('CSRF_TOKEN : "')[1].split('", IDs')[0])
-  token = response.text.split('CSRF_TOKEN : "')[1].split('", IDs')[0]
+  ## session example ------------------
+  #url = "http://www.amazon.com/gp/glow/get-address-selections.html?deviceType=desktop&pageType=Gateway&storeContext=NoStoreName"
+  #headers = {'User-Agent':''}
+  #session = requests.Session()
+  #response = session.post(url, headers=headers)
 
+  #print(response.text.split('CSRF_TOKEN : "')[1].split('", IDs')[0])
+  #token = response.text.split('CSRF_TOKEN : "')[1].split('", IDs')[0]
+
+  #url = "https://www.amazon.com/gp/delivery/ajax/address-change.html?locationType=LOCATION_INPUT&zipCode=94024&storeContext=office-products&deviceType=web&pageType=Detail&actionSource=glow"
+  #headers = {
+  #  'anti-csrftoken-a2z': token,
+  #  'User-Agent': 'PSE/1.0'
+  #}
+  #response = session.post(url, headers=headers, cookies = session.cookies.get_dict())
+  #
+  #print(response.text)
+  ##web_manager.close()
+  #
+
+  #url = 'https://www.amazon.com/gp/glow/get-location-label.html?storeContext=hpc&pageType=Landing'
+  #response = session.post(url, headers=headers, cookies = session.cookies.get_dict())
+  #print(response.text)
+  ## session example ----------------
+
+  url = "http://www.amazon.com/gp/glow/get-address-selections.html?deviceType=desktop&pageType=Gateway"
+ 
   web_manager = WebManager()
-  web_manager.init({"chromedriver_user_agent":"PostmanRuntime/7.19.0", 'token': token})
-  #web_manager.load('https://www.amazon.com/gp/glow/get-address-selections.html?deviceType=desktop&pageType=Gateway&storeContext=NoStoreName')
-  #print(web_manager.get_html().split('CSRF_TOKEN : "')[1].split('", IDs')[0])
-  web_manager.get_cur_driver_().delete_all_cookies()
-  web_manager.load('http://www.amazon.com/gp/delivery/ajax/address-change.html?locationType=LOCATION_INPUT&zipCode=94024&storeContext=office-products&deviceType=web&pageType=Detail&actionSource=glow&almBrandId=undefined')
-  print(web_manager.get_html())
+  web_manager.init({"chromedriver_user_agent":"PostmanRuntime/7.19.0"})
+  def interceptor(request):
+      request.method = 'POST'
+  web_manager.get_cur_driver_().request_interceptor = interceptor 
+  
+  web_manager.load(url)
+  print(web_manager.get_html().split('CSRF_TOKEN : "')[1].split('", IDs')[0])
+  token = web_manager.get_html().split('CSRF_TOKEN : "')[1].split('", IDs')[0]
+
+
+##
+  url = 'http://www.amazon.com/gp/delivery/ajax/address-change.html?locationType=LOCATION_INPUT&zipCode=94024&storeContext=office-products&deviceType=web&pageType=Detail&actionSource=glow&almBrandId=undefined'
+  def interceptor2(request):
+      del request.headers['anti-csrftoken-a2z']
+      request.headers['anti-csrftoken-a2z'] = token 
+  web_manager.get_cur_driver_().request_interceptor = interceptor2 
+  web_manager.load(url)
+  web_manager.load('https://www.amazon.com/s?i=electronics&rh=n%3A7939901011%2Cp_n_condition-type%3A6461716011%2Cp_36%3A5000-130000&dc&qid=1585219073&rnid=386442011&ref=sr_pg_1')
+  print(web_manager.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext"))
+  web_manager.load('https://www.naver.com/')
+  time.sleep(1)
+  print(web_manager.get_value_by_selenium('//*[@id="header"]/div[1]/div/div[1]/h1/a/span', "alltext"))
+  web_manager.load('https://www.amazon.com')
+  time.sleep(1)
+  print(web_manager.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext"))
   web_manager.close()
 #
 #  try:
@@ -676,38 +696,5 @@ if __name__ == '__main__':
 #
 #    print(web_manager.get_value_by_selenium("//span[@id='productTitle']", "alltext"))
 #    #print(web_manager.get_value_by_selenium("//span[@id='productTitle1']", "alltext"))
-#    print(web_manager.get_value_by_selenium_strong("//span[@id='productTitle']", "alltext"))
-#    #print(web_manager.get_value_by_selenium_strong("//span[@id='productTitle1']", "alltext"))
-#    print(web_manager.get_values_by_selenium("//div[@id='centerCol']//li/span", "alltext"))
-#    print(web_manager.get_values_by_selenium("//div[@id='centerCol']//li/span1", "alltext"))
-#    print(web_manager.get_values_by_selenium_strong("//div[@id='centerCol']//li/span", "alltext"))
-#    #print(web_manager.get_values_by_selenium_strong("//div[@id='centerCol']//li/span1", "alltext"))
-#
-#    print(web_manager.get_key_values_by_selenium("//div[@class='content']/ul/li", "./b", "alltext", ".", "alltext"))
-#    print(web_manager.get_key_values_by_selenium("//div[@class='content']/ul/li1", "./b", "alltext", ".", "alltext"))
-#    print(web_manager.get_key_values_by_selenium_strong("//div[@class='content']/ul/li", "./b", "alltext", ".", "alltext"))
-#    #print(web_manager.get_key_values_by_selenium_strong("//div[@class='content']/ul/li1", "./b", "alltext", ".", "alltext"))
-#
-#    web_manager.build_lxml_tree()
-#    print(web_manager.get_value_by_lxml("//span[@id='productTitle']", "alltext"))
-#    #print(web_manager.get_value_by_lxml("//span[@id='productTitle1']", "alltext"))
-#    print(web_manager.get_value_by_lxml_strong("//span[@id='productTitle']", "alltext"))
-#    #print(web_manager.get_value_by_lxml_strong("//span[@id='productTitle1']", "alltext"))
-#    print(web_manager.get_values_by_lxml("//div[@id='centerCol']//li/span", "alltext"))
-#    print(web_manager.get_values_by_lxml("//div[@id='centerCol']//li/span1", "alltext"))
-#    print(web_manager.get_values_by_lxml_strong("//div[@id='centerCol']//li/span", "alltext"))
-#    #print(web_manager.get_values_by_lxml_strong("//div[@id='centerCol']//li/span1", "alltext"))
-#
-#    print(web_manager.get_key_values_by_lxml("//div[@class='content']/ul/li", "./b", "alltext", ".", "alltext"))
-#    print(web_manager.get_key_values_by_lxml("//div[@class='content']/ul/li1", "./b", "alltext", ".", "alltext"))
-#    print(web_manager.get_key_values_by_lxml_strong("//div[@class='content']/ul/li", "./b", "alltext", ".", "alltext"))
-#    #print(web_manager.get_key_values_by_lxml_strong("//div[@class='content']/ul/li1", "./b", "alltext", ".", "alltext"))
-#
-#    print(web_manager.get_subtree_with_style("//ul[@class='a-unordered-list a-vertical a-spacing-none']"))
-#    print(web_manager.get_subtree_with_style_strong("//ul[@class='a-unordered-list a-vertical a-spacing-none']"))
-#
-#  except Exception as e:
-#    print(e)
-#    pass
-#  web_manager.close()
+
 

@@ -10,6 +10,7 @@ from PIL import Image
 import requests
 from price_parser import Price
 from datetime import datetime, timedelta, date
+from urllib.parse import urlparse
 
 class GraphManager():
 
@@ -2240,9 +2241,52 @@ class GraphManager():
       self.gp_conn.commit()
       return 
     except Exception as e:
-      self.pg_conn.rollback()
+      self.gp_conn.rollback()
       print(str(traceback.format_exc()))
       raise e
+
+
+  def get_zipcode(self, url, zipcode):
+    try:
+      src_url = urlparse(url).netloc 
+      query =  "select count(zipcode) from url_and_zipcode where url = '{}';".format(url)
+      self.gp_cur.execute(query)
+      result = self.gp_cur.fetchone()[0]
+      if int(result) == 0:
+        query = "insert into url_and_zipcode(url,zipcode) values('{}','{}')".format(src_url, zipcode) 
+        self.gp_cur.execute(query)
+        self.gp_conn.commit()
+        return zipcode
+      else:
+        query =  "select zipcode from url_and_zipcode where url = '{}';".format(src_url)
+        self.gp_cur.execute(query)
+        result = self.gp_cur.fetchone()[0]
+        return result
+    except Exception as e:
+      self.gp_conn.rollback()
+      print(str(traceback.format_exc()))
+      raise e
+
+  def update_zipcode(self, url, zipcode):
+    try:
+      src_url = urlparse(url).netloc 
+      query =  "select count(zipcode) from url_and_zipcode where url = '{}';".format(url)
+      self.gp_cur.execute(query)
+      result = self.gp_cur.fetchone()[0]
+      if int(result) == 0:
+         query = "insert into url_and_zipcode(url,zipcode) values('{}','{}')".format(src_url, zipcode)
+      else:
+         query = "update url_and_zipcode set zipcode = '{}' where url = '{}'".format(zipcode, src_url)
+      self.gp_cur.execute(query)
+      self.gp_conn.commit()
+      return
+    except Exception as e:
+      self.gp_conn.rollback()
+      print(str(traceback.format_exc()))
+      raise e
+
+
+
 
 
 

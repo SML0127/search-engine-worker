@@ -4,6 +4,7 @@ import time
 from lxml import etree
 import traceback
 import random
+from urllib.parse import urlparse
 
 class GlovalVariable():
 
@@ -69,6 +70,7 @@ class BaseOperator():
 
 class BFSIterator(BaseOperator):
 
+
   def run(self, gvar):
     op_name = "BFSIterator"
     try:
@@ -81,11 +83,51 @@ class BFSIterator(BaseOperator):
       print("op_id:", op_id)
       print("task_url:", gvar.task_url)
 
+      if gvar.task_zipcode_url is not None:
+        print("zipcode:", gvar.task_zipcode_url)
+ 
       # load page
       gvar.web_mgr.load(gvar.task_url)
       time.sleep(1) 
       if gvar.task_url != gvar.web_mgr.get_current_url():
         time.sleep(5)
+ 
+      ########## set zicpode 
+      src_url = urlparse(gvar.task_url).netloc 
+      if 'amazon' in src_url:
+        site_zipcode = gvar.web_mgr.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext")
+        zipcode = gvar.graph_mgr.get_zipcode(src_url, gvar.task_zipcode_url)
+        print('zipcode = ', site_zipcode)
+        if zipcode not in site_zipcode:
+          url = "http://www.amazon.com/gp/glow/get-address-selections.html?deviceType=desktop&pageType=Gateway"
+          def interceptor(request):
+            request.method = 'POST'
+          gvar.web_mgr.get_cur_driver_().request_interceptor = interceptor 
+          gvar.web_mgr.load(url)
+          time.sleep(1) 
+
+          token = gvar.web_mgr.get_html().split('CSRF_TOKEN : "')[1].split('", IDs')[0]
+
+          url = 'http://www.amazon.com/gp/delivery/ajax/address-change.html?locationType=LOCATION_INPUT&zipCode={}&storeContext=office-products&deviceType=web&pageType=Detail&actionSource=glow&almBrandId=undefined'.format(zipcode)
+          def interceptor2(request):
+            del request.headers['anti-csrftoken-a2z']
+            request.headers['anti-csrftoken-a2z'] = token 
+          gvar.web_mgr.get_cur_driver_().request_interceptor = interceptor2 
+          gvar.web_mgr.load(url)
+          time.sleep(2)
+          gvar.web_mgr.load(gvar.task_url)
+          time.sleep(2) 
+          if gvar.task_url != gvar.web_mgr.get_current_url():
+            time.sleep(5)
+          site_zipcode = gvar.web_mgr.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext")
+          print('(After apply) zipcode = ', site_zipcode)
+          def interceptor3(request):
+            del request.headers['anti-csrftoken-a2z']
+            request.method = 'GET'
+          gvar.web_mgr.get_cur_driver_().request_interceptor = interceptor3 
+      ####################################
+
+
 
       # check is blocked
       print("Check is blocked")
@@ -129,6 +171,9 @@ class BFSIterator(BaseOperator):
       is_invalid_page = gvar.web_mgr.get_elements_by_selenium_(invalid_page_xpath)
       if len(is_invalid_page) != 0:
         return
+
+
+      
 
       node_id = gvar.graph_mgr.create_node(gvar.task_id, parent_node_id, label)
       gvar.stack_nodes.append(node_id)
