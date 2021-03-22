@@ -2260,7 +2260,7 @@ class GraphManager():
         query =  "select zipcode from url_and_zipcode where url = '{}';".format(src_url)
         self.gp_cur.execute(query)
         result = self.gp_cur.fetchone()[0]
-        if int(result) != int(zipcode):
+        if str(result) != str(zipcode):
           query = "update url_and_zipcode set zipcode = '{}' where url = '{}'".format(zipcode, src_url)
           self.gp_cur.execute(query)
           self.gp_conn.commit()

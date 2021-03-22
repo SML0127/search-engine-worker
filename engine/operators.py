@@ -1,5 +1,6 @@
 from util.pse_errors import *
 from lxml import html
+import string
 import time
 from lxml import etree
 import traceback
@@ -70,6 +71,24 @@ class BaseOperator():
 
 class BFSIterator(BaseOperator):
 
+  def check_captcha(self, url, gvar):
+    try:
+      print("Check is blocked")
+      chaptcha_xpath = '//input[@id=\'captchacharacters\']' # for amazon
+      check_chaptcha = gvar.web_mgr.get_elements_by_selenium_(chaptcha_xpath)
+      sleep_time = 900
+      random_time = random.randrange(1,61)
+      sleep_time += int(random_time)
+      while(len(check_chaptcha) != 0):
+         print("Wait {} secs".format(str(sleep_time)))
+         time.sleep(sleep_time)
+         gvar.web_mgr.load(url)
+         gvar.web_mgr.wait_loading()
+         random_time = random.randrange(1,61)
+         sleep_time += 300 + int(random_time)
+         check_chaptcha = gvar.web_mgr.get_elements_by_selenium_(chaptcha_xpath)
+    except:
+        raise
 
   def run(self, gvar):
     op_name = "BFSIterator"
@@ -87,6 +106,12 @@ class BFSIterator(BaseOperator):
         print("zipcode:", gvar.task_zipcode_url)
  
       # load page
+      # for amazon.de
+      def interceptor0(request):
+        del request.headers['user-agent']
+        request.headers['user-agent'] = str(random.randrange(1,99999999)) + str(''.join(random.choices(string.ascii_uppercase + string.digits, k=15))) + str(random.randrange(1,99999999))
+      gvar.web_mgr.get_cur_driver_().request_interceptor = interceptor0
+
       gvar.web_mgr.load(gvar.task_url)
       time.sleep(1) 
       if gvar.task_url != gvar.web_mgr.get_current_url():
@@ -99,6 +124,13 @@ class BFSIterator(BaseOperator):
         site_zipcode = gvar.web_mgr.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext")
         zipcode = gvar.graph_mgr.get_zipcode(src_url, gvar.task_zipcode_url)
         print('zipcode = ', site_zipcode)
+        if site_zipcode is None:
+          while True:
+            time.sleep(5)
+            gvar.web_mgr.get_cur_driver_().request_interceptor = interceptor0
+            site_zipcode = gvar.web_mgr.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext")
+            print('zipcode = ', site_zipcode)
+            if site_zipcode is not None: break;
         if zipcode not in site_zipcode:
           if 'de' in src_url:
             url = "http://www.amazon.de/gp/glow/get-address-selections.html?deviceType=desktop&pageType=Gateway"
@@ -108,12 +140,16 @@ class BFSIterator(BaseOperator):
             url = "http://www.amazon.com/gp/glow/get-address-selections.html?deviceType=desktop&pageType=Gateway"
           def interceptor(request):
             request.method = 'POST'
+            # for amazon.de
+            request.headers['user-agent'] = str(random.randrange(1,99999999)) + str(''.join(random.choices(string.ascii_uppercase + string.digits, k=15))) + str(random.randrange(1,99999999))
           gvar.web_mgr.get_cur_driver_().request_interceptor = interceptor 
           gvar.web_mgr.load(url)
           time.sleep(1) 
+          self.check_captcha(url, gvar)        
+
 
           token = gvar.web_mgr.get_html().split('CSRF_TOKEN : "')[1].split('", IDs')[0]
-
+          print(token)
           if 'de' in src_url:
             url = 'http://www.amazon.de/gp/delivery/ajax/address-change.html?locationType=LOCATION_INPUT&zipCode={}&storeContext=office-products&deviceType=web&pageType=Detail&actionSource=glow&almBrandId=undefined'.format(zipcode)
           elif 'uk' in src_url:
@@ -122,9 +158,12 @@ class BFSIterator(BaseOperator):
             url = 'http://www.amazon.com/gp/delivery/ajax/address-change.html?locationType=LOCATION_INPUT&zipCode={}&storeContext=office-products&deviceType=web&pageType=Detail&actionSource=glow&almBrandId=undefined'.format(zipcode)
           def interceptor2(request):
             del request.headers['anti-csrftoken-a2z']
+            # for amazon.de
+            request.headers['user-agent'] = str(random.randrange(1,99999999)) + str(''.join(random.choices(string.ascii_uppercase + string.digits, k=15))) + str(random.randrange(1,99999999))
             request.headers['anti-csrftoken-a2z'] = token 
           gvar.web_mgr.get_cur_driver_().request_interceptor = interceptor2 
           gvar.web_mgr.load(url)
+          self.check_captcha(url, gvar)        
           time.sleep(2)
           gvar.web_mgr.load(gvar.task_url)
           time.sleep(2) 
