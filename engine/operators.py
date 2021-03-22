@@ -94,12 +94,18 @@ class BFSIterator(BaseOperator):
  
       ########## set zicpode 
       src_url = urlparse(gvar.task_url).netloc 
+      print('src_url = ', src_url)
       if 'amazon' in src_url:
         site_zipcode = gvar.web_mgr.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext")
         zipcode = gvar.graph_mgr.get_zipcode(src_url, gvar.task_zipcode_url)
         print('zipcode = ', site_zipcode)
         if zipcode not in site_zipcode:
-          url = "http://www.amazon.com/gp/glow/get-address-selections.html?deviceType=desktop&pageType=Gateway"
+          if 'de' in src_url:
+            url = "http://www.amazon.de/gp/glow/get-address-selections.html?deviceType=desktop&pageType=Gateway"
+          elif 'uk' in src_url:
+            url = "http://www.amazon.co.uk/gp/glow/get-address-selections.html?deviceType=desktop&pageType=Gateway"
+          else:
+            url = "http://www.amazon.com/gp/glow/get-address-selections.html?deviceType=desktop&pageType=Gateway"
           def interceptor(request):
             request.method = 'POST'
           gvar.web_mgr.get_cur_driver_().request_interceptor = interceptor 
@@ -108,7 +114,12 @@ class BFSIterator(BaseOperator):
 
           token = gvar.web_mgr.get_html().split('CSRF_TOKEN : "')[1].split('", IDs')[0]
 
-          url = 'http://www.amazon.com/gp/delivery/ajax/address-change.html?locationType=LOCATION_INPUT&zipCode={}&storeContext=office-products&deviceType=web&pageType=Detail&actionSource=glow&almBrandId=undefined'.format(zipcode)
+          if 'de' in src_url:
+            url = 'http://www.amazon.co.de/gp/delivery/ajax/address-change.html?locationType=LOCATION_INPUT&zipCode={}&storeContext=office-products&deviceType=web&pageType=Detail&actionSource=glow&almBrandId=undefined'.format(zipcode)
+          elif 'uk' in src_url:
+            url = 'http://www.amazon.co.uk/gp/delivery/ajax/address-change.html?locationType=LOCATION_INPUT&zipCode={}&storeContext=office-products&deviceType=web&pageType=Detail&actionSource=glow&almBrandId=undefined'.format(zipcode)
+          else:
+            url = 'http://www.amazon.com/gp/delivery/ajax/address-change.html?locationType=LOCATION_INPUT&zipCode={}&storeContext=office-products&deviceType=web&pageType=Detail&actionSource=glow&almBrandId=undefined'.format(zipcode)
           def interceptor2(request):
             del request.headers['anti-csrftoken-a2z']
             request.headers['anti-csrftoken-a2z'] = token 
@@ -164,8 +175,8 @@ class BFSIterator(BaseOperator):
 
       # check invalid page
       print("Check is invalid page")
-      invalid_amazon_xpath = "//img[@alt='Dogs of Amazon']"
-      invalid_jomashop_xpath = "//div[@class='image-404'] | //div[@class='product-buttons']//span[contains(text(),'OUT OF STOCK')] | //div[contains(text(),'Sold Out')] | //span[contains(text(),'Ships In')] | //span[contains(text(),'Contact us for')] | //*[text()='Unable to fetch data']"
+      invalid_amazon_xpath = "//img[@alt='Dogs of Amazon'] | //span[contains(@id,'priceblock_') and contains(text(),'-')]"
+      invalid_jomashop_xpath = "//div[@class='image-404'] | //div[@class='product-buttons']//span[contains(text(),'OUT OF STOCK')] | //div[contains(text(),'Sold Out')] | //span[contains(text(),'Ships In')] | //span[contains(text(),'Contact us for')] | //*[text()='Unable to fetch data'] | //span[contains(text(),'Ships in')] "
       invalid_jalando_xpath = "//h2[contains(text(),'Out of stock')] | //h1[contains(text(),'find this page')]"
       invalid_page_xpath = invalid_amazon_xpath + ' | ' + invalid_jomashop_xpath + ' | ' + invalid_jalando_xpath 
       is_invalid_page = gvar.web_mgr.get_elements_by_selenium_(invalid_page_xpath)

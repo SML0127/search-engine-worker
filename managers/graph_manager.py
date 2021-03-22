@@ -2246,22 +2246,27 @@ class GraphManager():
       raise e
 
 
-  def get_zipcode(self, url, zipcode):
+  def get_zipcode(self, src_url, zipcode):
     try:
-      src_url = urlparse(url).netloc 
-      query =  "select count(zipcode) from url_and_zipcode where url = '{}';".format(url)
+      query =  "select count(zipcode) from url_and_zipcode where url = '{}';".format(src_url)
       self.gp_cur.execute(query)
       result = self.gp_cur.fetchone()[0]
       if int(result) == 0:
         query = "insert into url_and_zipcode(url,zipcode) values('{}','{}')".format(src_url, zipcode) 
         self.gp_cur.execute(query)
-        self.gp_conn.commit()
+        self.gp_conn.commit() 
         return zipcode
       else:
         query =  "select zipcode from url_and_zipcode where url = '{}';".format(src_url)
         self.gp_cur.execute(query)
         result = self.gp_cur.fetchone()[0]
-        return result
+        if int(result) != int(zipcode):
+          query = "update url_and_zipcode set zipcode = '{}' where url = '{}'".format(zipcode, src_url)
+          self.gp_cur.execute(query)
+          self.gp_conn.commit()
+          return zipcode
+        else:
+          return result
     except Exception as e:
       self.gp_conn.rollback()
       print(str(traceback.format_exc()))

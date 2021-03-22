@@ -287,10 +287,13 @@ class Cafe24Manager:
       print(e)
       print(response)
       raise e
-    #print(image_path[len('http://{}.cafe24api.com'.format(self.mall_id))-3:])
-    print(image_path[len('http://{}.shop'.format(self.mall_id)):])
-    #return image_path[len('http://{}.cafe24api.com'.format(self.mall_id))-3:]
-    return image_path[len('http://{}.shop'.format(self.mall_id)):]
+
+    if 'cafe24.com' in image_path:
+      print(image_path[len('http://{}.cafe24.com'.format(self.mall_id)):])
+      return image_path[len('http://{}.cafe24.com'.format(self.mall_id)):]
+    else:
+      print(image_path[len('http://{}.shop'.format(self.mall_id)):])
+      return image_path[len('http://{}.shop'.format(self.mall_id)):]
 
   def upload_image_from_file(self, fpath):
     imgFile = open(fpath, 'rb')
