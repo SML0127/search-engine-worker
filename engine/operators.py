@@ -193,8 +193,8 @@ class BFSIterator(BaseOperator):
         time.sleep(3) 
         site_zipcode = gvar.web_mgr.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext")
         zipcode = gvar.graph_mgr.get_zipcode(src_url, gvar.task_zipcode_url)
-        #print('zipcode = ', site_zipcode)
-        #if zipcode not in site_zipcode:
+        print('zipcode = ', site_zipcode)
+        if zipcode not in site_zipcode:
           url = 'http://www.amazon.com/gp/delivery/ajax/address-change.html?locationType=LOCATION_INPUT&zipCode={}&storeContext=office-products&deviceType=web&pageType=Detail&actionSource=glow&almBrandId=undefined'.format(zipcode)
           def interceptor2(request):
             del request.headers['anti-csrftoken-a2z']
