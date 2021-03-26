@@ -99,71 +99,101 @@ class BFSIterator(BaseOperator):
       label = self.props['label']
 
       print("task_id:", gvar.task_id)
-      print("op_id:", op_id)
+      #print("op_id:", op_id)
       print("task_url:", gvar.task_url)
 
       if gvar.task_zipcode_url is not None:
-        print("zipcode:", gvar.task_zipcode_url)
+        print("input zipcode:", gvar.task_zipcode_url)
  
       # load page
       # for amazon.de
-      def interceptor0(request):
-        del request.headers['user-agent']
-        request.headers['user-agent'] = str(random.randrange(1,99999999)) + str(''.join(random.choices(string.ascii_uppercase + string.digits, k=15))) + str(random.randrange(1,99999999))
-      gvar.web_mgr.get_cur_driver_().request_interceptor = interceptor0
-
-      gvar.web_mgr.load(gvar.task_url)
-      time.sleep(1) 
-      if gvar.task_url != gvar.web_mgr.get_current_url():
-        time.sleep(5)
- 
-      ########## set zicpode 
       src_url = urlparse(gvar.task_url).netloc 
-      print('src_url = ', src_url)
-      if 'amazon' in src_url:
+
+      if 'amazon.de' in src_url:
+       print(src_url)
+       # def interceptor_load(request):
+       #   request.method = 'POST'
+       #   request.headers['user-agent'] = str(random.randrange(1,99999999)) + str(''.join(random.choices(string.ascii_uppercase + string.digits, k=15))) + str(random.randrange(1,99999999))
+       # gvar.web_mgr.get_cur_driver_().request_interceptor = interceptor_load
+       # gvar.web_mgr.load(gvar.task_url)
+       # time.sleep(1) 
+       # if gvar.task_url != gvar.web_mgr.get_current_url():
+       #   time.sleep(5)
+ 
+       # site_zipcode = gvar.web_mgr.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext")
+       # zipcode = gvar.graph_mgr.get_zipcode(src_url, gvar.task_zipcode_url)
+       # print('zipcode = ', site_zipcode)
+       # if site_zipcode is None:
+       #   while True:
+       #     time.sleep(5)
+       #     def interceptor_loop(request):
+       #       request.method = 'POST'
+       #       gvar.web_mgr.get_cur_driver_().request_interceptor = interceptor_loop
+       #     site_zipcode = gvar.web_mgr.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext")
+       #     print('zipcode = ', site_zipcode)
+       #     if site_zipcode is not None: break;
+       # if zipcode not in site_zipcode:
+       #   url = "http://www.amazon.de/gp/glow/get-address-selections.html?deviceType=desktop&pageType=Gateway"
+
+       #   def interceptor_de(request):
+       #     request.method = 'POST'
+       #     request.headers['user-agent'] = str(random.randrange(1,99999999)) + str(''.join(random.choices(string.ascii_uppercase + string.digits, k=15))) + str(random.randrange(1,99999999))
+       #   gvar.web_mgr.get_cur_driver_().request_interceptor = interceptor_de
+       #   gvar.web_mgr.load(url)
+       #   time.sleep(1) 
+       #   self.check_captcha(url, gvar)        
+
+       #   token = gvar.web_mgr.get_html().split('CSRF_TOKEN : "')[1].split('", IDs')[0]
+       #   print(token)
+
+       #   url = 'http://www.amazon.de/gp/delivery/ajax/address-change.html?locationType=LOCATION_INPUT&zipCode={}&storeContext=office-products&deviceType=web&pageType=Detail&actionSource=glow&almBrandId=undefined'.format(zipcode)
+       #   def interceptor_de2(request):
+       #     del request.headers['anti-csrftoken-a2z']
+       #     request.headers['user-agent'] = str(random.randrange(1,99999999)) + str(''.join(random.choices(string.ascii_uppercase + string.digits, k=15))) + str(random.randrange(1,99999999))
+       #     request.headers['anti-csrftoken-a2z'] = token 
+       #   gvar.web_mgr.get_cur_driver_().request_interceptor = interceptor_de2 
+       #    
+       #   gvar.web_mgr.load(url)
+       #   print(gvar.web_mgr.get_html())
+
+       #   self.check_captcha(url, gvar)        
+       #   time.sleep(2)
+       #   gvar.web_mgr.load(gvar.task_url)
+       #   time.sleep(2) 
+       #   if gvar.task_url != gvar.web_mgr.get_current_url():
+       #     time.sleep(5)
+       #   site_zipcode = gvar.web_mgr.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext")
+       #   print('(After apply) zipcode = ', site_zipcode)
+       #   def interceptor_de3(request):
+       #     del request.headers['anti-csrftoken-a2z']
+       #     request.method = 'GET'
+       #   gvar.web_mgr.get_cur_driver_().request_interceptor = interceptor_de3 
+
+
+      elif 'amazon.com' in src_url or 'amazon.co.uk' in src_url:
+        # Get token for zipcode
+        url = "http://www.amazon.com/gp/glow/get-address-selections.html?deviceType=desktop&pageType=Gateway"
+        def interceptor(request):
+          request.method = 'POST'
+         
+        gvar.web_mgr.get_cur_driver_().request_interceptor = interceptor 
+        gvar.web_mgr.load(url)
+        time.sleep(1) 
+        token = gvar.web_mgr.get_html().split('CSRF_TOKEN : "')[1].split('", IDs')[0]
+
+        # Check zicpode 
+        gvar.web_mgr.load(gvar.task_url)
+        time.sleep(3) 
         site_zipcode = gvar.web_mgr.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext")
         zipcode = gvar.graph_mgr.get_zipcode(src_url, gvar.task_zipcode_url)
         print('zipcode = ', site_zipcode)
-        if site_zipcode is None:
-          while True:
-            time.sleep(5)
-            gvar.web_mgr.get_cur_driver_().request_interceptor = interceptor0
-            site_zipcode = gvar.web_mgr.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext")
-            print('zipcode = ', site_zipcode)
-            if site_zipcode is not None: break;
         if zipcode not in site_zipcode:
-          if 'de' in src_url:
-            url = "http://www.amazon.de/gp/glow/get-address-selections.html?deviceType=desktop&pageType=Gateway"
-          elif 'uk' in src_url:
-            url = "http://www.amazon.co.uk/gp/glow/get-address-selections.html?deviceType=desktop&pageType=Gateway"
-          else:
-            url = "http://www.amazon.com/gp/glow/get-address-selections.html?deviceType=desktop&pageType=Gateway"
-          def interceptor(request):
-            request.method = 'POST'
-            # for amazon.de
-            request.headers['user-agent'] = str(random.randrange(1,99999999)) + str(''.join(random.choices(string.ascii_uppercase + string.digits, k=15))) + str(random.randrange(1,99999999))
-          gvar.web_mgr.get_cur_driver_().request_interceptor = interceptor 
-          gvar.web_mgr.load(url)
-          time.sleep(1) 
-          self.check_captcha(url, gvar)        
-
-
-          token = gvar.web_mgr.get_html().split('CSRF_TOKEN : "')[1].split('", IDs')[0]
-          print(token)
-          if 'de' in src_url:
-            url = 'http://www.amazon.de/gp/delivery/ajax/address-change.html?locationType=LOCATION_INPUT&zipCode={}&storeContext=office-products&deviceType=web&pageType=Detail&actionSource=glow&almBrandId=undefined'.format(zipcode)
-          elif 'uk' in src_url:
-            url = 'http://www.amazon.co.uk/gp/delivery/ajax/address-change.html?locationType=LOCATION_INPUT&zipCode={}&storeContext=office-products&deviceType=web&pageType=Detail&actionSource=glow&almBrandId=undefined'.format(zipcode)
-          else:
-            url = 'http://www.amazon.com/gp/delivery/ajax/address-change.html?locationType=LOCATION_INPUT&zipCode={}&storeContext=office-products&deviceType=web&pageType=Detail&actionSource=glow&almBrandId=undefined'.format(zipcode)
+          url = 'http://www.amazon.com/gp/delivery/ajax/address-change.html?locationType=LOCATION_INPUT&zipCode={}&storeContext=office-products&deviceType=web&pageType=Detail&actionSource=glow&almBrandId=undefined'.format(zipcode)
           def interceptor2(request):
             del request.headers['anti-csrftoken-a2z']
-            # for amazon.de
-            request.headers['user-agent'] = str(random.randrange(1,99999999)) + str(''.join(random.choices(string.ascii_uppercase + string.digits, k=15))) + str(random.randrange(1,99999999))
             request.headers['anti-csrftoken-a2z'] = token 
           gvar.web_mgr.get_cur_driver_().request_interceptor = interceptor2 
           gvar.web_mgr.load(url)
-          self.check_captcha(url, gvar)        
           time.sleep(2)
           gvar.web_mgr.load(gvar.task_url)
           time.sleep(2) 
@@ -171,30 +201,33 @@ class BFSIterator(BaseOperator):
             time.sleep(5)
           site_zipcode = gvar.web_mgr.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext")
           print('(After apply) zipcode = ', site_zipcode)
+          self.check_captcha(url, gvar)        
+          print('(After apply) zipcode = ', site_zipcode)
           def interceptor3(request):
             del request.headers['anti-csrftoken-a2z']
             request.method = 'GET'
           gvar.web_mgr.get_cur_driver_().request_interceptor = interceptor3 
-      ####################################
+        ####################################
+  
+        # Check is blocked
+        print("Check is blocked")
+        chaptcha_xpath = '//input[@id=\'captchacharacters\']' # for amazon
+        check_chaptcha = gvar.web_mgr.get_elements_by_selenium_(chaptcha_xpath)
+        sleep_time = 900
+        random_time = random.randrange(1,61)
+        sleep_time += int(random_time)
+        while(len(check_chaptcha) != 0):
+           print("Wait {} secs".format(str(sleep_time)))
+           time.sleep(sleep_time)
+           gvar.web_mgr.load(gvar.task_url)
+           gvar.web_mgr.wait_loading()
+           random_time = random.randrange(1,61)
+           sleep_time += 300 + int(random_time)
+           check_chaptcha = gvar.web_mgr.get_elements_by_selenium_(chaptcha_xpath)
 
-
-
-      # check is blocked
-      print("Check is blocked")
-      chaptcha_xpath = '//input[@id=\'captchacharacters\']' # for amazon
-      check_chaptcha = gvar.web_mgr.get_elements_by_selenium_(chaptcha_xpath)
-      sleep_time = 900
-      random_time = random.randrange(1,61)
-      sleep_time += int(random_time)
-      while(len(check_chaptcha) != 0):
-         print("Wait {} secs".format(str(sleep_time)))
-         time.sleep(sleep_time)
-         gvar.web_mgr.load(gvar.task_url)
-         gvar.web_mgr.wait_loading()
-         random_time = random.randrange(1,61)
-         sleep_time += 300 + int(random_time)
-         check_chaptcha = gvar.web_mgr.get_elements_by_selenium_(chaptcha_xpath)
-
+      else:
+        gvar.web_mgr.load(gvar.task_url)
+      ####################################### 
 
       chaptcha_xpath = '//body[contains(text(),\'Reference\')]' # for rakuten
       check_chaptcha = gvar.web_mgr.get_elements_by_selenium_(chaptcha_xpath)
@@ -213,26 +246,45 @@ class BFSIterator(BaseOperator):
 
 
       # check invalid page
-      print("Check is invalid page")
+      print("Check invalid page using hard coded xpath")
       invalid_amazon_xpath = "//img[@alt='Dogs of Amazon'] | //span[contains(@id,'priceblock_') and contains(text(),'-')]"
       invalid_jomashop_xpath = "//div[@class='image-404'] | //div[@class='product-buttons']//span[contains(text(),'OUT OF STOCK')] | //div[contains(text(),'Sold Out')] | //span[contains(text(),'Ships In')] | //span[contains(text(),'Contact us for')] | //*[text()='Unable to fetch data'] | //span[contains(text(),'Ships in')] "
       invalid_jalando_xpath = "//h2[contains(text(),'Out of stock')] | //h1[contains(text(),'find this page')]"
       invalid_page_xpath = invalid_amazon_xpath + ' | ' + invalid_jomashop_xpath + ' | ' + invalid_jalando_xpath 
       is_invalid_page = gvar.web_mgr.get_elements_by_selenium_(invalid_page_xpath)
       if len(is_invalid_page) != 0:
+        print("@@@@@@ Invalid page")
         return
 
-
-      
+      # change condition to  True or Detct level
+      #if 'amazon' in src_url:
+      #  print("Check invalid page for amazon (no price)")
+      #  invalid_amazon_xpath_price = "//div[@id='aod-offer'][1]//span[@class='a-offscreen'] | //div[@id='olp-upd-new']//span[@class='a-size-base a-color-price'] | //span[contains(@id,'priceblock_')]"
+      #  is_invalid_page_amazon = gvar.web_mgr.get_elements_by_selenium_(invalid_amazon_xpath_price)
+      #  if len(is_invalid_page_amazon) == 0:
+      #    print("@@@@@@ Invalid page")
+      #    return
+ 
+      if 'query' in self.props:
+        print("Check invalid page or a failure using input xpath in BFSIterator")
+        is_invalid_input = gvar.web_mgr.get_elements_by_selenium_(self.props['query'])
+        if len(is_invalid_input) == 0:
+          if 'is_detail' in self.props:
+            print("Not Detail page, set as a failure")
+            raise
+          else:
+            print("Detail page, set as a invalid page")
+            return
+            
 
       node_id = gvar.graph_mgr.create_node(gvar.task_id, parent_node_id, label)
       gvar.stack_nodes.append(node_id)
       gvar.stack_indices.append(0)
       gvar.graph_mgr.insert_node_property(gvar.stack_nodes[-1], 'url', gvar.task_url)
+ 
 
-
-      if 'query' in self.props:
-        gvar.web_mgr.get_elements_by_selenium_strong_(self.props['query'])
+      #if 'query' in self.props:
+      #  gvar.web_mgr.get_elements_by_selenium_strong_(self.props['query'])
 
       if 'btn_query' in self.props and int(self.props['page_id']) != 1:
         res = gvar.web_mgr.get_value_by_selenium_strong(self.props['btn_query'],'alltext')

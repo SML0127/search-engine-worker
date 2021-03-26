@@ -71,7 +71,7 @@ class WebManager():
       prefs = {"profile.managed_default_content_settings.images": 2}
       option.add_experimental_option("prefs", prefs)
 
-      driver_path = settings.get('chromedriver_path', './web_drivers/chromedriver')
+      driver_path = self.settings.get('chromedriver_path', './web_drivers/chromedriver')
       
       self.javascripts = {
         'style': './managers/SerializeWithStyles.js'
@@ -84,21 +84,9 @@ class WebManager():
         self.javascripts[javascript] = code
 
       for i in range(num_driver):
-        user_agent = settings['chromedriver_user_agent']
+        user_agent = self.settings['chromedriver_user_agent']
         #user_agent = user_agent_rotator.get_random_user_agent()
         option.add_argument('--user-agent={}'.format(user_agent))
-        #user_agent = user_agent_rotator.get_random_user_agent()
-        #option.add_argument('--anti-csrftoken-a2z={}'.format(token))
-        #option.add_argument('anti-csrftoken-a2z={}'.format(token))
-        ##option.add_argument('Anti-Csrftoken-A2z={}'.format(token))
-        ##option.add_argument('--Anti-Csrftoken-A2z={}'.format(token))
-        ##option.add_argument('Anti-Csrftoken-a2z={}'.format(token))
-        #option.add_argument('anti-csrf-token={}'.format(token))
-        #option.add_argument('--anti-csrf-token={}'.format(token))
-        #option.add_argument('x-csrf-token={}'.format(token))
-        #option.add_argument('--x-csrf-token={}'.format(token))
-        #option.add_argument('--Content-Type=application/json;charset=utf-8')
-        #option.add_argument('Content-Type=application/json;charset=utf-8')
         
         #driver = webdriver.Chrome(driver_path, chrome_options = option)
         driver = webdriver.Chrome(driver_path, options = option)

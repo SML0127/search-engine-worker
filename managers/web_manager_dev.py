@@ -19,6 +19,7 @@ from selenium.webdriver.chrome.service import Service
 import time
 import requests
 import http
+import random
 
 software_names = [SoftwareName.CHROME.value]
 operating_systems = [OperatingSystem.WINDOWS.value, OperatingSystem.LINUX.value]
@@ -88,9 +89,6 @@ class WebManager():
         #user_agent = user_agent_rotator.get_random_user_agent()
         option.add_argument('--user-agent={}'.format(user_agent))
         #user_agent = user_agent_rotator.get_random_user_agent()
-        token = settings.get('token','')
-        option.add_argument('--anti-csrftoken-a2z={}'.format(token))
-        option.add_argument('anti-csrftoken-a2z={}'.format(token))
         
         #driver = webdriver.Chrome(driver_path, chrome_options = option)
         driver = webdriver.Chrome(driver_path, options = option)
@@ -635,39 +633,15 @@ class WebManager():
 
 
 if __name__ == '__main__':
-  ## session example ------------------
-  #url = "http://www.amazon.com/gp/glow/get-address-selections.html?deviceType=desktop&pageType=Gateway&storeContext=NoStoreName"
-  #headers = {'User-Agent':''}
-  #session = requests.Session()
-  #response = session.post(url, headers=headers)
-
-  #print(response.text.split('CSRF_TOKEN : "')[1].split('", IDs')[0])
-  #token = response.text.split('CSRF_TOKEN : "')[1].split('", IDs')[0]
-
-  #url = "https://www.amazon.com/gp/delivery/ajax/address-change.html?locationType=LOCATION_INPUT&zipCode=94024&storeContext=office-products&deviceType=web&pageType=Detail&actionSource=glow"
-  #headers = {
-  #  'anti-csrftoken-a2z': token,
-  #  'User-Agent': 'PSE/1.0'
-  #}
-  #response = session.post(url, headers=headers, cookies = session.cookies.get_dict())
-  #
-  #print(response.text)
-  ##web_manager.close()
-  #
-
-  #url = 'https://www.amazon.com/gp/glow/get-location-label.html?storeContext=hpc&pageType=Landing'
-  #response = session.post(url, headers=headers, cookies = session.cookies.get_dict())
-  #print(response.text)
-  ## session example ----------------
-
   url = "http://www.amazon.com/gp/glow/get-address-selections.html?deviceType=desktop&pageType=Gateway"
  
   web_manager = WebManager()
   web_manager.init({"chromedriver_user_agent":"PostmanRuntime/7.19.0"})
+  web_manager.load('https://www.amazon.com/s?i=tools-intl-ship&bbn=256643011&rh=n%3A256643011%2Cn%3A468240%2Cn%3A328182011%2Cn%3A551236%2Cp_72%3A1248909011%2Cp_36%3A5000-%2Cp_89%3ADEWALT%2Cp_n_condition-type%3A6358196011&dc&qid=1580963037&refresh=1&rnid=6358194011&ref=sr_nr_p_n_condition-type_1')
+  print(web_manager.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext"))
   def interceptor(request):
       request.method = 'POST'
   web_manager.get_cur_driver_().request_interceptor = interceptor 
-  
   web_manager.load(url)
   print(web_manager.get_html().split('CSRF_TOKEN : "')[1].split('", IDs')[0])
   token = web_manager.get_html().split('CSRF_TOKEN : "')[1].split('", IDs')[0]
@@ -680,12 +654,19 @@ if __name__ == '__main__':
       request.headers['anti-csrftoken-a2z'] = token 
   web_manager.get_cur_driver_().request_interceptor = interceptor2 
   web_manager.load(url)
-  web_manager.load('https://www.amazon.com/s?i=electronics&rh=n%3A7939901011%2Cp_n_condition-type%3A6461716011%2Cp_36%3A5000-130000&dc&qid=1585219073&rnid=386442011&ref=sr_pg_1')
+  #print(web_manager.get_html())
+  def interceptor3(request):
+      request.method = 'GET'
+  #    del request.headers['User-Agent']
+  #    request.headers['User-Agent'] = str(random.randrange(1,100000)) + 'TEST!22222222222'
+  #    del request.headers['Host']
+  #web_manager.get_cur_driver_().request_interceptor = interceptor3
+  web_manager.load('http://www.amazon.com')
   print(web_manager.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext"))
   web_manager.load('https://www.naver.com/')
   time.sleep(1)
   print(web_manager.get_value_by_selenium('//*[@id="header"]/div[1]/div/div[1]/h1/a/span', "alltext"))
-  web_manager.load('https://www.amazon.com')
+  web_manager.load('http://www.amazon.com/dp/B07FKR6KXF?ref_=nav_em__k_ods_tab_mg_0_2_5_2')
   time.sleep(1)
   print(web_manager.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext"))
   web_manager.close()
