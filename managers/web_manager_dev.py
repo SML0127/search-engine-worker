@@ -654,7 +654,8 @@ if __name__ == '__main__':
       request.headers['anti-csrftoken-a2z'] = token 
   web_manager.get_cur_driver_().request_interceptor = interceptor2 
   web_manager.load(url)
-  #print(web_manager.get_html())
+  print(web_manager.get_html())
+  print('"isValidAddress":1' in web_manager.get_html())
   def interceptor3(request):
       request.method = 'GET'
   #    del request.headers['User-Agent']
@@ -663,12 +664,12 @@ if __name__ == '__main__':
   #web_manager.get_cur_driver_().request_interceptor = interceptor3
   web_manager.load('http://www.amazon.com')
   print(web_manager.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext"))
-  web_manager.load('https://www.naver.com/')
-  time.sleep(1)
-  print(web_manager.get_value_by_selenium('//*[@id="header"]/div[1]/div/div[1]/h1/a/span', "alltext"))
-  web_manager.load('http://www.amazon.com/dp/B07FKR6KXF?ref_=nav_em__k_ods_tab_mg_0_2_5_2')
-  time.sleep(1)
-  print(web_manager.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext"))
+  #web_manager.load('https://www.naver.com/')
+  #time.sleep(1)
+  #print(web_manager.get_value_by_selenium('//*[@id="header"]/div[1]/div/div[1]/h1/a/span', "alltext"))
+  #web_manager.load('http://www.amazon.com/dp/B07FKR6KXF?ref_=nav_em__k_ods_tab_mg_0_2_5_2')
+  #time.sleep(1)
+  #print(web_manager.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext"))
   web_manager.close()
 #
 #  try:

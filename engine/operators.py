@@ -177,24 +177,46 @@ class BFSIterator(BaseOperator):
           request.method = 'POST'
          
         gvar.web_mgr.get_cur_driver_().request_interceptor = interceptor 
-        gvar.web_mgr.load(url)
-        time.sleep(1) 
-        token = gvar.web_mgr.get_html().split('CSRF_TOKEN : "')[1].split('", IDs')[0]
+        while True:
+          try:
+            gvar.web_mgr.load(url)
+            time.sleep(1) 
+            token = gvar.web_mgr.get_html().split('CSRF_TOKEN : "')[1].split('", IDs')[0]
+            break;
+          except:
+            random_time = random.randrange(1,15)
+            time.sleep(15 + int(random_time)) 
+            pass
 
         # Check zicpode 
         gvar.web_mgr.load(gvar.task_url)
         time.sleep(3) 
         site_zipcode = gvar.web_mgr.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext")
         zipcode = gvar.graph_mgr.get_zipcode(src_url, gvar.task_zipcode_url)
-        print('zipcode = ', site_zipcode)
-        if zipcode not in site_zipcode:
+        #print('zipcode = ', site_zipcode)
+        #if zipcode not in site_zipcode:
           url = 'http://www.amazon.com/gp/delivery/ajax/address-change.html?locationType=LOCATION_INPUT&zipCode={}&storeContext=office-products&deviceType=web&pageType=Detail&actionSource=glow&almBrandId=undefined'.format(zipcode)
           def interceptor2(request):
             del request.headers['anti-csrftoken-a2z']
             request.headers['anti-csrftoken-a2z'] = token 
-          gvar.web_mgr.get_cur_driver_().request_interceptor = interceptor2 
-          gvar.web_mgr.load(url)
-          time.sleep(2)
+          gvar.web_mgr.get_cur_driver_().request_interceptor = interceptor2
+          #max_cnt = 10
+          #cnt = 0 
+          while True:
+            gvar.web_mgr.load(url)
+            time.sleep(1) 
+            if '"isValidAddress":1' in gvar.web_mgr.get_html():
+              break;
+            else:
+              #cnt = cnt + 1
+              random_time = random.randrange(1,15)
+              time.sleep(15 + int(random_time)) 
+              #if cnt < max_cnt:
+              #  print('re-request change-address api. {} retry'.format(str(cnt)))
+              #else:
+              #  break;
+          #gvar.web_mgr.load(url)
+          #time.sleep(2)
           gvar.web_mgr.load(gvar.task_url)
           time.sleep(2) 
           if gvar.task_url != gvar.web_mgr.get_current_url():
