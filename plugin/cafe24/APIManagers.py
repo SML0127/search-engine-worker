@@ -49,6 +49,7 @@ class Cafe24Manager:
         time.sleep(10)
       #self.graph_manager.connect("dbname='pse' user='pse' host='127.0.0.1' port='5432' password='pse'")
     self.brands = {}
+    self.manufacturers = {}
     print(client)
 
 
@@ -450,6 +451,7 @@ class Cafe24Manager:
     response = self.do_post(url, json.dumps(data), headers)
     return response
 
+
   def create_brand(self, args):
     cnt = 0
     max_try = 3
@@ -473,6 +475,37 @@ class Cafe24Manager:
         brand = response['brand']
         self.brands[brand['brand_name']] = brand['brand_code']
         return brand['brand_code']
+      except:
+        if cnt < max_try:
+          cnt = cnt + 1
+          pass
+        else:
+          raise
+
+
+  def create_manufacturer(self, args):
+    cnt = 0
+    max_try = 3
+    while cnt < max_try:
+      print("=============== Try create manufacturer code {} time ==============".format(cnt))
+      try:
+        url = "https://{}.cafe24api.com/api/v2/admin/manufacturers".format(self.mall_id)
+        headers = {
+          'Authorization': "Bearer {}".format(self.token),
+          'Content-Type': "application/json",
+          'Accept-Encoding': "gzip, deflate",
+          'Connection': "keep-alive",
+        }
+        data = {
+          'shop_no': 1,
+          'request': args
+        }
+        response = self.do_post(url, json.dumps(data), headers)
+        if 'manufacturer' not in response:
+          print(response)
+        manufacturer = response['manufacturer']
+        self.manufacturers[manufacturer['manufacturer_name']] = manufacturer['manufacturer_code']
+        return manufacturer['manufacturer_code']
       except:
         if cnt < max_try:
           cnt = cnt + 1
@@ -730,6 +763,22 @@ class Cafe24Manager:
         product['detail_image'] = self.upload_image_from_link(product['detail_image'])
         profiling_info['detail_image'] = profiling_info.get('detail_image', 0) + (time.time() - tmp_time)
 
+      if 'manufacturer_code' in product:
+        tmp_time = time.time()
+        if product['manufacturer_code'] == '':
+          product['manufacturer_code'] = 'M0000000'
+        elif product['manufacturer_code'] in self.manufacturers:
+          product['manufacturer_code'] = self.manufacturers[product['manufacturer_code']]
+        else:
+          product['manufacturer_code'] = self.create_manufacturer({'manufacturer_name': product['manufacturer_code'], 'use_manufacturer': 'T','president_name': 'Test user'})
+        profiling_info['manufacturer'] = profiling_info.get('manufacturer', 0) + (time.time() - tmp_time)
+      if 'detail_image' in product:
+        tmp_time = time.time()
+        product['detail_image'] = self.upload_image_from_link(product['detail_image'])
+        profiling_info['detail_image'] = profiling_info.get('detail_image', 0) + (time.time() - tmp_time)
+
+
+
       additional_image = []
       if 'additional_image' in product:
         additional_image = product['additional_image']
@@ -811,6 +860,22 @@ class Cafe24Manager:
       product.pop('brand_code')
       has_option = product['has_option']
       product.pop('has_option')
+
+      if 'manufacturer_code' in product:
+        tmp_time = time.time()
+        if product['manufacturer_code'] == '':
+          product['manufacturer_code'] = 'M0000000'
+        elif product['manufacturer_code'] in self.manufacturers:
+          product['manufacturer_code'] = self.manufacturers[product['manufacturer_code']]
+        else:
+          product['manufacturer_code'] = self.create_manufacturer({'manufacturer_name': product['manufacturer_code'], 'use_manufacturer': 'T','president_name': 'Test user'})
+        profiling_info['manufacturer'] = profiling_info.get('manufacturer', 0) + (time.time() - tmp_time)
+      if 'detail_image' in product:
+        tmp_time = time.time()
+        product['detail_image'] = self.upload_image_from_link(product['detail_image'])
+        profiling_info['detail_image'] = profiling_info.get('detail_image', 0) + (time.time() - tmp_time)
+
+
 
       # delete image from product in target site
       print(self.delete_image(tpid))
