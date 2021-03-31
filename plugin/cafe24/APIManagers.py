@@ -772,11 +772,6 @@ class Cafe24Manager:
         else:
           product['manufacturer_code'] = self.create_manufacturer({'manufacturer_name': product['manufacturer_code'], 'use_manufacturer': 'T','president_name': 'Test user'})
         profiling_info['manufacturer'] = profiling_info.get('manufacturer', 0) + (time.time() - tmp_time)
-      if 'detail_image' in product:
-        tmp_time = time.time()
-        product['detail_image'] = self.upload_image_from_link(product['detail_image'])
-        profiling_info['detail_image'] = profiling_info.get('detail_image', 0) + (time.time() - tmp_time)
-
 
 
       additional_image = []
@@ -870,10 +865,10 @@ class Cafe24Manager:
         else:
           product['manufacturer_code'] = self.create_manufacturer({'manufacturer_name': product['manufacturer_code'], 'use_manufacturer': 'T','president_name': 'Test user'})
         profiling_info['manufacturer'] = profiling_info.get('manufacturer', 0) + (time.time() - tmp_time)
-      if 'detail_image' in product:
-        tmp_time = time.time()
-        product['detail_image'] = self.upload_image_from_link(product['detail_image'])
-        profiling_info['detail_image'] = profiling_info.get('detail_image', 0) + (time.time() - tmp_time)
+      #if 'detail_image' in product:
+      #  tmp_time = time.time()
+      #  product['detail_image'] = self.upload_image_from_link(product['detail_image'])
+      #  profiling_info['detail_image'] = profiling_info.get('detail_image', 0) + (time.time() - tmp_time)
 
 
 
