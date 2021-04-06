@@ -2026,7 +2026,21 @@ class GraphManager():
   def logging_all_uploaded_product(self, job_id, execution_id, mpid, origin_product, converted_product, targetsite_url, cnum):
     try:
       #query =  "insert into all_uploaded_product(job_id, execution_id, mpid, origin_product, converted_product, targetsite_url, cnum) values({}, {}, {}, '{}', '{}','{}',{})".format(job_id, execution_id, mpid,  json.dumps(origin_product, default=self.json_default), json.dumps(converted_product,default=self.json_default ), targetsite_url, cnum)
-      query =  "insert into all_uploaded_product(job_id, execution_id, mpid, origin_product, converted_product, targetsite_url, cnum) values({}, {}, {}, '{}', '{}','{}',{})".format(job_id, execution_id, mpid,  json.dumps({}), json.dumps({}), targetsite_url, cnum)
+      origin_product['sm_date'] = origin_product['sm_date'].strftime('%Y-%m-%d %H:%M:%S')
+      origin_product['c_date'] = origin_product['c_date'].strftime('%Y-%m-%d %H:%M:%S')
+      origin_product['option_name'] = repr(origin_product['option_name'])
+      origin_product.pop('shipping_fee')
+      origin_product.pop('option_value')
+      for key in sorted(origin_product.keys()):
+        if key not in ['mpid', 'url', 'name', 'price', 'stock', 'sku', 'list_price', 'origin', 'company', 'html', 'option_name', 'option_values', 'brand',  'item_no', 'front_image', 'pricing_information']:
+          origin_product.pop(key)
+      #converted_product['sm_date'] = converted_product['sm_date'].strftime('%Y-%m-%d %H:%M:%S')
+      #converted_product['c_date'] = converted_product['c_date'].strftime('%Y-%m-%d %H:%M:%S')
+      #print(origin_product)
+      #print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
+      #print(converted_product)
+      #print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
+      query =  "insert into all_uploaded_product(job_id, execution_id, mpid, origin_product, converted_product, targetsite_url, cnum) values({}, {}, {}, '{}', '{}','{}',{})".format(job_id, execution_id, mpid,  json.dumps(origin_product), json.dumps(converted_product), targetsite_url, cnum)
       self.gp_cur.execute(query)
       self.gp_conn.commit()
       return 

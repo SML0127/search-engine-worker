@@ -48,6 +48,8 @@ class WebManager():
 
   def __init__(self):
       self.drivers = []
+      self.drivers_is_zipcode_reset = []
+      self.drivers_last_amazon_country = []
       self.settings = {}
 
   def init(self, settings):
@@ -94,6 +96,8 @@ class WebManager():
         driver.get('about:blank')
         driver.execute_script("Object.defineProperty(navigator, 'plugins', {get: function() {return[1, 2, 3, 4, 5];},});")
         self.drivers.append(driver)
+        self.drivers_is_zipcode_reset.append(True)
+        self.drivers_last_amazon_country.append("")
       self.driver_idx = 0
     except Exception as e:
       raise WebMgrErr(e)
@@ -103,6 +107,8 @@ class WebManager():
       for driver in self.drivers:
         driver.quit()
       self.drivers = []
+      self.drivers_is_zipcode_reset = []
+      self.drivers_last_amazon_country = []
       time.sleep(sleep_time)
       num_driver = self.settings.get('num_driver', 1)
       option = Options()
@@ -144,6 +150,8 @@ class WebManager():
         driver.get('about:blank')
         driver.execute_script("Object.defineProperty(navigator, 'plugins', {get: function() {return[1, 2, 3, 4, 5];},});")
         self.drivers.append(driver)
+        self.drivers_is_zipcode_reset.append(True)
+        self.drivers_last_amazon_country.append("")
       self.driver_idx = 0
     except Exception as e:
       raise WebMgrErr(e)
@@ -159,6 +167,21 @@ class WebManager():
  
   def get_cur_driver_(self):
     return self.drivers[self.driver_idx]
+
+  def get_cur_driver_is_zipcode_reset(self):
+    return self.drivers_is_zipcode_reset[self.driver_idx]
+
+  def get_cur_driver_zipcode_country(self):
+    return self.drivers_last_amazon_country[self.driver_idx]
+
+  def change_cur_driver_zipcode_country(self, country):
+    self.drivers_last_amazon_country[self.driver_idx] = country
+
+  def reset_cur_driver_zipcode_boolean(self):
+    self.drivers_is_zipcode_reset[self.driver_idx] = False
+
+  def set_cur_driver_zipcode_boolean(self):
+    self.drivers_is_zipcode_reset[self.driver_idx] = True
 
 
   def rotate_driver_(self):
@@ -640,6 +663,115 @@ class WebManager():
       return result
     except Exception as e:
       raise WebMgrErr(e)    
+
+  def change_zipcode_us(self):
+    try:
+      print('@@@@@@@@ Get ctrf token get-address-slections.html API')
+      # get token for zipcode
+      url = "https://www.amazon.com/gp/glow/get-address-selections.html?deviceType=desktop&pageType=Gateway"
+      def interceptor(request):
+        request.method = 'POST'
+      self.get_cur_driver_().request_interceptor = interceptor 
+      self.load(url)
+      time.sleep(1) 
+      print(self.get_html())
+      token = self.get_html().split('CSRF_TOKEN : "')[1].split('", IDs')[0]
+      print("@@@@@@@@@@ Get ctrf token {} ".format(token))
+      url = 'http://www.amazon.com/gp/delivery/ajax/address-change.html?locationType=LOCATION_INPUT&zipCode=94024&storeContext=office-products&deviceType=web&pageType=Detail&actionSource=glow&almBrandId=undefined'
+      def interceptor2(request):
+        del request.headers['anti-csrftoken-a2z']
+        request.headers['anti-csrftoken-a2z'] = token 
+      self.get_cur_driver_().request_interceptor = interceptor2
+
+      print("@@@@@@@@@@ Change zipcode address-change.html API")
+      self.load(url)
+      time.sleep(1)
+      is_valid = '"isValidAddress":1' in self.get_html()
+      print("@@@@@@@ is return valid address? {}".format(is_valid))
+
+      def interceptor3(request):
+        del request.headers['anti-csrftoken-a2z']
+        request.method = 'GET'
+      #site_zipcode = gvar.web_mgr.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext")
+      self.get_cur_driver_().request_interceptor = interceptor3 
+
+      ###########################################################
+    except Exception as e:
+      raise WebMgrErr(e)
+
+  def change_zipcode_uk(self):
+    try:
+      print('@@@@@@@@ Get ctrf token get-address-slections.html API')
+      # get token for zipcode
+      url = "https://www.amazon.co.uk/gp/glow/get-address-selections.html?deviceType=desktop&pageType=Gateway"
+      def interceptor(request):
+        request.method = 'POST'
+      self.get_cur_driver_().request_interceptor = interceptor 
+      self.load(url)
+      time.sleep(1) 
+      print(self.get_html())
+      token = self.get_html().split('CSRF_TOKEN : "')[1].split('", IDs')[0]
+      print("@@@@@@@@@@ Get ctrf token {} ".format(token))
+      url = 'http://www.amazon.co.uk/gp/delivery/ajax/address-change.html?locationType=LOCATION_INPUT&zipCode=TW13 6DH&storeContext=office-products&deviceType=web&pageType=Detail&actionSource=glow&almBrandId=undefined'
+      def interceptor2(request):
+        del request.headers['anti-csrftoken-a2z']
+        request.headers['anti-csrftoken-a2z'] = token 
+      self.get_cur_driver_().request_interceptor = interceptor2
+
+      print("@@@@@@@@@@ Change zipcode address-change.html API")
+      self.load(url)
+      time.sleep(1)
+      is_valid = '"isValidAddress":1' in self.get_html()
+      print("@@@@@@@ is return valid address? {}".format(is_valid))
+
+      def interceptor3(request):
+        del request.headers['anti-csrftoken-a2z']
+        request.method = 'GET'
+      #site_zipcode = gvar.web_mgr.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext")
+      self.get_cur_driver_().request_interceptor = interceptor3 
+
+      ###########################################################
+    except Exception as e:
+      raise WebMgrErr(e)
+
+  def change_zipcode_de(self):
+    try:
+      print('@@@@@@@@ Get ctrf token get-address-slections.html API')
+      # get token for zipcode
+      url = "https://www.amazon.co.de/gp/glow/get-address-selections.html?deviceType=desktop&pageType=Gateway"
+      def interceptor(request):
+        request.method = 'POST'
+      self.get_cur_driver_().request_interceptor = interceptor 
+      self.load(url)
+      time.sleep(1) 
+      print(self.get_html())
+      token = self.get_html().split('CSRF_TOKEN : "')[1].split('", IDs')[0]
+      print("@@@@@@@@@@ Get ctrf token {} ".format(token))
+      url = 'http://www.amazon.co.de/gp/delivery/ajax/address-change.html?locationType=LOCATION_INPUT&zipCode=60598&storeContext=office-products&deviceType=web&pageType=Detail&actionSource=glow&almBrandId=undefined'
+      def interceptor2(request):
+        del request.headers['anti-csrftoken-a2z']
+        request.headers['anti-csrftoken-a2z'] = token 
+      self.get_cur_driver_().request_interceptor = interceptor2
+
+      print("@@@@@@@@@@ Change zipcode address-change.html API")
+      self.load(url)
+      time.sleep(1)
+      is_valid = '"isValidAddress":1' in self.get_html()
+      print("@@@@@@@ is return valid address? {}".format(is_valid))
+
+      def interceptor3(request):
+        del request.headers['anti-csrftoken-a2z']
+        request.method = 'GET'
+      #site_zipcode = gvar.web_mgr.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext")
+      self.get_cur_driver_().request_interceptor = interceptor3 
+
+      ###########################################################
+    except Exception as e:
+      raise WebMgrErr(e)
+
+
+
+
 
 
 if __name__ == '__main__':
