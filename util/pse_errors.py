@@ -43,6 +43,16 @@ class SeleniumManagerError(Exception):
         return str("SeleniumError") +"\n" + str(self.error)
 
 
+class UserDefinedError(Exception):
+    def __init__(self, error, msg = 'No user message'):
+        self.error = error
+        self.msg = msg
+        pass
+    def __str__(self):
+        return str("UserDefinedError") +"\n" + str(self.error) + "\nUser Message: " + str(self.msg) 
+
+
+
 
 """
 Job-level Errors
