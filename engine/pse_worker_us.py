@@ -58,8 +58,8 @@ from managers.log_manager import *
 from managers.web_manager import *
 from managers.graph_manager import *
 from util.pse_utils import *
-from engine.operators import *
-from engine.operators import GlovalVariable
+from engine.operators_amazon import *
+from engine.operators_amazon import GlovalVariable
 from yaml import load, Loader
 
 green = make_colorizer('darkgreen')
