@@ -51,11 +51,15 @@ class Cafe24Manager:
     self.brands = {}
     self.manufacturers = {}
     print(client)
-
+    self.connected = True
 
   def close(self):
-    self.graph_manager.return_client(self.client_id, self.client_secret)
-    self.graph_manager.disconnect()
+    # smlee
+    if self.connected == True:
+      print('Close APIManager, so return client id, secret')
+      self.graph_manager.return_client(self.client_id, self.client_secret)
+      self.graph_manager.disconnect()
+      self.connected = False 
 
   def get_auth_code(self):
     option = webdriver.ChromeOptions()
@@ -981,9 +985,11 @@ class Cafe24Manager:
       product_result = self.update_product(product, tpid)
       print(product_result)
       profiling_info['update_product'] = profiling_info.get('update_product', 0) + time.time() - tmp_time
-
       profiling_info['successful_node'] = profiling_info.get('successful_node', 0) + 1
-      self.graph_manager.delete_from_tpid_mapping_table(tpid)
+      if 'error' not in product_result:
+        self.graph_manager.delete_from_tpid_mapping_table(tpid)
+      else:
+        print('Do not delete tpid = {} from tpid mapping table'.format(tpid))
     except:
       profiling_info['failed_node'] = profiling_info.get('failed_node', 0) + 1
       raise

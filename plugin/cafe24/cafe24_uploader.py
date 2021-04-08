@@ -98,6 +98,7 @@ class Cafe24Uploader(Worker):
             #self.selenium_manager = SeleniumManager(self.settings)
             #self.selenium_manager.init()
             super(Cafe24Uploader, self).__init__(*args, **kwargs)
+            self.uploader = Cafe24SingleUploader()
         except Exception as e:
             print("-------Raised Exception in WORKER-------")
             print(e)
@@ -112,6 +113,7 @@ class Cafe24Uploader(Worker):
         try:
             #self.selenium_manager.close()
             self.log.info('Chromedriver process shutdown.')
+            self.uploader.close()
         except Exception as e:
             print("-------Raised Exception in WORKER-------")
             print(e)
@@ -143,8 +145,8 @@ class Cafe24Uploader(Worker):
         try:
             args = task['args']
             #node_ids = task['mpids']
-            uploader = Cafe24SingleUploader()
-            rv = uploader.upload_products_of_mpid(args, task['mpids']) 
+            #selfuploader = Cafe24SingleUploader()
+            rv = self.uploader.upload_products_of_mpid(args, task['mpids']) 
             #rv = uploader.upload_products_of_nodes(args, node_ids) 
             #rv = uploader.upload_products(args) 
             #rv = {}
