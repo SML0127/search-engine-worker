@@ -225,7 +225,7 @@ class Cafe24SingleUploader(Resource):
                   cnum  = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
                   #smlee
                   try:
-                    self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid, json.dumps({'status':'3'}), json.dumps({'status':'3'}), targetsite_url, cnum) 
+                    self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid, {'status':'3'}, {'status':'3'}, targetsite_url, cnum) 
                   except:
                     self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid,{'Error':'Logging error'},{'Error':'Logging error'}, targetsite_url, cnum) 
                     pass 
@@ -291,7 +291,7 @@ class Cafe24SingleUploader(Resource):
                   cnum = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
                   #smlee
                   try:
-                    self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid, json.dumps({'status':'3'}), json.dumps({'status':'3'}), targetsite_url, cnum) 
+                    self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid, {'status':'3'}, {'status':'3'}, targetsite_url, cnum) 
                   except:
                     self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid,{'Error':'Logging error'},{'Error':'Logging error'}, targetsite_url, cnum) 
                     pass 
