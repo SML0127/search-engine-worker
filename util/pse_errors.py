@@ -44,12 +44,11 @@ class SeleniumManagerError(Exception):
 
 
 class UserDefinedError(Exception):
-    def __init__(self, error, msg = 'No user message'):
-        self.error = error
+    def __init__(self, msg = 'No user message'):
         self.msg = msg
         pass
     def __str__(self):
-        return str("UserDefinedError") +"\n" + str(self.error) + "\nUser Message: " + str(self.msg) 
+        return str("UserDefinedError") +"\nUser Message: " + str(self.msg) 
 
 
 

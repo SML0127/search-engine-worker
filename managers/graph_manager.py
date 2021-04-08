@@ -2026,9 +2026,9 @@ class GraphManager():
   def logging_all_uploaded_product(self, job_id, execution_id, mpid, origin_product, converted_product, targetsite_url, cnum):
     try:
       #query =  "insert into all_uploaded_product(job_id, execution_id, mpid, origin_product, converted_product, targetsite_url, cnum) values({}, {}, {}, '{}', '{}','{}',{})".format(job_id, execution_id, mpid,  json.dumps(origin_product, default=self.json_default), json.dumps(converted_product,default=self.json_default ), targetsite_url, cnum)
-      if original_product['sm_date'] != '' and original_product['sm_date'] != None:
+      if origin_product['sm_date'] != '' and origin_product['sm_date'] != None:
         origin_product['sm_date'] = origin_product['sm_date'].strftime('%Y-%m-%d %H:%M:%S')
-      if original_product['c_date'] != '' and original_product['c_date'] != None:
+      if origin_product['c_date'] != '' and origin_product['c_date'] != None:
         origin_product['c_date'] = origin_product['c_date'].strftime('%Y-%m-%d %H:%M:%S')
       origin_product['html'] =  origin_product['html'].encode('UTF-8').hex()
       origin_product['option_name'] = repr(origin_product['option_name'])
