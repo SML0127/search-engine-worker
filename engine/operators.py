@@ -6,6 +6,7 @@ from lxml import etree
 import traceback
 import random
 from urllib.parse import urlparse
+from amazoncaptcha import AmazonCaptcha
 
 class GlovalVariable():
 
@@ -73,20 +74,25 @@ class BFSIterator(BaseOperator):
 
   def check_captcha(self, url, gvar):
     try:
-      print("@@@@@@@@ Check is blocked (amazon)")
+      print("@@@@@@@@ Check captcha (amazon)")
       chaptcha_xpath = '//input[@id=\'captchacharacters\']' # for amazon
       check_chaptcha = gvar.web_mgr.get_elements_by_selenium_(chaptcha_xpath)
-      sleep_time = 1000
-      random_time = random.randrange(1,61)
-      sleep_time += int(random_time)
+      cnt = 0
+      max_cnt = 3
       while(len(check_chaptcha) != 0):
-         print("Wait {} secs".format(str(sleep_time)))
-         time.sleep(sleep_time)
-         gvar.web_mgr.load(url)
-         gvar.web_mgr.wait_loading()
-         random_time = random.randrange(1,61)
-         sleep_time = 1000 + int(random_time)
-         check_chaptcha = gvar.web_mgr.get_elements_by_selenium_(chaptcha_xpath)
+        link = gvar.web_mgr.get_value_by_selenium('//form[@action="/errors/validateCaptcha"]//img', 'src')
+        print('Captcha image link = {}'.format(link))
+        captcha = AmazonCaptcha.fromlink(link)
+        solution = captcha.solve()
+        print('String in image = {}'.format(solution))
+        gvar.web_mgr.send_keys_to_elements('//input[@id="captchacharacters"]',solution)
+        gvar.web_mgr.click_elements('//button')
+        time.sleep(5)
+        gvar.web_mgr.load(url)
+        check_chaptcha = gvar.web_mgr.get_elements_by_selenium_(chaptcha_xpath)
+        cnt = cnt + 1
+        if cnt >= max_cnt:
+          raise
     except:
         raise
 
@@ -256,9 +262,9 @@ class BFSIterator(BaseOperator):
             if gvar.task_url != gvar.web_mgr.get_current_url():
               time.sleep(5)
             site_zipcode = gvar.web_mgr.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext")
-            print('@@@@@@@@@@ (After apply) zipcode = ', site_zipcode)
+            print('@@@@@@@@@@ (After apply, before check captcha) zipcode = ', site_zipcode)
             self.check_captcha(url, gvar)        
-            print('@@@@@@@@@@ (After apply) zipcode = ', site_zipcode)
+            print('@@@@@@@@@@ (After apply, before check captcha) zipcode = ', site_zipcode)
             def interceptor3(request):
               del request.headers['anti-csrftoken-a2z']
               request.method = 'GET'
@@ -269,8 +275,8 @@ class BFSIterator(BaseOperator):
           time.sleep(2) 
           if gvar.task_url != gvar.web_mgr.get_current_url():
             time.sleep(5)
-          site_zipcode = gvar.web_mgr.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext")
           self.check_captcha(gvar.task_url, gvar)        
+          site_zipcode = gvar.web_mgr.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext")
           print('@@@@@@@@@@ Current zipcode = ', site_zipcode)
 
 
@@ -346,9 +352,9 @@ class BFSIterator(BaseOperator):
             if gvar.task_url != gvar.web_mgr.get_current_url():
               time.sleep(5)
             site_zipcode = gvar.web_mgr.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext")
-            print('@@@@@@@@@@ (After apply) zipcode = ', site_zipcode)
+            print('@@@@@@@@@@ (After apply, before check captcha) zipcode = ', site_zipcode)
             self.check_captcha(url, gvar)        
-            print('@@@@@@@@@@ (After apply) zipcode = ', site_zipcode)
+            print('@@@@@@@@@@ (After apply, before check captcha) zipcode = ', site_zipcode)
             def interceptor3(request):
               del request.headers['anti-csrftoken-a2z']
               request.method = 'GET'
@@ -359,8 +365,8 @@ class BFSIterator(BaseOperator):
           time.sleep(2) 
           if gvar.task_url != gvar.web_mgr.get_current_url():
             time.sleep(5)
-          site_zipcode = gvar.web_mgr.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext")
           self.check_captcha(gvar.task_url, gvar)        
+          site_zipcode = gvar.web_mgr.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext")
           print('@@@@@@@@@@ Current zipcode = ', site_zipcode)
 
       else:
@@ -372,7 +378,7 @@ class BFSIterator(BaseOperator):
 
 
 
-
+      time.sleep(5)
       # check invalid page
       if 'amazon' in src_url:
         print("@@@@@@@@@@ Check invalid page using hard coded xpath in amazon")

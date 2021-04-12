@@ -20,6 +20,7 @@ import time
 import requests
 import http
 import random
+from amazoncaptcha import AmazonCaptcha
 
 software_names = [SoftwareName.CHROME.value]
 operating_systems = [OperatingSystem.WINDOWS.value, OperatingSystem.LINUX.value]
@@ -633,93 +634,92 @@ class WebManager():
 
 
 if __name__ == '__main__':
-  cnt = 0
+  
   web_manager = WebManager()
   web_manager.init({"chromedriver_user_agent":"SAMPLE TEST"})
+  #web_manager.load('https://www.amazon.com/errors/validateCaptcha')
+  
+  #url = "http://www.amazon.com/gp/glow/get-address-selections.html?deviceType=desktop&pageType=Gateway"
+  url = "https://www.amazon.com/-/ko/dp/B00CRFEZFC/ref=sr_1_5?dchild=1&fst=as%3Aoff&qid=1616766414&refinements=p_72%3A1248909011%2Cp_36%3A5000-%2Cp_89%3ADremel%7CMakita%7CMilwaukee%7CRyobi%2Cp_n_condition-type%3A6358196011&rnid=6358194011&s=hi&sr=1-5'"
+  web_manager.load('https://www.amazon.com/-/ko/dp/B00CRFEZFC/ref=sr_1_5?dchild=1&fst=as%3Aoff&qid=1616766414&refinements=p_72%3A1248909011%2Cp_36%3A5000-%2Cp_89%3ADremel%7CMakita%7CMilwaukee%7CRyobi%2Cp_n_condition-type%3A6358196011&rnid=6358194011&s=hi&sr=1-5')
+  #def interceptor(request):
+  #    request.method = 'POST'
+  #web_manager.get_cur_driver_().request_interceptor = interceptor
+  #sleep_time = 1000
+  #cnt = 0
+  print('loop')
   while True:
-    url = "http://www.amazon.com/gp/glow/get-address-selections.html?deviceType=desktop&pageType=Gateway"
- 
-    web_manager.load('https://www.amazon.com/-/ko/dp/B00CRFEZFC/ref=sr_1_5?dchild=1&fst=as%3Aoff&qid=1616766414&refinements=p_72%3A1248909011%2Cp_36%3A5000-%2Cp_89%3ADremel%7CMakita%7CMilwaukee%7CRyobi%2Cp_n_condition-type%3A6358196011&rnid=6358194011&s=hi&sr=1-5')
+    try:
+      web_manager.load('https://www.amazon.com/ref=nav_logo')
+      time.sleep(1)
+      chaptcha_xpath = '//input[@id=\'captchacharacters\']' # for amazon
+      print('Check captcha')
+      check_chaptcha = web_manager.get_elements_by_selenium_(chaptcha_xpath)
+      if len(check_chaptcha) != 0:
+        raise
+      print('request other url')
+      web_manager.load('https://www.amazon.com/s?rh=n%3A21606832011&s=featured-rank&pd_rd_r=c59ecd00-2a14-48a3-bcce-a677ba6d08a8&pd_rd_w=ciUrC&pd_rd_wg=GwxYY&pf_rd_p=d6a73408-22a8-41b0-a103-02acc979f47b&pf_rd_r=TBM29BHHWXPCS3BBXKZX&ref=pw_gw_prime_topquadcard_apr_m_stylestaples')
+      time.sleep(5)
+    except:
+      print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
+      print('Except')
+      pass
+      break;
+
+  link = web_manager.get_value_by_selenium('//form[@action="/errors/validateCaptcha"]//img', 'src')
+  print('link = {}'.format(link))
+  captcha = AmazonCaptcha.fromlink(link)
+  solution = captcha.solve()
+  print('solution = {}'.format(solution))
+  web_manager.send_keys_to_elements('//input[@id="captchacharacters"]',solution)
+  web_manager.click_elements('//button')
+  print("sleep {}s".format('5'))
+  time.sleep(5)
+  print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
+  try:
     print(web_manager.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext"))
-    def interceptor(request):
-        request.method = 'POST'
-    web_manager.get_cur_driver_().request_interceptor = interceptor
-    sleep_time = 1000
-    cnt = 0
-    while True:
-      try:
-        web_manager.load(url)
-        print(web_manager.get_html())
-        token = web_manager.get_html().split('CSRF_TOKEN : "')[1].split('", IDs')[0]
-        print("token : {}".format(oken))
-        break;
-      except:
-        sleep_time = sleep_time + int(random.randrange(1,61)) 
-        print("sleep {}s".format(sleep_time))
-        time.sleep(sleep_time)
-        cnt = cnt + 1
-        if cnt >= 2:
-          print('RRRRRRRRestart')
-          web_manager.restart(5)
-          def interceptor3(request):
-            request.method = 'POST'
-          web_manager.get_cur_driver_().request_interceptor = interceptor3
-          cnt = 0
-        pass
-
-##  
-    url = 'http://www.amazon.com/gp/delivery/ajax/address-change.html?locationType=LOCATION_INPUT&zipCode=94024&storeContext=office-products&deviceType=web&pageType=Detail&actionSource=glow&almBrandId=undefined'
-    def interceptor2(request):
-        del request.headers['anti-csrftoken-a2z']
-        request.headers['anti-csrftoken-a2z'] = token 
-    web_manager.get_cur_driver_().request_interceptor = interceptor2 
-    #print(web_manager.get_html())
-    cnt = 0
-    while True:
-      try:
-        web_manager.load(url)
-        print('"isValidAddress":1' in web_manager.get_html())
-        if '"isValidAddress":1' in web_manager.get_html():
-          break;
-        else:
-          raise
-      except:
-        sleep_time = sleep_time + int(random.randrange(1,61)) 
-        print("sleep {}s".format(sleep_time))
-        time.sleep(sleep_time)
-        cnt = cnt + 1
-        if cnt >= 2:
-          print('RRRRRRRRestart')
-          web_manager.restart(5)
-          def interceptor4(request):
-            del request.headers['anti-csrftoken-a2z']
-            request.headers['anti-csrftoken-a2z'] = token 
-          web_manager.get_cur_driver_().request_interceptor = interceptor4
-          cnt = 0
-        pass
-
-    def interceptor3(request):
-        request.method = 'GET'
-    #    del request.headers['User-Agent']
-    #    request.headers['User-Agent'] = str(random.randrange(1,100000)) + 'TEST!22222222222'
-    #    del request.headers['Host']
-    #web_manager.get_cur_driver_().request_interceptor = interceptor3
-
-    web_manager.load('http://www.amazon.com')
-    print(web_manager.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext"))
-    #web_manager.load('https://www.naver.com/')
-    #time.sleep(1)
-    #print(web_manager.get_value_by_selenium('//*[@id="header"]/div[1]/div/div[1]/h1/a/span', "alltext"))
-    #web_manager.load('http://www.amazon.com/dp/B07FKR6KXF?ref_=nav_em__k_ods_tab_mg_0_2_5_2')
-    #time.sleep(1)
-    #print(web_manager.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext"))
+  except:
+    pass
+  web_manager.load(url)
+  print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
+  print(web_manager.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext"))
+  
   web_manager.close()
-#
-#  try:
-#    web_manager.load("https://www.amazon.com/Sensodyne-Pronamel-Whitening-Strengthening-Toothpaste/dp/B0762LYFKP?pf_rd_p=9dbbfba7-e756-51ca-b790-09e9b92beee1&pf_rd_r=EG4J8ZAJZNB9B3HBQ9G1&pd_rd_wg=W8hx6&ref_=pd_gw_ri&pd_rd_w=kynj4&pd_rd_r=6365323e-7c16-4273-a2c5-5d85b04565f5")
-#    web_manager.wait_loading()
-#
-#    print(web_manager.get_value_by_selenium("//span[@id='productTitle']", "alltext"))
-#    #print(web_manager.get_value_by_selenium("//span[@id='productTitle1']", "alltext"))
 
-
+### 
+#    url = 'http://www.amazon.com/gp/delivery/ajax/address-change.html?locationType=LOCATION_INPUT&zipCode=94024&storeContext=office-products&deviceType=web&pageType=Detail&actionSource=glow&almBrandId=undefined'
+#    def interceptor2(request):
+#        del request.headers['anti-csrftoken-a2z']
+#        request.headers['anti-csrftoken-a2z'] = token 
+#    web_manager.get_cur_driver_().request_interceptor = interceptor2 
+#    cnt = 0
+#    while True:
+#      try:
+#        web_manager.load(url)
+#        print('"isValidAddress":1' in web_manager.get_html())
+#        if '"isValidAddress":1' in web_manager.get_html():
+#          break;
+#        else:
+#          raise
+#      except:
+#        sleep_time = sleep_time + int(random.randrange(1,61)) 
+#        print("sleep {}s".format(sleep_time))
+#        time.sleep(sleep_time)
+#        cnt = cnt + 1
+#        if cnt >= 2:
+#          print('RRRRRRRRestart')
+#          web_manager.restart(5)
+#          def interceptor4(request):
+#            del request.headers['anti-csrftoken-a2z']
+#            request.headers['anti-csrftoken-a2z'] = token 
+#          web_manager.get_cur_driver_().request_interceptor = interceptor4
+#          cnt = 0
+#        pass
+#
+#    def interceptor3(request):
+#        request.method = 'GET'
+#
+#    web_manager.load('http://www.amazon.com')
+#    print(web_manager.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext"))
+#  web_manager.close()
+#
