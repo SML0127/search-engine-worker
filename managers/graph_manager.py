@@ -2026,17 +2026,22 @@ class GraphManager():
   def logging_all_uploaded_product(self, job_id, execution_id, mpid, origin_product, converted_product, targetsite_url, cnum):
     try:
       #query =  "insert into all_uploaded_product(job_id, execution_id, mpid, origin_product, converted_product, targetsite_url, cnum) values({}, {}, {}, '{}', '{}','{}',{})".format(job_id, execution_id, mpid,  json.dumps(origin_product, default=self.json_default), json.dumps(converted_product,default=self.json_default ), targetsite_url, cnum)
-      if origin_product['sm_date'] != '' and origin_product['sm_date'] != None:
-        origin_product['sm_date'] = origin_product['sm_date'].strftime('%Y-%m-%d %H:%M:%S')
-      if origin_product['c_date'] != '' and origin_product['c_date'] != None:
-        origin_product['c_date'] = origin_product['c_date'].strftime('%Y-%m-%d %H:%M:%S')
+      try:
+        if origin_product['sm_date'] != '' and origin_product['sm_date'] != None:
+          origin_product['sm_date'] = origin_product['sm_date'].strftime('%Y-%m-%d %H:%M:%S')
+      except:
+        origin_product['sm_date'] = ''
+        pass
       origin_product['html'] =  origin_product['html'].encode('UTF-8').hex()
-      origin_product['option_name'] = repr(origin_product['option_name'])
+      origin_product['option_name'] = repr(origin_product['option_name']).encode('UTF-8').hex()
+      origin_product['option_value'] = repr(origin_product['option_value']).encode('UTF-8').hex()
       converted_product['description'] = converted_product['description'].encode('UTF-8').hex()
+      #converted_product['option_name'] = converted_product['option_name'].encode('UTF-8').hex()
+      #converted_product['option_value'] = converted_product['option_value'].encode('UTF-8').hex()
       #print(origin_product)
       #print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
       for key in sorted(origin_product.keys()):
-        if key not in ['mpid', 'url','p_name', 'name', 'price', 'stock', 'sku', 'list_price', 'origin', 'company', 'html', 'option_name', 'option_values', 'brand',  'item_no', 'front_image', 'pricing_information', 'option_value', 'shipping_fee']:
+        if key not in ['mpid', 'url','p_name', 'name', 'price', 'stock', 'sku', 'list_price', 'origin', 'company', 'html', 'option_name', 'option_value', 'brand',  'item_no', 'front_image', 'pricing_information', 'option_value', 'shipping_fee']:
           origin_product.pop(key)
           
       #print(origin_product)

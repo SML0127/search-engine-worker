@@ -99,9 +99,15 @@ class BFSIterator(BaseOperator):
   def check_captcha_rakuten(self, gvar):
     try:
       print("@@@@@@@@ Check is blocked (rakuten)")
+      chaptcha_xpath = '//body[contains(text(),\'Reference\')]'
+      print("Taksid: {}".format(gvar.task_id))
+      fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
+      gvar.web_mgr.store_page_source(fname)
+      if gvar.web_mgr.get_html() == '<html><head></head><body></body></html>':
+        print(gvar.web_mgr.get_html())
       check_chaptcha = gvar.web_mgr.get_elements_by_selenium_(chaptcha_xpath)
       sleep_time = 10
-      while(len(check_chaptcha) != 0):
+      while(len(check_chaptcha) != 0 or gvar.web_mgr.get_html() == '<html><head></head><body></body></html>'):
          print('@@@@@ Restart chrome') # for rakuten.jp
          gvar.web_mgr.restart(sleep_time)
          gvar.web_mgr.load(gvar.task_url)
@@ -370,7 +376,6 @@ class BFSIterator(BaseOperator):
           print('@@@@@@@@@@ Current zipcode = ', site_zipcode)
 
       else:
-        # Set True if rakuten 
         gvar.web_mgr.load(gvar.task_url)
         if 'rakuten' in src_url:
           self.check_captcha_rakuten(gvar)
@@ -378,12 +383,13 @@ class BFSIterator(BaseOperator):
 
 
 
+      gvar.web_mgr.build_lxml_tree()
       time.sleep(5)
       # check invalid page
       if 'amazon' in src_url:
         print("@@@@@@@@@@ Check invalid page using hard coded xpath in amazon")
         invalid_page_xpath = "//img[@alt='Dogs of Amazon'] | //span[contains(@id,'priceblock_') and contains(text(),'-')]"
-        is_invalid_page = gvar.web_mgr.get_elements_by_selenium_(invalid_page_xpath)
+        is_invalid_page = gvar.web_mgr.get_elements_by_lxml_(invalid_page_xpath)
         if len(is_invalid_page) != 0:
           print("@@@@@@ Invalid page")
           return
@@ -391,7 +397,7 @@ class BFSIterator(BaseOperator):
       elif 'jomashop' in src_url:
         print("@@@@@@@@@@ Check invalid page using hard coded xpath in jomashop")
         invalid_page_xpath = "//div[@class='image-404'] | //div[@class='product-buttons']//span[contains(text(),'OUT OF STOCK')] | //div[contains(text(),'Sold Out')] | //span[contains(text(),'Ships In')] | //span[contains(text(),'Contact us for')] | //*[text()='Unable to fetch data'] | //span[contains(text(),'Ships in')] "
-        is_invalid_page = gvar.web_mgr.get_elements_by_selenium_(invalid_page_xpath)
+        is_invalid_page = gvar.web_mgr.get_elements_by_lxml_(invalid_page_xpath)
         if len(is_invalid_page) != 0:
           print("@@@@@@ Invalid page")
           return
@@ -399,7 +405,7 @@ class BFSIterator(BaseOperator):
       elif 'zalando' in src_url:
         print("@@@@@@@@@@ Check invalid page using hard coded xpath in zalando")
         invalid_page_xpath = "//h2[contains(text(),'Out of stock')] | //h1[contains(text(),'find this page')]"
-        is_invalid_page = gvar.web_mgr.get_elements_by_selenium_(invalid_page_xpath)
+        is_invalid_page = gvar.web_mgr.get_elements_by_lxml_(invalid_page_xpath)
         if len(is_invalid_page) != 0:
           print("@@@@@@ Invalid page")
           return
@@ -407,7 +413,7 @@ class BFSIterator(BaseOperator):
 
       if 'query' in self.props:
         print("@@@@@@@@@@ Check invalid page or a failure using input xpath in BFSIterator")
-        is_invalid_input = gvar.web_mgr.get_elements_by_selenium_(self.props['query'])
+        is_invalid_input = gvar.web_mgr.get_elements_by_lxml_(self.props['query'])
         if len(is_invalid_input) == 0:
           if 'is_detail' in self.props:
             print("@@@@@@@@@@ Not Detail page, set as a failure")
@@ -432,7 +438,7 @@ class BFSIterator(BaseOperator):
       #  gvar.web_mgr.get_elements_by_selenium_strong_(self.props['query'])
 
       if 'btn_query' in self.props and int(self.props['page_id']) != 1:
-        res = gvar.web_mgr.get_value_by_selenium_strong(self.props['btn_query'],'alltext')
+        res = gvar.web_mgr.get_value_by_lxml_strong(self.props['btn_query'],'alltext')
         print('@@@@@@@@@@ btn cur :', res)
         print(self.props['page_id'])
 
@@ -446,8 +452,6 @@ class BFSIterator(BaseOperator):
 
  
       gvar.graph_mgr.insert_node_property(gvar.stack_nodes[-1], 'html', gvar.web_mgr.get_html())
-      #+ page=%d에 준 값과 url 비교
-      #+ 선택된 버튼의 값과 url의 page 값비교
 
       for op in self.operators:
         op_name = op.props['name']
@@ -968,6 +972,127 @@ class DictsScrapper(BaseOperator):
     return
 
 
+class OptionListScrapper(BaseOperator):
+  
+  def run(self, gvar):
+    try:
+      op_start = time.time()
+      print('Do OptionListScrapper')
+      op_id = self.props['id']
+      parent_node_id = gvar.stack_nodes[-1]
+      
+      option_name_query = self.props['option_name_query']
+      option_dropdown_query = self.props['option_dropdown_query']
+      option_value_query = self.props['option_value_query']
+       
+
+      build_time = time.time()
+      gvar.web_mgr.build_lxml_tree()
+      build_time = time.time() - build_time
+
+      xpaths_time = time.time()
+
+      option_names = gvar.web_mgr.get_values_by_lxml(option_name_query,'alltext')
+      #option_names = web_manager.get_values_by_lxml("//*[@id='picker-trigger']/span/span",'alltext')
+      option_values = gvar.web_mgr.get_option_values_by_lxml(option_dropdown_query, option_value_query, 'alltext')
+      #option_values = web_manager.get_option_values_by_lxml("/html/body//div/div/div[3]/div/form/div", "./div/div/label/span/div/span[1]", 'alltext')
+
+      result = {}
+      for idx, option_name in enumerate(option_names):
+        try:
+          result[option_name] = option_values[idx]
+        except:
+          pass
+     
+      xpaths_time = time.time() - xpaths_time
+
+      db_time = time.time()
+      #for key, value in result.items():
+      print(result)
+      gvar.graph_mgr.insert_node_property(gvar.stack_nodes[-1], 'option_list', result)
+      db_time = time.time() - db_time
+      
+    
+      op_time = time.time() - op_start
+      gvar.profiling_info[op_id] = { 
+        'op_time' : op_time, 
+        'build_time': build_time,
+        'xpaths_time': xpaths_time,
+        'db_time': db_time,
+        'num_results': len(result)
+      }
+      return
+    except Exception as e:
+      raise OperatorError(e, self.props['id'])
+      return
+    return
+
+class OptionMatrixScrapper(BaseOperator):
+  
+  def run(self, gvar):
+    try:
+      op_start = time.time()
+      print('Do OptionListScrapper')
+      op_id = self.props['id']
+      parent_node_id = gvar.stack_nodes[-1]
+      
+      option_name_query = self.props['option_name_query']
+      option_x_query = self.props['option_x_value_query']
+      option_y_query = self.props['option_y_value_query']
+      option_combination_value_query = self.props['option_matrix_row_wise_value_query']
+       
+
+      build_time = time.time()
+      gvar.web_mgr.build_lxml_tree()
+      build_time = time.time() - build_time
+      xpaths_time = time.time()
+
+      option_names = gvar.web_mgr.get_values_by_lxml(option_name_query,'alltext')
+      option_x_value = gvar.web_mgr.get_values_by_lxml(option_x_query,'alltext')
+      option_y_value = gvar.web_mgr.get_values_by_lxml(option_y_query,'alltext')
+      option_combination_value = gvar.web_mgr.get_values_by_lxml(option_combination_value_query,'alltext')
+      
+      result = {}
+      for idx, option_name in enumerate(option_names):
+        if idx == 0:
+          result[option_name] = option_x_value
+        elif idx == 1:
+          result[option_name] = option_y_value
+ 
+      if len(result) >= 1: 
+        result['option_maxtrix_value'] = option_combination_value
+
+     
+      xpaths_time = time.time() - xpaths_time
+
+      db_time = time.time()
+      
+      print(result)
+      gvar.graph_mgr.insert_node_property(gvar.stack_nodes[-1], 'option_matrix', result)
+      db_time = time.time() - db_time
+      
+    
+      op_time = time.time() - op_start
+      result_len = 0
+      if len(result) >= 1:
+        result_len = len(result) - 1
+
+      gvar.profiling_info[op_id] = { 
+        'op_time' : op_time, 
+        'build_time': build_time,
+        'xpaths_time': xpaths_time,
+        'db_time': db_time,
+        'num_results': result_len
+      }
+      return
+    except Exception as e:
+      raise OperatorError(e, self.props['id'])
+      return
+    return
+
+
+
+
 worker_operators = {
   'BFSIterator': BFSIterator,
   'SendKeysOperator': SendKeysOperator,
@@ -979,6 +1104,8 @@ worker_operators = {
   'ListsScrapper': ListsScrapper,
   'DictsScrapper': DictsScrapper,
   'OpenNode': OpenNode,
+  'OptionListScrapper': OptionListScrapper,
+  'OptionMatrixScrapper': OptionMatrixScrapper,
   'OpenURL': BFSIterator,
   'Wait': WaitOperator,
   'Scroll': ScrollOperator,

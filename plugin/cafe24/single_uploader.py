@@ -151,7 +151,7 @@ class Cafe24SingleUploader(Resource):
           try:
             product, original_product_information = exporter.export_from_selected_mpid(job_id, args['execution_id'], mpid)
             product['targetsite_url'] = targetsite_url
-             
+            product['mpid'] = mpid
             status = self.graph_manager.check_status_of_product(job_id, mpid)
              
             #Status 0 = up to date, 1 = changed, 2 = New, 3 = Deleted 4 = Duplicated
@@ -189,6 +189,7 @@ class Cafe24SingleUploader(Resource):
               if is_uploaded == False and status != 3: # upload as new item
                 product, original_product_information = exporter.export_from_mpid_onetime(job_id, args['execution_id'], mpid, tsid)
                 product['targetsite_url'] = targetsite_url
+                product['mpid'] = mpid
                 self.cafe24manager.upload_new_product(product, profiling_info, job_id)
                 cnum = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
                 #smlee
@@ -202,6 +203,7 @@ class Cafe24SingleUploader(Resource):
                 if status == 1:
                   product, original_product_information = exporter.export_from_mpid_onetime(job_id, args['execution_id'], mpid, tsid)
                   product['targetsite_url'] = targetsite_url
+                  product['mpid'] = mpid
                   tpid = self.graph_manager.get_tpid(job_id, targetsite_url, mpid)
                   print('tpid : ', tpid)
                   self.cafe24manager.update_exist_product(product, profiling_info, job_id, tpid)
@@ -239,6 +241,8 @@ class Cafe24SingleUploader(Resource):
             failed_node += 1     
             err_msg = '================================ STACK TRACE ============================== \n' + str(traceback.format_exc())
             self.graph_manager.log_err_msg_of_upload(log_mpid, err_msg, log_mt_history_id )
+            print(traceback.format_exc())
+            
       else:
         for mpid in mpids:
           log_mpid = mpid
@@ -257,6 +261,7 @@ class Cafe24SingleUploader(Resource):
               if is_uploaded == False and status != 3: # upload as new item
                 product, original_product_information = exporter.export_from_mpid_onetime(job_id, args['execution_id'], mpid, tsid)
                 product['targetsite_url'] = targetsite_url
+                product['mpid'] = mpid
                 self.cafe24manager.upload_new_product(product, profiling_info, job_id)
                 cnum  = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
                 #smlee
@@ -269,6 +274,7 @@ class Cafe24SingleUploader(Resource):
                 if status == 1:
                   product, original_product_information = exporter.export_from_mpid_onetime(job_id, args['execution_id'], mpid, tsid)
                   product['targetsite_url'] = targetsite_url
+                  product['mpid'] = mpid
                   tpid = self.graph_manager.get_tpid(job_id, targetsite_url, mpid)
                   self.cafe24manager.update_exist_product(product, profiling_info, job_id, tpid)
                   cnum  = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
@@ -283,6 +289,7 @@ class Cafe24SingleUploader(Resource):
                 #  product, original_product_information = exporter.export_from_mpid_onetime(job_id, args['execution_id'], mpid, tsid)
                 #  product['targetsite_url'] = targetsite_url
                 #  self.cafe24manager.upload_new_product(product, profiling_info, job_id)
+        #print("upload_image_from_link: ", image)
                 #  cnum  = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
                 #  self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid, original_product_information, product, targetsite_url, cnum) 
                 elif status == 3:
@@ -303,6 +310,7 @@ class Cafe24SingleUploader(Resource):
           except:
             failed_node += 1
             err_msg = '================================ STACK TRACE ============================== \n' + str(traceback.format_exc())
+            print(traceback.format_exc())
             self.graph_manager.log_err_msg_of_upload(log_mpid, err_msg, log_mt_history_id )
       self.cafe24manager.close()
       print("Close cafe24 manager (no except)")

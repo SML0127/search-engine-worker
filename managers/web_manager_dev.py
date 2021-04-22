@@ -632,59 +632,139 @@ class WebManager():
     except Exception as e:
       raise WebMgrErr(e)    
 
+  def get_option_values_by_lxml(self, xpath, vxpath, vattr):
+    try:
+      elements = self.get_elements_by_lxml_(xpath)
+      if len(elements) == 0: return []
+      result = []
+      for element in elements:
+        velements = element.xpath(vxpath)
+        if len(velements) == 0: continue
+        res_tmp = []
+        for velement in velements:
+          val = self.get_attribute_by_selenium_(velement, vattr)
+          res_tmp.append(val)
+        result.append(res_tmp)
+      return result
+    except Exception as e:
+      raise WebMgrErr(e)
+
+
 
 if __name__ == '__main__':
   
   web_manager = WebManager()
   web_manager.init({"chromedriver_user_agent":"SAMPLE TEST"})
-  #web_manager.load('https://www.amazon.com/errors/validateCaptcha')
-  
-  #url = "http://www.amazon.com/gp/glow/get-address-selections.html?deviceType=desktop&pageType=Gateway"
-  url = "https://www.amazon.com/-/ko/dp/B00CRFEZFC/ref=sr_1_5?dchild=1&fst=as%3Aoff&qid=1616766414&refinements=p_72%3A1248909011%2Cp_36%3A5000-%2Cp_89%3ADremel%7CMakita%7CMilwaukee%7CRyobi%2Cp_n_condition-type%3A6358196011&rnid=6358194011&s=hi&sr=1-5'"
-  web_manager.load('https://www.amazon.com/-/ko/dp/B00CRFEZFC/ref=sr_1_5?dchild=1&fst=as%3Aoff&qid=1616766414&refinements=p_72%3A1248909011%2Cp_36%3A5000-%2Cp_89%3ADremel%7CMakita%7CMilwaukee%7CRyobi%2Cp_n_condition-type%3A6358196011&rnid=6358194011&s=hi&sr=1-5')
-  #def interceptor(request):
-  #    request.method = 'POST'
-  #web_manager.get_cur_driver_().request_interceptor = interceptor
-  #sleep_time = 1000
-  #cnt = 0
-  print('loop')
-  while True:
-    try:
-      web_manager.load('https://www.amazon.com/ref=nav_logo')
-      time.sleep(1)
-      chaptcha_xpath = '//input[@id=\'captchacharacters\']' # for amazon
-      print('Check captcha')
-      check_chaptcha = web_manager.get_elements_by_selenium_(chaptcha_xpath)
-      if len(check_chaptcha) != 0:
-        raise
-      print('request other url')
-      web_manager.load('https://www.amazon.com/s?rh=n%3A21606832011&s=featured-rank&pd_rd_r=c59ecd00-2a14-48a3-bcce-a677ba6d08a8&pd_rd_w=ciUrC&pd_rd_wg=GwxYY&pf_rd_p=d6a73408-22a8-41b0-a103-02acc979f47b&pf_rd_r=TBM29BHHWXPCS3BBXKZX&ref=pw_gw_prime_topquadcard_apr_m_stylestaples')
-      time.sleep(5)
-    except:
-      print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
-      print('Except')
-      pass
-      break;
-
-  link = web_manager.get_value_by_selenium('//form[@action="/errors/validateCaptcha"]//img', 'src')
-  print('link = {}'.format(link))
-  captcha = AmazonCaptcha.fromlink(link)
-  solution = captcha.solve()
-  print('solution = {}'.format(solution))
-  web_manager.send_keys_to_elements('//input[@id="captchacharacters"]',solution)
-  web_manager.click_elements('//button')
-  print("sleep {}s".format('5'))
-  time.sleep(5)
-  print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
-  try:
-    print(web_manager.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext"))
-  except:
-    pass
+  #url = "https://item.rakuten.co.jp/golfshoplb/classicpt1a/"
+  #url = "https://item.rakuten.co.jp/greenfil/pr20-rsnf-cs47/"
+  #url = "https://en.zalando.de/jdy-jdynew-brighton-spring-coat-classic-coat-black-jy121g019-q11.html"
+  #url = "https://item.rakuten.co.jp/tsuruyagolf/0136200086/"
+  #url = "https://item.rakuten.co.jp/alpen/0116550027/"
+  url = "https://item.rakuten.co.jp/atomicgolf/2010-umzk/"
+  #url = "https://item.rakuten.co.jp/firststage/2020020110h/"
   web_manager.load(url)
-  print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
-  print(web_manager.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext"))
+  web_manager.build_lxml_tree()
   
+  try:
+    #For zalando
+    #web_manager.click_elements("//*[@id='picker-trigger']")
+    #time.sleep(3)
+
+    print('Crawling option name')
+    #For rakuten
+    #option_names = web_manager.get_values_by_lxml("//td[@class='floating-cart-options-table']//span[contains(@class,'choiceText')]",'alltext')
+    option_names = web_manager.get_values_by_lxml("//td[position() mod 2 = 1]/span[@class='inventory_title']",'alltext')
+    print(option_names)
+
+    #For zalando
+    #option_names = web_manager.get_values_by_lxml("//*[@id='picker-trigger']/span/span",'alltext')
+
+    #//tr[1]/td[@class='inventory_choice_name']//span 
+    #//tr[position()>1]/td[@class='inventory_choice_name']//span
+
+
+
+    print('Crawling option values')
+    #For rakuten
+    #option_values = web_manager.get_option_values_by_lxml("//td[@class='floating-cart-options-table']//select[@name='choice']", "./option", 'alltext')
+
+
+    option_x_value = web_manager.get_values_by_lxml("//tr[1]/td[@class='inventory_choice_name']//span",'alltext')
+    option_y_value = web_manager.get_values_by_lxml("//tr[position()>1]/td[@class='inventory_choice_name']//span",'alltext')
+
+    option_combination_value = web_manager.get_values_by_lxml("//td[@class='inventory']/span[@class='inventory_soldout'] | //input[@name='inventory_id']",'alltext')
+    #//td[@class='inventory'] (row-wise)
+    #For zalando
+    #option_values = web_manager.get_option_values_by_lxml("/html/body//div/div/div[3]/div/form/div", "./div/div/label/span/div/span[1]", 'alltext')
+
+    #res = {}
+    #for idx, option_name in enumerate(option_names):
+    #  res[option_name] = option_values[idx]
+
+    res = {}
+    for idx, option_name in enumerate(option_names):
+      print(idx)
+      if idx == 0:
+        res[option_name] = option_x_value
+      elif idx == 1:
+        res[option_name] = option_y_value
+  
+    res['option_matrix_row_wise_value'] = option_combination_value 
+    
+    print('---------------------------------------')
+    print(res)
+    print('---------------------------------------')
+    for key in res.keys():
+      print('Option name: ', key)
+      print('Option values: ', res[key])
+      print('\n')
+  except:
+    
+    pass 
   web_manager.close()
+
+  ##def interceptor(request):
+  ##    request.method = 'POST'
+  ##web_manager.get_cur_driver_().request_interceptor = interceptor
+  ##sleep_time = 1000
+  ##cnt = 0
+  #print('loop')
+  #while True:
+  #  try:
+  #    web_manager.load('https://www.amazon.com/ref=nav_logo')
+  #    time.sleep(1)
+  #    chaptcha_xpath = '//input[@id=\'captchacharacters\']' # for amazon
+  #    print('Check captcha')
+  #    check_chaptcha = web_manager.get_elements_by_selenium_(chaptcha_xpath)
+  #    if len(check_chaptcha) != 0:
+  #      raise
+  #    print('request other url')
+  #    web_manager.load('https://www.amazon.com/s?rh=n%3A21606832011&s=featured-rank&pd_rd_r=c59ecd00-2a14-48a3-bcce-a677ba6d08a8&pd_rd_w=ciUrC&pd_rd_wg=GwxYY&pf_rd_p=d6a73408-22a8-41b0-a103-02acc979f47b&pf_rd_r=TBM29BHHWXPCS3BBXKZX&ref=pw_gw_prime_topquadcard_apr_m_stylestaples')
+  #    time.sleep(5)
+  #  except:
+  #    print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
+  #    print('Except')
+  #    pass
+  #    break;
+
+  #link = web_manager.get_value_by_selenium('//form[@action="/errors/validateCaptcha"]//img', 'src')
+  #print('link = {}'.format(link))
+  #captcha = AmazonCaptcha.fromlink(link)
+  #solution = captcha.solve()
+  #print('solution = {}'.format(solution))
+  #web_manager.send_keys_to_elements('//input[@id="captchacharacters"]',solution)
+  #web_manager.click_elements('//button')
+  #print("sleep {}s".format('5'))
+  #time.sleep(5)
+  #print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
+  #try:
+  #  print(web_manager.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext"))
+  #except:
+  #  pass
+  #web_manager.load(url)
+  #print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
+  #print(web_manager.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext"))
+  
 
 ### 
 #    url = 'http://www.amazon.com/gp/delivery/ajax/address-change.html?locationType=LOCATION_INPUT&zipCode=94024&storeContext=office-products&deviceType=web&pageType=Detail&actionSource=glow&almBrandId=undefined'

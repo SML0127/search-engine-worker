@@ -626,6 +626,26 @@ class WebManager():
     except Exception as e:
       raise WebMgrErr(e)
 
+
+  def get_option_values_by_lxml(self, xpath, vxpath, vattr):
+    try:
+      elements = self.get_elements_by_lxml_(xpath)
+      if len(elements) == 0: return []
+      result = []
+      for element in elements:
+        velements = element.xpath(vxpath)
+        if len(velements) == 0: continue
+        res_tmp = []
+        for velement in velements:
+          val = self.get_attribute_by_selenium_(velement, vattr)
+          res_tmp.append(val)
+        result.append(res_tmp)
+      return result
+    except Exception as e:
+      raise WebMgrErr(e)
+
+
+
   def get_key_values_by_selenium_strong(self, xpath, kxpath, kattr, vxpath, vattr):
     try:
       elements = self.get_elements_by_selenium_strong_(xpath)

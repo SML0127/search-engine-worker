@@ -638,7 +638,7 @@ class Cafe24Manager:
        'shop_no': 1,
        'request': {
         "has_option": "T",
-        "option_type": "T",
+        "option_type": "F",
         "option_list_type": "S",
         "options": option,
         "option_display_type": "P",
@@ -660,7 +660,7 @@ class Cafe24Manager:
        'shop_no': 1,
        'request': {
         "has_option": "T",
-        "option_type": "T",
+        "option_type": "F",
         "option_list_type": "S",
         "options": [{'option_name': 'size'}],
         "option_display_type": "P",
@@ -825,18 +825,18 @@ class Cafe24Manager:
           for variant in variants:
             stat = True
             for cafe24_option in cafe24_options:
-              if cafe24_option['value'] != variant.get(cafe24_option['name'], None):
-                stat = False
-                break
-              if stat:
+              #if cafe24_option['value'] != variant.get(cafe24_option['name'], None):
+              #  stat = False
+              #  break
+              #if stat:
+              self.update_variant(tpid, cafe24_code, 999)
                 #self.update_variant(tpid, cafe24_code, variant['stock'])
-                print(self.update_variant(tpid, cafe24_code, 999))
+                #print(self.update_variant(tpid, cafe24_code, 999))
 
-      elif len(variants) == 0:
-        #for cafe24_variant in self.list_variants(tpid)['variants']:
-        cafe24_variant = self.list_variants(tpid)['variants'][0]
-        variant_code = cafe24_variant['variant_code']
-        print(self.update_variant_inventory(tpid, variant_code, int(product['stock'])))
+      #elif len(variants) == 0:
+      #  #for cafe24_variant in self.list_variants(tpid)['variants']:
+      #  cafe24_variant = self.list_variants(tpid)['variants'][0]
+      #  variant_code = cafe24_variant['variant_code']
 
 
       if len(additional_image) > 0:
@@ -869,16 +869,10 @@ class Cafe24Manager:
         else:
           product['manufacturer_code'] = self.create_manufacturer({'manufacturer_name': product['manufacturer_code'], 'use_manufacturer': 'T','president_name': 'Test user'})
         profiling_info['manufacturer'] = profiling_info.get('manufacturer', 0) + (time.time() - tmp_time)
-      #if 'detail_image' in product:
-      #  tmp_time = time.time()
-      #  product['detail_image'] = self.upload_image_from_link(product['detail_image'])
-      #  profiling_info['detail_image'] = profiling_info.get('detail_image', 0) + (time.time() - tmp_time)
-
-
 
       # delete image from product in target site
       print(self.delete_image(tpid))
-      
+
       # add detail image 
       if 'detail_image' in product:
         tmp_time = time.time()
@@ -900,11 +894,33 @@ class Cafe24Manager:
         raise
 
       # update variants (option)
-      option = []
+      #option = []
+      #if 'variants' in product:
+      #  variants = product.get('variants', [])
+      #  del product['variants']
+      #if has_option == 'T' and len(variants) > 0:
+      #  option_names = product['option_names']
+      #  del product['option_names']
+      #  options = {}
+      #  for variant in variants:
+      #    for key, value in variant.items():
+      #      if key in option_names:
+      #        values = options.get(key, [])
+      #        if value not in values: values.append(value)
+      #        options[key] = values
+      #  for option_name, values in options.items():
+      #    option_value = []
+      #    for val in values[0]:
+      #      option_value.append({'option_text': val }) 
+      #    option.append({'option_name': option_name, 'option_value': option_value})
+
+
+      print(self.delete_option(tpid))
+
       if 'variants' in product:
         variants = product.get('variants', [])
         del product['variants']
-      if has_option == 'T' and len(variants) > 0:
+      if product['has_option'] == 'T' and len(variants) > 0:
         option_names = product['option_names']
         del product['option_names']
         options = {}
@@ -914,45 +930,69 @@ class Cafe24Manager:
               values = options.get(key, [])
               if value not in values: values.append(value)
               options[key] = values
+        result = []
         for option_name, values in options.items():
-          option_value = []
-          for val in values[0]:
-            option_value.append({'option_text': val }) 
-          option.append({'option_name': option_name, 'option_value': option_value})
-        
-        # 0 -> N
-        prd = self.get_option(tpid)
-        if 'option' not in prd:
-          print(prd['error'])
-          raise
-        if prd['option']['has_option'] == 'F':
-          self.create_option(tpid, option)
-        # need implement
-        else:
-          # Change option name or option value 
-          self.delete_option(tpid)
-          self.create_option(tpid, option)
+          result.append({'name': option_name, 'value': values[0]})
+        product['options'] = result
 
-        #[{'test option': ['option val1', 'option val2']},{}] -> variants
+       
 
+      if product['has_option'] == 'T' and len(variants) > 0:
         for cafe24_variant in self.list_variants(tpid)['variants']:
-          variant_code = cafe24_variant['variant_code']
+          cafe24_code = cafe24_variant['variant_code']
           cafe24_options = cafe24_variant['options']
-          #[{'test option': ['option val1', 'option val2']},{}] -> variants
-          #[{'name': 'test option', 'value': 'option val1'}] -> cafe24_options
-          #[{'name': 'test option', 'value': 'option val2'}]
-          
           for variant in variants:
             stat = True
             for cafe24_option in cafe24_options:
-              for val in variant.get(cafe24_option['name'], None):
-                if cafe24_option['value'] == val:
-                  print(self.update_variant(tpid, variant_code, 999))
+              #if cafe24_option['value'] != variant.get(cafe24_option['name'], None):
+              #  stat = False
+              #  break
+              #if stat:
+              self.update_variant(tpid, cafe24_code, 999)
+                #self.update_variant(tpid, cafe24_code, variant['stock'])
+                #print(self.update_variant(tpid, cafe24_code, 999))
 
-      else: 
-        cafe24_variant = self.list_variants(tpid)['variants'][0]
-        variant_code = cafe24_variant['variant_code']
-        print(self.update_variant_inventory(tpid, variant_code, int(product['stock'])))
+      #elif len(variants) == 0:
+      #  #for cafe24_variant in self.list_variants(tpid)['variants']:
+      #  cafe24_variant = self.list_variants(tpid)['variants'][0]
+      #  variant_code = cafe24_variant['variant_code']
+
+
+
+ 
+        # 0 -> N
+      #  prd = self.get_option(tpid)
+      #  if 'option' not in prd:
+      #    print(prd['error'])
+      #    raise
+      #  if prd['option']['has_option'] == 'F':
+      #    self.create_option(tpid, option)
+      #  # need implement
+      #  else:
+      #    # Change option name or option value 
+      #    self.delete_option(tpid)
+      #    self.create_option(tpid, option)
+
+      #  #[{'test option': ['option val1', 'option val2']},{}] -> variants
+
+      #  for cafe24_variant in self.list_variants(tpid)['variants']:
+      #    variant_code = cafe24_variant['variant_code']
+      #    cafe24_options = cafe24_variant['options']
+      #    #[{'test option': ['option val1', 'option val2']},{}] -> variants
+      #    #[{'name': 'test option', 'value': 'option val1'}] -> cafe24_options
+      #    #[{'name': 'test option', 'value': 'option val2'}]
+      #    
+      #    for variant in variants:
+      #      stat = True
+      #      for cafe24_option in cafe24_options:
+      #        for val in variant.get(cafe24_option['name'], None):
+      #          if cafe24_option['value'] == val:
+      #            print(self.update_variant(tpid, variant_code, 999))
+
+      #else: 
+      #  cafe24_variant = self.list_variants(tpid)['variants'][0]
+      #  variant_code = cafe24_variant['variant_code']
+      #  print(self.update_variant_inventory(tpid, variant_code, int(product['stock'])))
         #for cafe24_variant in self.list_variants(tpid)['variants']:
         #  variant_code = cafe24_variant['variant_code']
         #  cafe24_options = cafe24_variant['options']
