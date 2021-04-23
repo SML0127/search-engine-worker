@@ -920,7 +920,7 @@ class Cafe24Manager:
       if 'variants' in product:
         variants = product.get('variants', [])
         del product['variants']
-      if product['has_option'] == 'T' and len(variants) > 0:
+      if has_option == 'T' and len(variants) > 0:
         option_names = product['option_names']
         del product['option_names']
         options = {}
@@ -937,7 +937,7 @@ class Cafe24Manager:
 
        
 
-      if product['has_option'] == 'T' and len(variants) > 0:
+      if has_option == 'T' and len(variants) > 0:
         for cafe24_variant in self.list_variants(tpid)['variants']:
           cafe24_code = cafe24_variant['variant_code']
           cafe24_options = cafe24_variant['options']
