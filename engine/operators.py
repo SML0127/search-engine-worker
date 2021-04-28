@@ -7,6 +7,7 @@ import traceback
 import random
 from urllib.parse import urlparse
 from amazoncaptcha import AmazonCaptcha
+from selenium.common.exceptions import TimeoutException, WebDriverException, InvalidSessionIdException
 
 class GlovalVariable():
 
@@ -460,7 +461,9 @@ class BFSIterator(BaseOperator):
       
       op_time = time.time() - op_start
       gvar.profiling_info[op_id] = { 'op_time' : op_time }
+
     except Exception as e:
+      print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@111111') 
       fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
       gvar.web_mgr.store_page_source(fname)
       print("error html:", fname)
@@ -474,6 +477,9 @@ class BFSIterator(BaseOperator):
       if type(e) is OperatorError:
         raise e
       raise OperatorError(e, self.props['id'])
+    except:
+      print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2222222') 
+      print(str(traceback.format_exc())) 
 
 
 class OpenNode(BaseOperator):
@@ -647,7 +653,7 @@ class ClickOperator(BaseOperator):
         if type(essential) != type(True): essential = eval(essential)
         if type(repeat) != type(True): repeat = eval(repeat)
         if repeat:
-          gvar.web_mgr.click_elements_repeat(query, time_sleep)
+          gvar.web_mgr.click_elements_repeat(query, time_sleep, gvar.task_url)
         else:
           if essential:
             gvar.web_mgr.click_elements_strong(query)

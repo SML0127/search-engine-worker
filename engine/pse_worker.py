@@ -109,7 +109,7 @@ class pseWorker(Worker):
             self.lm.init(self.settings)
             super(pseWorker, self).__init__(*args, **kwargs)
         except Exception as e:
-            print("-------Raised Exception in WORKER-------")
+            print("-------Raised Exception in WORKER init -------")
             print(e)
             print("----------------------------------------")
             print("--------------STACK TRACE---------------")
@@ -123,7 +123,7 @@ class pseWorker(Worker):
             self.web_mgr.close()
             self.log.info('Chromedriver process shutdown.')
         except Exception as e:
-            print("-------Raised Exception in WORKER-------")
+            print("-------Raised Exception in WORKER shutdown-------")
             print(e)
             print("----------------------------------------")
             print("--------------STACK TRACE---------------")
@@ -178,12 +178,12 @@ class pseWorker(Worker):
             op.run(gvar)
             self.complete_task(op, gvar)
             rv = gvar.results
-            print(gvar.profiling_info)
+            #print(gvar.profiling_info)
         except OperatorError as e:
             err_name = e.error.__class__.__name__
             err = {'type': 0, 'op_id': e.op_id, 'error': str(e), 'err_msg': gvar.err_msg, 'traceback': traceback.format_exc()}
             self.lm.end_task(task_id, ErrorDict.get(err_name, -1), err)
-            print("-------Raised Exception in WORKER-------")
+            print("-------Raised Exception in WORKER operator error-------")
             print("----------------------------------------")
             print("--------------STACK TRACE---------------")
             print(str(traceback.format_exc()))

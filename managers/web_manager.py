@@ -104,6 +104,7 @@ class WebManager():
 
   def restart(self,sleep_time):
     try:
+      print('---start restart--')
       for driver in self.drivers:
         driver.quit()
       self.drivers = []
@@ -153,6 +154,7 @@ class WebManager():
         self.drivers_is_zipcode_reset.append(True)
         self.drivers_last_amazon_country.append("")
       self.driver_idx = 0
+      print('---end restart--')
     except Exception as e:
       raise WebMgrErr(e)
 
@@ -467,7 +469,7 @@ class WebManager():
 
 
 
-  def click_elements_repeat(self, xpath, time_sleep):
+  def click_elements_repeat(self, xpath, time_sleep, url):
     try:
       outer_cnt = 0
       outer_max_try = 10
@@ -484,10 +486,14 @@ class WebManager():
           try:
             element = WebDriverWait(self.get_cur_driver_(), 60).until(EC.element_to_be_clickable((By.XPATH, xpath)))  
             self.get_cur_driver_().execute_script("window.scrollTo(0, document.body.scrollHeight)")
-            time.sleep(3)
+            time.sleep(2)
             element.click()
             break;
-          except:
+          except Exception as e:
+            if type(e).__name__ == 'WebDriverException':
+              self.restart(5)
+              self.load(url)
+              break
             print("Element is not clickable, so retry")
             time.sleep(3)
             if inner_cnt < inner_max_try:
