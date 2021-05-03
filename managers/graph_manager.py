@@ -1473,7 +1473,8 @@ class GraphManager():
 
   def update_tpid_into_mapping_table(self, job_id, tpid, mpid, targetsite_url):
     try:
-      query = "select count(*) from tpid_mapping where job_id = {} and targetsite_url = '{}' and mpid = {}".format(job_id, targetsite_url, mpid)
+      #query = "select count(*) from tpid_mapping where job_id = {} and targetsite_url = '{}' and mpid = {}".format(job_id, targetsite_url, mpid)
+      query = "select count(*) from tpid_mapping where targetsite_url = '{}' and mpid = {}".format(targetsite_url, mpid)
       self.gp_cur.execute(query)
       rows = self.gp_cur.fetchone()
       self.gp_conn.commit()
@@ -1481,7 +1482,8 @@ class GraphManager():
       if int(result) == 0:
         self.insert_tpid_into_mapping_table(job_id, targetsite_url, mpid, tpid)
       else: 
-        query = "update tpid_mapping set tpid = {} where job_id = {} and targetsite_url = '{}' and mpid = {}".format(tpid, job_id, targetsite_url, mpid)
+        #query = "update tpid_mapping set tpid = {} where job_id = {} and targetsite_url = '{}' and mpid = {}".format(tpid, job_id, targetsite_url, mpid)
+        query = "update tpid_mapping set tpid = {} where targetsite_url = '{}' and mpid = {}".format(tpid, targetsite_url, mpid)
         self.gp_cur.execute(query)
         self.gp_conn.commit()
       return 
@@ -1493,7 +1495,7 @@ class GraphManager():
 
   def check_is_item_uploaded(self, job_id, targetsite_url, mpid):
     try:
-      query = "select count(*) from tpid_mapping where job_id = {} and targetsite_url like '%{}%' and mpid = {}".format(job_id, targetsite_url, mpid)
+      query = "select count(*) from tpid_mapping where targetsite_url like '%{}%' and mpid = {}".format(targetsite_url, mpid)
       self.gp_cur.execute(query)
       rows = self.gp_cur.fetchone()
       self.gp_conn.commit()
@@ -1522,7 +1524,8 @@ class GraphManager():
 
   def get_tpid(self, job_id, targetsite_url, mpid):
     try:
-      query =  "select tpid from tpid_mapping where job_id = {} and targetsite_url = '{}' and mpid = {}".format(job_id, targetsite_url, mpid)
+      #query =  "select tpid from tpid_mapping where job_id = {} and targetsite_url = '{}' and mpid = {}".format(job_id, targetsite_url, mpid)
+      query =  "select tpid from tpid_mapping where targetsite_url = '{}' and mpid = {}".format(targetsite_url, mpid)
       self.gp_cur.execute(query)
       rows = self.gp_cur.fetchone()
       self.gp_conn.commit()
