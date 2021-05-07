@@ -1522,6 +1522,20 @@ class GraphManager():
       raise
 
 
+  def get_tpid_for_hide(self):
+    try:
+      query =  "select t1.mpid, t1.tpid from tpid_mapping_backup as t1, (select t1.job_id, t1.mpid from (select t1.job_id, t2.mpid from job_id_to_site_code as t1 , mpid_now as t2 where concat(10,CAST(t2.site_code AS text),'') = CAST(t1.site_code as text)) as t1 left join (select v1.mpid from (select t1.job_id, t2.mpid from job_id_to_site_code as t1 , mpid_now as t2 where concat(10,CAST(t2.site_code AS text),'') = CAST(t1.site_code as text)) as v1 inner join job_source_view as v2 on v1.mpid = v2.mpid and v1.job_id = v2.job_id) as t2 on t1.mpid = t2.mpid where t2.mpid is NULL) as t2 where t1.job_id = t2.job_id and t1.mpid = t2.mpid and t1.targetsite_url like '%now%';"
+      self.gp_cur.execute(query)
+      rows = self.gp_cur.fetchall()
+      return result
+    except:
+      self.gp_conn.rollback()
+      print(str(traceback.format_exc()))
+      raise
+
+
+
+
   def get_tpid(self, job_id, targetsite_url, mpid):
     try:
       #query =  "select tpid from tpid_mapping where job_id = {} and targetsite_url = '{}' and mpid = {}".format(job_id, targetsite_url, mpid)
@@ -2029,16 +2043,17 @@ class GraphManager():
   def logging_all_uploaded_product(self, job_id, execution_id, mpid, origin_product, converted_product, targetsite_url, cnum):
     try:
       #query =  "insert into all_uploaded_product(job_id, execution_id, mpid, origin_product, converted_product, targetsite_url, cnum) values({}, {}, {}, '{}', '{}','{}',{})".format(job_id, execution_id, mpid,  json.dumps(origin_product, default=self.json_default), json.dumps(converted_product,default=self.json_default ), targetsite_url, cnum)
-      try:
-        if origin_product['sm_date'] != '' and origin_product['sm_date'] != None:
-          origin_product['sm_date'] = origin_product['sm_date'].strftime('%Y-%m-%d %H:%M:%S')
-      except:
-        origin_product['sm_date'] = ''
-        pass
-      origin_product['html'] =  origin_product['html'].encode('UTF-8').hex()
-      origin_product['option_name'] = repr(origin_product['option_name']).encode('UTF-8').hex()
-      origin_product['option_value'] = repr(origin_product['option_value']).encode('UTF-8').hex()
-      converted_product['description'] = converted_product['description'].encode('UTF-8').hex()
+      if (origin_product.get('status', '') == '' and origin_product.get('Error', '') == ''):
+        try:
+          if origin_product['sm_date'] != '' and origin_product['sm_date'] != None:
+            origin_product['sm_date'] = origin_product['sm_date'].strftime('%Y-%m-%d %H:%M:%S')
+        except:
+          origin_product['sm_date'] = ''
+          pass
+        origin_product['html'] =  origin_product['html'].encode('UTF-8').hex()
+        origin_product['option_name'] = repr(origin_product['option_name']).encode('UTF-8').hex()
+        origin_product['option_value'] = repr(origin_product['option_value']).encode('UTF-8').hex()
+        converted_product['description'] = converted_product['description'].encode('UTF-8').hex()
       #converted_product['option_name'] = converted_product['option_name'].encode('UTF-8').hex()
       #converted_product['option_value'] = converted_product['option_value'].encode('UTF-8').hex()
       #print(origin_product)

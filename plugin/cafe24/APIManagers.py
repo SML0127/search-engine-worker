@@ -768,6 +768,8 @@ class Cafe24Manager:
 
     def upload_new_product(self, product, profiling_info, job_id):
         try:
+            product['display'] = "T"
+            product['selling'] = "T"
             if 'brand_code' in product:
                 tmp_time = time.time()
                 if product['brand_code'] == '':
@@ -892,6 +894,8 @@ class Cafe24Manager:
             print('---------update product--------')
             product['product_no'] = tpid
             product['image_upload_type'] = "A"
+            product['display'] = "T"
+            product['selling'] = "T"
             product.pop('brand_code')
             has_option = product['has_option']
             product.pop('has_option')
@@ -1059,6 +1063,24 @@ class Cafe24Manager:
             raise
 
     # https://developers.cafe24.com/docs/en/api/admin/#update-a-product
+
+    def hide_exist_product_no_profiling(self, tpid):  # delete
+        try:
+            print('---------hide product--------')
+            product = {}
+            product['product_no'] = tpid
+            product['display'] = "F"
+            product['selling'] = "F"
+
+            tmp_time = time.time()
+            product_result = self.update_product(product, tpid)
+            print(product_result)
+            if 'error' in product_result:
+                print('Do not delete tpid = {} from tpid mapping table'.format(tpid))
+        except:
+            raise
+
+
 
     def hide_exist_product(self, profiling_info, job_id, tpid):  # delete
         try:
