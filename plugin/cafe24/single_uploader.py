@@ -270,6 +270,12 @@ class Cafe24SingleUploader(Resource):
                 self.cafe24manager.upload_new_product(product, profiling_info, job_id)
                 cnum  = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
                 #smlee
+                try:
+                  self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid, original_product_information, product, targetsite_url, cnum) 
+                except:
+                  self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid,{'Error':'Logging error'},{'Error':'Logging error'}, targetsite_url, cnum) 
+                  pass
+ 
               elif is_uploaded == True:
                 if status == 1:
                   product, original_product_information = exporter.export_from_mpid_onetime(job_id, args['execution_id'], mpid, tsid)
