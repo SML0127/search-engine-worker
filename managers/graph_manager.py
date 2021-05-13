@@ -5,12 +5,16 @@ import hashlib
 import urllib.request
 import cfscrape
 import pathlib
+import string
 from io import BytesIO
 from PIL import Image
 import requests
 from price_parser import Price
 from datetime import datetime, timedelta, date
 from urllib.parse import urlparse
+
+def is_hex_str(s):
+    return set(s).issubset(string.hexdigits)
 
 class GraphManager():
 
@@ -1109,8 +1113,11 @@ class GraphManager():
       
       result = {}
       for i in range(0, len(col_names)):
-        if col_names[i] == 'p_name':
-           result[col_names[i]] = bytes.fromhex(col_values[i]).decode()
+        if col_names[i] == 'p_name' or col_names[i] == 'price' or col_names[i] == 'list_price':
+           if is_hex_str(col_values[i]) == True:
+             result[col_names[i]] = bytes.fromhex(col_values[i]).decode()
+           else:
+             result[col_names[i]] = col_values[i]
         else:    
            result[col_names[i]] = col_values[i]
       
@@ -1475,15 +1482,17 @@ class GraphManager():
     try:
       #query = "select count(*) from tpid_mapping where job_id = {} and targetsite_url = '{}' and mpid = {}".format(job_id, targetsite_url, mpid)
       query = "select count(*) from tpid_mapping where targetsite_url = '{}' and mpid = {}".format(targetsite_url, mpid)
+      print(query)
       self.gp_cur.execute(query)
       rows = self.gp_cur.fetchone()
-      self.gp_conn.commit()
       result = rows[0]
+      print(result)
       if int(result) == 0:
         self.insert_tpid_into_mapping_table(job_id, targetsite_url, mpid, tpid)
       else: 
         #query = "update tpid_mapping set tpid = {} where job_id = {} and targetsite_url = '{}' and mpid = {}".format(tpid, job_id, targetsite_url, mpid)
         query = "update tpid_mapping set tpid = {} where targetsite_url = '{}' and mpid = {}".format(tpid, targetsite_url, mpid)
+        print(query)
         self.gp_cur.execute(query)
         self.gp_conn.commit()
       return 
@@ -1496,10 +1505,12 @@ class GraphManager():
   def check_is_item_uploaded(self, job_id, targetsite_url, mpid):
     try:
       query = "select count(*) from tpid_mapping where targetsite_url like '%{}%' and mpid = {}".format(targetsite_url, mpid)
+      print("select count(*) from tpid_mapping where targetsite_url like '%{}%' and mpid = {}".format(targetsite_url, mpid))
       self.gp_cur.execute(query)
       rows = self.gp_cur.fetchone()
       self.gp_conn.commit()
       result = rows[0]
+      print(result)
       if int(result) == 0:
         return False
       else:
@@ -1513,6 +1524,7 @@ class GraphManager():
   def insert_tpid_into_mapping_table(self, job_id, targetsite_url, mpid, tpid):
     try:
       query = "insert into tpid_mapping(job_id, mpid, targetsite_url, tpid) values({},{},'{}',{})".format(job_id, mpid, targetsite_url, tpid)
+      print(query)
       self.gp_cur.execute(query)
       self.gp_conn.commit()
       return
@@ -2042,36 +2054,34 @@ class GraphManager():
 
   def logging_all_uploaded_product(self, job_id, execution_id, mpid, origin_product, converted_product, targetsite_url, cnum):
     try:
-      #query =  "insert into all_uploaded_product(job_id, execution_id, mpid, origin_product, converted_product, targetsite_url, cnum) values({}, {}, {}, '{}', '{}','{}',{})".format(job_id, execution_id, mpid,  json.dumps(origin_product, default=self.json_default), json.dumps(converted_product,default=self.json_default ), targetsite_url, cnum)
-      if (origin_product.get('status', '') == '' and origin_product.get('Error', '') == ''):
+      if origin_product.get('Error', '') == '':
         try:
-          if origin_product['sm_date'] != '' and origin_product['sm_date'] != None:
-            origin_product['sm_date'] = origin_product['sm_date'].strftime('%Y-%m-%d %H:%M:%S')
+          origin_product['sm_date'] = origin_product['sm_date'].strftime('%Y-%m-%d %H:%M:%S')
         except:
           origin_product['sm_date'] = ''
           pass
-        origin_product['html'] =  origin_product['html'].encode('UTF-8').hex()
-        origin_product['option_name'] = repr(origin_product['option_name']).encode('UTF-8').hex()
-        origin_product['option_value'] = repr(origin_product['option_value']).encode('UTF-8').hex()
-        converted_product['description'] = converted_product['description'].encode('UTF-8').hex()
-      #converted_product['option_name'] = converted_product['option_name'].encode('UTF-8').hex()
-      #converted_product['option_value'] = converted_product['option_value'].encode('UTF-8').hex()
-      #print(origin_product)
-      #print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
-      for key in sorted(origin_product.keys()):
-        if key not in ['mpid', 'url','p_name', 'name', 'price', 'stock', 'sku', 'list_price', 'origin', 'company', 'html', 'option_name', 'option_value', 'brand',  'item_no', 'front_image', 'pricing_information', 'option_value', 'shipping_fee']:
-          origin_product.pop(key)
-          
-      #print(origin_product)
-      #print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
-      #print(converted_product)
-      #print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
+        #origin_product['html'] =  origin_product['html'].encode('UTF-8').hex()
+        origin_product['option_name'] = repr(origin_product['option_name'])
+        origin_product['option_value'] = repr(origin_product['option_value'])
+        #if is_hex_str(origin_product['price']) == True:
+        #  origin_product['price'] = origin_product['price'].encode('UTF-8').hex()
+        #converted_product['description'] = converted_product['description'].encode('UTF-8').hex()
+      #for key in sorted(origin_product.keys()):
+      #  if key not in ['mpid', 'url','p_name', 'name', 'price', 'stock', 'sku', 'list_price', 'origin', 'company', 'html', 'option_name', 'option_value', 'brand',  'item_no', 'front_image', 'pricing_information', 'option_value', 'shipping_fee', 'Error']:
+      #    origin_product.pop(key)
+      origin_product = json.dumps(origin_product).encode('UTF-8').hex()
+      converted_product = json.dumps(converted_product).encode('UTF-8').hex()
       query =  "insert into all_uploaded_product(job_id, execution_id, mpid, origin_product, converted_product, targetsite_url, cnum) values({}, {}, {}, '{}', '{}','{}',{})".format(job_id, execution_id, mpid,  json.dumps(origin_product), json.dumps(converted_product), targetsite_url, cnum)
       self.gp_cur.execute(query)
       self.gp_conn.commit()
       return 
     except:
       self.gp_conn.rollback()
+      print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
+      print(origin_product)
+      print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
+      print(converted_product)
+      print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
       print(str(traceback.format_exc()))
       raise
 
