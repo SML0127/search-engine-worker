@@ -34,10 +34,9 @@ class Cafe24SingleUploader(Resource):
   def __init__(self):
     self.setting_manager = SettingsManager()
     self.setting_manager.setting("/home/pse/PSE-engine/settings-worker.yaml")
-    settings = self.setting_manager.get_settings()
-    self.graph_manager = GraphManager()
-    self.graph_manager.init(settings)
+    self.settings = self.setting_manager.get_settings()
     self.cafe24manager = ''
+    self.graph_manager = ''
     pass
 
   def upload_products(self, args):
@@ -84,12 +83,15 @@ class Cafe24SingleUploader(Resource):
     total_time = time.time()
     profiling_info = {}
     try:
-      exec_id = args['execution_id']
-      args['job_id'] = self.graph_manager.get_job_id_from_eid(exec_id)
-
       num_threads = args.get('num_threads', 1)
       pool = ThreadPool(num_threads)
       print('num threads in args: ', num_threads)
+      self.graph_manager = GraphManager()
+      self.graph_manager.init(self.settings)
+
+      exec_id = args['execution_id']
+      args['job_id'] = self.graph_manager.get_job_id_from_eid(exec_id)
+
       chunk_size = (len(mpids) // num_threads) + 1
       mpid_chunks = [mpids[i:i + chunk_size] for i in range(0, len(mpids), chunk_size)]
       tasks = []
@@ -102,9 +104,10 @@ class Cafe24SingleUploader(Resource):
       results = pool.map(self.upload_products_of_task_from_mpid, tasks)
       profiling_info['threads'] = results
     except:
+      profiling_info['total_time'] = time.time() - total_time
       pool.close()
       pool.join()
-      profiling_info['total_time'] = time.time() - total_time
+      self.graph_manager.disconnect()
       #print(profiling_info)
       #print(traceback.format_exc())
       return profiling_info
@@ -112,6 +115,7 @@ class Cafe24SingleUploader(Resource):
     #print(profiling_info)
     pool.close()
     pool.join()
+    self.graph_manager.disconnect()
     return profiling_info
 
 
@@ -199,6 +203,7 @@ class Cafe24SingleUploader(Resource):
 
                 product['targetsite_url'] = targetsite_url
                 product['mpid'] = mpid
+                print('mpid : ', mpid)
                 self.cafe24manager.upload_new_product(product, profiling_info, job_id)
                 cnum = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
                 #smlee
@@ -215,6 +220,7 @@ class Cafe24SingleUploader(Resource):
                   product['targetsite_url'] = targetsite_url
                   product['mpid'] = mpid
                   tpid = self.graph_manager.get_tpid(job_id, targetsite_url, mpid)
+                  print('mpid : ', mpid)
                   print('tpid : ', tpid)
                   self.cafe24manager.update_exist_product(product, profiling_info, job_id, tpid)
                   cnum = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
@@ -227,6 +233,7 @@ class Cafe24SingleUploader(Resource):
                 elif status == 3:
                   tpid = self.graph_manager.get_tpid(job_id, targetsite_url, mpid)
                   print('tpid : ', tpid)
+                  print('mpid : ', mpid)
                   log_operation = 'Delete product'
                   self.cafe24manager.hide_exist_product(profiling_info, job_id, tpid)
                   cnum  = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
@@ -266,6 +273,7 @@ class Cafe24SingleUploader(Resource):
                 product, original_product_information = exporter.export_from_mpid_onetime(job_id, args['execution_id'], mpid, tsid)
                 product['targetsite_url'] = targetsite_url
                 product['mpid'] = mpid
+                print('mpid : ', mpid)
                 log_operation = 'Create new product'
                 self.cafe24manager.upload_new_product(product, profiling_info, job_id)
                 cnum  = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
@@ -282,6 +290,7 @@ class Cafe24SingleUploader(Resource):
                   product['targetsite_url'] = targetsite_url
                   product['mpid'] = mpid
                   log_operation = 'Update exist product'
+                  print('mpid : ', mpid)
                   tpid = self.graph_manager.get_tpid(job_id, targetsite_url, mpid)
                   self.cafe24manager.update_exist_product(product, profiling_info, job_id, tpid)
                   cnum  = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
@@ -294,6 +303,7 @@ class Cafe24SingleUploader(Resource):
                 elif status == 3:
                   tpid = self.graph_manager.get_tpid(job_id, targetsite_url, mpid)
                   print('tpid : ', tpid)
+                  print('mpid : ', mpid)
                   log_operation = 'Delete product'
                   self.cafe24manager.hide_exist_product(profiling_info, job_id, tpid)
                   cnum = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
@@ -341,6 +351,7 @@ class Cafe24SingleUploader(Resource):
   def close(self):
     try:
       self.cafe24manager.close()
+      self.graph_manager.disconnect()
     except:
       pass
 
