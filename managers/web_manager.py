@@ -379,6 +379,8 @@ class WebManager():
 
 
   def get_attribute_by_selenium_(self, element, attr):
+    print(element)
+    print(element.text)
     if attr == 'alltext':
       return element.text.strip()
     else:
@@ -390,7 +392,7 @@ class WebManager():
     return val
 
   def get_attribute_by_lxml_(self, element, attr):
-    if attr == 'alltext': val = ''.join(element.itertext()).strip()
+    if attr == 'alltext': val = '\n'.join(element.itertext()).strip()
     elif attr == 'text': val = element.text.strip()
     elif attr == 'innerHTML': val = etree.tostring(element, pretty_print=True)
     else: val = element.get(attr)
@@ -733,7 +735,7 @@ class WebManager():
         if len(velements) == 0: continue
         res_tmp = []
         for velement in velements:
-          val = self.get_attribute_by_selenium_(velement, vattr)
+          val = self.get_attribute_by_lxml_(velement, vattr)
           res_tmp.append(val)
         result.append(res_tmp)
       return result
@@ -752,11 +754,11 @@ class WebManager():
       for element in elements:
         kelements = element.find_elements_by_xpath(kxpath)
         if len(kelements) == 0: continue
-        key = self.get_attribute_by_selenium_(kelements[0], kattr)
+        key = self.get_attribute_by_lxml_(kelements[0], kattr)
         if key == None: continue
         velements = element.find_elements_by_xpath(vxpath)
         if len(velements) == 0: continue
-        val = self.get_attribute_by_selenium_(velements[0], vattr)
+        val = self.get_attribute_by_lxml_(velements[0], vattr)
         if val == None: continue
         result[key] = val
       if len(result) == 0: raise NoElementFoundError(xpath)

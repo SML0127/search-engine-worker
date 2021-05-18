@@ -1041,7 +1041,7 @@ class Cafe24Manager:
 
             num_combination = 1
             num_variant = 0
-            if product['has_option'] == 'T' and len(variants) > 0:
+            if has_option == 'T' and len(variants) > 0:
                 option_names = product['option_names']
                 del product['option_names']
                 options = {}

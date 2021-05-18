@@ -512,6 +512,7 @@ class BFSIterator(BaseOperator):
                     err_msg += '================================ STACK TRACE ============================== \n' + \
                         str(traceback.format_exc())
                     gvar.graph_mgr.log_err_msg_of_task(gvar.task_id, err_msg)
+                    raise OperatorError(e, self.props['id'])
 
         try:
             for op in self.operators:
@@ -931,9 +932,98 @@ class ValuesScrapper(BaseOperator):
             return
         except Exception as e:
             raise OperatorError(e, self.props['id'])
-            return
-        return
 
+
+
+class ValuesScrapperNew(BaseOperator):
+
+    def before(self, gvar):
+        while True:
+            result = {}
+            op_time = time.time()
+            print('Do ValuesScrapper')
+            op_id = self.props['id']
+            pairs = self.props['queries']
+            xpaths_time = ''
+            build_time = ''
+            try:
+
+                build_time = time.time()
+                gvar.web_mgr.build_lxml_tree()
+                build_time = time.time() - build_time
+
+                xpaths_time = time.time()
+                for pair in pairs:
+                    key = pair['key']
+                    xpath = pair['query']
+                    attr = pair['attr']
+                    print(pair)
+
+                    if xpath == '':
+                        if attr == 'url':
+                            result[key] = str(
+                                gvar.web_mgr.get_current_url()).strip()
+                    else:
+                        if 'indices' in pair:
+                            print(xpath)
+                            print(gvar.stack_indices)
+                            print(pair['indices'])
+                            xpath = self.set_query(
+                                xpath, gvar.stack_indices, pair['indices'])
+                        essential = pair.get('essential', False)
+                        if type(essential) != type(True):
+                            essential = eval(essential)
+                        if attr == 'outerHTML':
+                            if essential:
+                                result[key] = gvar.web_mgr.get_subtree_with_style_strong(
+                                    xpath)
+                            else:
+                                result[key] = gvar.web_mgr.get_subtree_with_style(
+                                    xpath)
+                            continue
+                        if attr == 'innerHTML':
+                            if essential:
+                                result[key] = gvar.web_mgr.get_subtree_no_parent_with_style_strong(
+                                    xpath)
+                            else:
+                                result[key] = gvar.web_mgr.get_subtree_no_parent_with_style(
+                                    xpath)
+                            continue
+                        if essential:
+                            result[key] = gvar.web_mgr.get_value_by_lxml_strong(
+                                xpath, attr)
+                        else:
+                            result[key] = gvar.web_mgr.get_value_by_lxml(
+                                xpath, attr)
+                xpaths_time = time.time() - xpaths_time
+            except Exception as e:
+                if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException:':
+                    print('Chrome Error. Restart chrome')
+                    print(str(traceback.format_exc()))
+                    gvar.web_mgr.restart(5)
+                else:
+                    raise OperatorError(e, self.props['id'])
+            
+            try:
+                db_time = time.time()
+                for key, value in result.items():
+                    gvar.graph_mgr.insert_node_property(
+                        gvar.stack_nodes[-1], key, value)
+                db_time = time.time() - db_time
+
+                op_time = time.time() - op_time
+                gvar.profiling_info[op_id] = {
+                    'op_time': op_time,
+                    'build_time': build_time,
+                    'xpaths_num': len(pairs),
+                    'xpaths_time': xpaths_time,
+                    'db_num': len(result),
+                    'db_time': db_time
+                }
+                break;
+            except Exception as e:
+                raise OperatorError(e, self.props['id'])
+        return
 
 class ListsScrapper(BaseOperator):
 
@@ -992,6 +1082,70 @@ class ListsScrapper(BaseOperator):
         return
 
 
+class ListsScrapperNew(BaseOperator):
+
+    def run(self, gvar):
+        while True:
+            result = {}
+            op_time = time.time()
+            print('Do ListsScrapper')
+            op_id = self.props['id']
+            queries = self.props['queries']
+            xpaths_time = ''
+            build_time = ''
+            try:
+
+                build_time = time.time()
+                gvar.web_mgr.build_lxml_tree()
+                build_time = time.time() - build_time
+
+                xpaths_time = time.time()
+
+                for query in queries:
+                    key = query['key']
+                    xpath = query['query']
+                    if 'indices' in query:
+                        xpath = self.set_query(
+                            xpath, gvar.stack_indices, query['indices'])
+                    attr = query['attr']
+                    essential = query.get('essential', False)
+                    if type(essential) != type(True):
+                        essential = eval(essential)
+                    if essential:
+                        result[key] = gvar.web_mgr.get_values_by_lxml_strong(
+                            xpath, attr)
+                    else:
+                        result[key] = gvar.web_mgr.get_values_by_lxml(xpath, attr)
+
+                xpaths_time = time.time() - xpaths_time
+            except Exception as e:
+                if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException:':
+                    print('Chrome Error. Restart chrome')
+                    print(str(traceback.format_exc()))
+                    gvar.web_mgr.restart(5)
+                else:
+                    raise OperatorError(e, self.props['id'])
+            try: 
+                db_time = time.time()
+                for key, value in result.items():
+                    gvar.graph_mgr.insert_node_property(
+                        gvar.stack_nodes[-1], key, value)
+                db_time = time.time() - db_time
+
+                op_time = time.time() - op_time
+                gvar.profiling_info[op_id] = {
+                    'op_time': op_time,
+                    'build_time': build_time,
+                    'xpaths_time': xpaths_time,
+                    'db_time': db_time,
+                    'num_results': len(result)
+                }
+                break;
+            except Exception as e:
+                raise OperatorError(e, self.props['id'])
+        return
+
+
 class DictsScrapper(BaseOperator):
 
     def run(self, gvar):
@@ -1041,7 +1195,7 @@ class DictsScrapper(BaseOperator):
                     title_query, 'alltext')
 
             xpaths_time = time.time() - xpaths_time
-
+ 
             db_time = time.time()
             for key, value in result.items():
                 gvar.graph_mgr.insert_node_property(
@@ -1059,7 +1213,87 @@ class DictsScrapper(BaseOperator):
             return
         except Exception as e:
             raise OperatorError(e, self.props['id'])
-            return
+        return
+
+class DictsScrapperNew(BaseOperator):
+
+    def run(self, gvar):
+        while True:
+            result = {}
+            op_time = time.time()
+            print('Do dictionary scrapper')
+            op_id = self.props['id']
+            queries = self.props['queries']
+            xpaths_time = ''
+            build_time = ''
+            try:
+
+                build_time = time.time()
+                gvar.web_mgr.build_lxml_tree()
+                build_time = time.time() - build_time
+
+                result = {}
+
+                xpaths_time = time.time()
+
+                for query in queries:
+                    key = query['key']
+                    rows_query = query['rows_query']
+                    if 'rows_indices' in query:
+                        rows_query = self.set_query(
+                            rows_query, gvar.stack_indices, query['rows_indices'].strip())
+                    key_query = query['key_query']
+                    if 'key_indices' in query:
+                        key_query = self.set_query(
+                            key_query, gvar.stack_indices, query['key_indices'].strip())
+                    key_attr = query['key_attr']
+                    value_query = query['value_query']
+                    if 'value_indices' in query:
+                        value_query = self.set_query(
+                            value_query, gvar.stack_indices, query['value_indices'].strip())
+                    value_attr = query['value_attr']
+
+                    essential = query.get('essential', False)
+                    if type(essential) != type(True):
+                        essential = eval(essential)
+
+                    if essential:
+                        result[key] = gvar.web_mgr.get_key_values_by_lxml_strong(
+                            rows_query, key_query, key_attr, value_query, value_attr)
+                    else:
+                        result[key] = gvar.web_mgr.get_key_values_by_lxml(
+                            rows_query, key_query, key_attr, value_query, value_attr)
+                    title_query = query['title_query']
+                    result[key]['dictionary_title0'] = gvar.web_mgr.get_value_by_lxml(
+                        title_query, 'alltext')
+
+                xpaths_time = time.time() - xpaths_time
+            except Exception as e:
+                if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException:':
+                    print('Chrome Error. Restart chrome')
+                    print(str(traceback.format_exc()))
+                    gvar.web_mgr.restart(5)
+                else:
+                    raise OperatorError(e, self.props['id'])
+            
+            try:
+                db_time = time.time()
+                for key, value in result.items():
+                    gvar.graph_mgr.insert_node_property(
+                        gvar.stack_nodes[-1], key, value)
+                db_time = time.time() - db_time
+
+                op_time = time.time() - op_time
+                gvar.profiling_info[op_id] = {
+                    'op_time': op_time,
+                    'build_time': build_time,
+                    'xpaths_time': xpaths_time,
+                    'db_time': db_time,
+                    'num_results': len(result)
+                }
+                break;
+            except Exception as e:
+                raise OperatorError(e, self.props['id'])
         return
 
 
@@ -1084,10 +1318,8 @@ class OptionListScrapper(BaseOperator):
 
             option_names = gvar.web_mgr.get_values_by_lxml(
                 option_name_query, 'alltext')
-            #option_names = web_manager.get_values_by_lxml("//*[@id='picker-trigger']/span/span",'alltext')
             option_values = gvar.web_mgr.get_option_values_by_lxml(
                 option_dropdown_query, option_value_query, 'alltext')
-            #option_values = web_manager.get_option_values_by_lxml("/html/body//div/div/div[3]/div/form/div", "./div/div/label/span/div/span[1]", 'alltext')
 
             result = {}
             for idx, option_name in enumerate(option_names):
@@ -1119,6 +1351,71 @@ class OptionListScrapper(BaseOperator):
             return
         return
 
+
+
+class OptionListScrapperNew(BaseOperator):
+
+    def run(self, gvar):
+        while True:
+            op_start = time.time()
+            print('Do OptionListScrapper')
+            op_id = self.props['id']
+            parent_node_id = gvar.stack_nodes[-1]
+            xpaths_time = ''
+            build_time = ''
+            result = {}
+            try:
+
+                option_name_query = self.props['option_name_query']
+                option_dropdown_query = self.props['option_dropdown_query']
+                option_value_query = self.props['option_value_query']
+
+                build_time = time.time()
+                gvar.web_mgr.build_lxml_tree()
+                build_time = time.time() - build_time
+
+                xpaths_time = time.time()
+
+                option_names = gvar.web_mgr.get_values_by_lxml(
+                    option_name_query, 'alltext')
+                option_values = gvar.web_mgr.get_option_values_by_lxml(
+                    option_dropdown_query, option_value_query, 'alltext')
+
+                for idx, option_name in enumerate(option_names):
+                    try:
+                        result[option_name] = option_values[idx]
+                    except:
+                        pass
+
+                xpaths_time = time.time() - xpaths_time
+            except Exception as e:
+                if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException:':
+                    print('Chrome Error. Restart chrome')
+                    print(str(traceback.format_exc()))
+                    gvar.web_mgr.restart(5)
+                else:
+                    raise OperatorError(e, self.props['id'])
+
+            try:
+                db_time = time.time()
+                # for key, value in result.items():
+                print(result)
+                gvar.graph_mgr.insert_node_property(
+                    gvar.stack_nodes[-1], 'option_list', result)
+                db_time = time.time() - db_time
+
+                op_time = time.time() - op_start
+                gvar.profiling_info[op_id] = {
+                    'op_time': op_time,
+                    'build_time': build_time,
+                    'xpaths_time': xpaths_time,
+                    'db_time': db_time,
+                    'num_results': len(result)
+                }
+                break;
+            except Exception as e:
+                raise OperatorError(e, self.props['id'])
+        return
 
 class OptionMatrixScrapper(BaseOperator):
 
@@ -1183,6 +1480,85 @@ class OptionMatrixScrapper(BaseOperator):
         except Exception as e:
             raise OperatorError(e, self.props['id'])
             return
+        return
+
+
+
+class OptionMatrixScrapperNew(BaseOperator):
+
+    def run(self, gvar):
+        while True:
+            op_start = time.time()
+            print('Do OptionListScrapper')
+            op_id = self.props['id']
+            parent_node_id = gvar.stack_nodes[-1]
+            xpaths_time = ''
+            build_time = ''
+            result = {}
+            try:
+
+                option_name_query = self.props['option_name_query']
+                option_x_query = self.props['option_x_value_query']
+                option_y_query = self.props['option_y_value_query']
+                option_combination_value_query = self.props['option_matrix_row_wise_value_query']
+
+                build_time = time.time()
+                gvar.web_mgr.build_lxml_tree()
+                build_time = time.time() - build_time
+                xpaths_time = time.time()
+
+                option_names = gvar.web_mgr.get_values_by_lxml(
+                    option_name_query, 'alltext')
+                option_x_value = gvar.web_mgr.get_values_by_lxml(
+                    option_x_query, 'alltext')
+                option_y_value = gvar.web_mgr.get_values_by_lxml(
+                    option_y_query, 'alltext')
+                option_combination_value = gvar.web_mgr.get_values_by_lxml(
+                    option_combination_value_query, 'alltext')
+
+                for idx, option_name in enumerate(option_names):
+                    if idx == 0:
+                        result[option_name] = option_x_value
+                    elif idx == 1:
+                        result[option_name] = option_y_value
+
+                if len(result) >= 1:
+                    result['option_maxtrix_value'] = option_combination_value
+
+                xpaths_time = time.time() - xpaths_time
+
+            except Exception as e:
+                if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException:':
+                    print('Chrome Error. Restart chrome')
+                    print(str(traceback.format_exc()))
+                    gvar.web_mgr.restart(5)
+                else:
+                    raise OperatorError(e, self.props['id'])
+
+
+            try:
+                db_time = time.time()
+
+                print(result)
+                gvar.graph_mgr.insert_node_property(
+                    gvar.stack_nodes[-1], 'option_matrix', result)
+                db_time = time.time() - db_time
+
+                op_time = time.time() - op_start
+                result_len = 0
+                if len(result) >= 1:
+                    result_len = len(result) - 1
+
+                gvar.profiling_info[op_id] = {
+                    'op_time': op_time,
+                    'build_time': build_time,
+                    'xpaths_time': xpaths_time,
+                    'db_time': db_time,
+                    'num_results': result_len
+                }
+                break;
+            except Exception as e:
+                raise OperatorError(e, self.props['id'])
         return
 
 

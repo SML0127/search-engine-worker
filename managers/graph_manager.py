@@ -1115,7 +1115,11 @@ class GraphManager():
       for i in range(0, len(col_names)):
         if col_names[i] == 'p_name' or col_names[i] == 'price' or col_names[i] == 'list_price':
            if is_hex_str(col_values[i]) == True:
-             result[col_names[i]] = bytes.fromhex(col_values[i]).decode()
+             try:
+                result[col_names[i]] = bytes.fromhex(col_values[i]).decode()
+             except:
+                result[col_names[i]] = col_values[i]
+                pass
            else:
              result[col_names[i]] = col_values[i]
         else:    
@@ -1223,20 +1227,14 @@ class GraphManager():
       self.gp_conn.commit()
       result['option_name'] = set()
       result['option_value'] = {}
-      print(rows)
       for row in rows:
-        print(row[1])
         op_n = bytes.fromhex(row[1]).decode()
-        print(op_n)
-        print(row[2])
         op_v = bytes.fromhex(row[2]).decode()
-        print(op_v)
         result['option_name'].add(op_n)
         if result['option_value'].get(op_n,None) == None:
           result['option_value'][op_n] = []
         result['option_value'][op_n].append(op_v)
       
-      print(result)
       return result
     except:
       self.gp_conn.rollback()
@@ -1491,7 +1489,7 @@ class GraphManager():
         self.insert_tpid_into_mapping_table(job_id, targetsite_url, mpid, tpid)
       else: 
         #query = "update tpid_mapping set tpid = {} where job_id = {} and targetsite_url = '{}' and mpid = {}".format(tpid, job_id, targetsite_url, mpid)
-        query = "update tpid_mapping set tpid = {} where targetsite_url = '{}' and mpid = {}".format(tpid, targetsite_url, mpid)
+        query = "update tpid_mapping set tpid = {}, upload_time = now() where targetsite_url = '{}' and mpid = {}".format(tpid, targetsite_url, mpid)
         print(query)
         self.gp_cur.execute(query)
         self.gp_conn.commit()
@@ -1504,6 +1502,8 @@ class GraphManager():
 
   def check_is_item_uploaded(self, job_id, targetsite_url, mpid):
     try:
+      if targetsite_url[-1] == '/':
+         targetsite_url = targetsite_url[:-1]
       query = "select count(*) from tpid_mapping where targetsite_url like '%{}%' and mpid = {}".format(targetsite_url, mpid)
       print("select count(*) from tpid_mapping where targetsite_url like '%{}%' and mpid = {}".format(targetsite_url, mpid))
       self.gp_cur.execute(query)
@@ -1523,6 +1523,8 @@ class GraphManager():
 
   def insert_tpid_into_mapping_table(self, job_id, targetsite_url, mpid, tpid):
     try:
+      if targetsite_url[-1] == '/':
+         targetsite_url = targetsite_url[:-1]
       query = "insert into tpid_mapping(job_id, mpid, targetsite_url, tpid) values({},{},'{}',{})".format(job_id, mpid, targetsite_url, tpid)
       print(query)
       self.gp_cur.execute(query)
@@ -2057,12 +2059,12 @@ class GraphManager():
       if origin_product.get('Error', '') == '':
         try:
           origin_product['sm_date'] = origin_product['sm_date'].strftime('%Y-%m-%d %H:%M:%S')
+          origin_product['option_name'] = repr(origin_product['option_name'])
+          origin_product['option_value'] = repr(origin_product['option_value'])
         except:
           origin_product['sm_date'] = ''
           pass
         #origin_product['html'] =  origin_product['html'].encode('UTF-8').hex()
-        origin_product['option_name'] = repr(origin_product['option_name'])
-        origin_product['option_value'] = repr(origin_product['option_value'])
         #if is_hex_str(origin_product['price']) == True:
         #  origin_product['price'] = origin_product['price'].encode('UTF-8').hex()
         #converted_product['description'] = converted_product['description'].encode('UTF-8').hex()
