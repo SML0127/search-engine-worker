@@ -12,6 +12,7 @@ import requests
 from price_parser import Price
 from datetime import datetime, timedelta, date
 from urllib.parse import urlparse
+from url_normalize import url_normalize
 
 def is_hex_str(s):
     return set(s).issubset(string.hexdigits)
@@ -1151,17 +1152,17 @@ class GraphManager():
       self.gp_cur.execute(query)
       rows = self.gp_cur.fetchall()
       self.gp_conn.commit()
-      result['option_name'] = set()
+      result['option_name'] = []
       result['option_value'] = {}
       for row in rows:
         op_n = bytes.fromhex(row[0]).decode()
         op_v = bytes.fromhex(row[1]).decode()
         #op_v_stock = row[2]
-        result['option_name'].add(op_n)
+        if op_n not in result['option_name']:
+          result['option_name'].append(op_n)
         if result['option_value'].get(op_n,None) == None:
           result['option_value'][op_n] = []
         result['option_value'][op_n].append(op_v)
-      
       return result
     except:
       self.gp_conn.rollback()
@@ -1285,6 +1286,7 @@ class GraphManager():
 
   def update_targetsite_product_id(self, job_id, tpid, mpid, targetsite_url):
     try:
+      targetsite_url = url_normalize(targetsite_url)
       query = "update tpid_mapping set tpid = "+str(tpid)+" where mpid = {} and job_id = {} and targetsite_url = '{}';".format(mpid, job_id, targetsite_url)
       print(query)
       self.gp_cur.execute(query)
@@ -1453,6 +1455,7 @@ class GraphManager():
   #(id integer primary key generated always as identity, job_id integer, mpid integer unique, targetsite_url varchar(256), tpid integer, upload_time timestamp);
   def insert_tpid_into_history_table(self, job_id, targetsite_url, mpid, tpid):
     try:
+      targetsite_url = url_normalize(targetsite_url)
       query = "insert into tpid_history(job_id, mpid, targetsite_url, tpid) values({},{},'{}',{})".format(job_id, mpid, targetsite_url, tpid)
       self.gp_cur.execute(query)
       self.gp_conn.commit()
@@ -1479,6 +1482,7 @@ class GraphManager():
   def update_tpid_into_mapping_table(self, job_id, tpid, mpid, targetsite_url):
     try:
       #query = "select count(*) from tpid_mapping where job_id = {} and targetsite_url = '{}' and mpid = {}".format(job_id, targetsite_url, mpid)
+      targetsite_url = url_normalize(targetsite_url)
       query = "select count(*) from tpid_mapping where targetsite_url = '{}' and mpid = {}".format(targetsite_url, mpid)
       print(query)
       self.gp_cur.execute(query)
@@ -1502,8 +1506,7 @@ class GraphManager():
 
   def check_is_item_uploaded(self, job_id, targetsite_url, mpid):
     try:
-      if targetsite_url[-1] == '/':
-         targetsite_url = targetsite_url[:-1]
+      targetsite_url = url_normalize(targetsite_url)
       query = "select count(*) from tpid_mapping where targetsite_url like '%{}%' and mpid = {}".format(targetsite_url, mpid)
       print("select count(*) from tpid_mapping where targetsite_url like '%{}%' and mpid = {}".format(targetsite_url, mpid))
       self.gp_cur.execute(query)
@@ -1523,8 +1526,7 @@ class GraphManager():
 
   def insert_tpid_into_mapping_table(self, job_id, targetsite_url, mpid, tpid):
     try:
-      if targetsite_url[-1] == '/':
-         targetsite_url = targetsite_url[:-1]
+      targetsite_url = url_normalize(targetsite_url)
       query = "insert into tpid_mapping(job_id, mpid, targetsite_url, tpid) values({},{},'{}',{})".format(job_id, mpid, targetsite_url, tpid)
       print(query)
       self.gp_cur.execute(query)
@@ -1552,6 +1554,7 @@ class GraphManager():
 
   def get_tpid(self, job_id, targetsite_url, mpid):
     try:
+      targetsite_url = url_normalize(targetsite_url)
       #query =  "select tpid from tpid_mapping where job_id = {} and targetsite_url = '{}' and mpid = {}".format(job_id, targetsite_url, mpid)
       query =  "select tpid from tpid_mapping where targetsite_url = '{}' and mpid = {}".format(targetsite_url, mpid)
       self.gp_cur.execute(query)
@@ -2056,6 +2059,7 @@ class GraphManager():
 
   def logging_all_uploaded_product(self, job_id, execution_id, mpid, origin_product, converted_product, targetsite_url, cnum):
     try:
+      targetsite_url = url_normalize(targetsite_url)
       if origin_product.get('Error', '') == '':
         try:
           origin_product['sm_date'] = origin_product['sm_date'].strftime('%Y-%m-%d %H:%M:%S')

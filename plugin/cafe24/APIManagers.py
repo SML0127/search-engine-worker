@@ -794,7 +794,7 @@ class Cafe24Manager:
         response = self.do_post(url, json.dumps(data), headers)
         return response
 
-    def upload_new_product(self, product, profiling_info, job_id):
+    def upload_new_product(self, product, profiling_info, job_id, log_mt_history_id):
         try:
             product['display'] = "T"
             product['selling'] = "T"
@@ -840,11 +840,12 @@ class Cafe24Manager:
             #variants = [{'option_name1': ['v1', 'v2']}, {'option_name2': ['v3', 'v4']}]
             num_combination = 1
             num_variant = 0
+            options = {}
             if product['has_option'] == 'T' and len(variants) > 0:
                 option_names = product['option_names']
                 del product['option_names']
-                options = {}
                 #print(variants)
+                #variant = {'option_name1': [{name: 'v1', stock: ??}, {name: 'v2', stock: ??}]}
                 for variant in variants:
                     for key, value in variant.items():
                         if key in option_names:
@@ -852,7 +853,7 @@ class Cafe24Manager:
                             if value not in values:
                                 #print(value)
                                 values.append(value)
-                                num_variant = num_variant + 1
+                                num_variant = len(value)
                             #print('-----------------------')
                             #print(values)
                             options[key] = values 
@@ -869,6 +870,11 @@ class Cafe24Manager:
                 else:
                     print("Do not upload product option")
                     print("# of option combination: {}  (>= 1000)".format(num_combination))
+                    err_msg = "Do not upload product option \n# of option combination: {}  (>= 1000)".format(num_combination)
+                    try:
+                        self.graph_manager.log_err_msg_of_upload(product['mpid'], err_msg, log_mt_history_id )
+                    except:
+                        pass
                     product['has_option'] = 'F'
 
             option_matrix = product.get('option_matrix','')
@@ -888,8 +894,10 @@ class Cafe24Manager:
                 print(product_result['error'])
                 raise
 
-            tpid = product_result['product']['product_no']
             # upload new product and then store target site product it to my site
+            tpid = product_result['product']['product_no']
+            self.graph_manager.update_tpid_into_mapping_table(
+                job_id, tpid, product['mpid'], product['targetsite_url'])
 
             # update quantity, inventory..
             if 'memo' in product:
@@ -897,12 +905,12 @@ class Cafe24Manager:
                 self.create_memo(tpid, product['memo'])
                 profiling_info['memo'] = profiling_info.get(
                     'memo', 0) + time.time() - tmp_time
-            print(options)
-            print(option_matrix)
-            print(matrix_row_name)
-            print(matrix_col_name)
-            print('-------------------------------------------------------------------------')
             if product['has_option'] == 'T' and len(variants) > 0:
+                print(options)
+                print(option_matrix)
+                print(matrix_row_name)
+                print(matrix_col_name)
+                print('-------------------------------------------------------------------------')
                 for cafe24_variant in self.list_variants(tpid)['variants']:
                     cafe24_code = cafe24_variant['variant_code']
                     cafe24_options = cafe24_variant['options']
@@ -951,8 +959,6 @@ class Cafe24Manager:
 
             if len(additional_image) > 0:
                 self.update_additional_images(tpid, additional_image)
-            self.graph_manager.update_tpid_into_mapping_table(
-                job_id, tpid, product['mpid'], product['targetsite_url'])
 
             profiling_info['successful_node'] = profiling_info.get(
                 'successful_node', 0) + 1
@@ -964,7 +970,7 @@ class Cafe24Manager:
 
     # https://developers.cafe24.com/docs/en/api/admin/#update-a-product
 
-    def update_exist_product(self, product, profiling_info, job_id, tpid):
+    def update_exist_product(self, product, profiling_info, job_id, tpid, log_mt_history_id):
         try:
             print('---------update product--------')
             product['product_no'] = tpid
@@ -1012,27 +1018,6 @@ class Cafe24Manager:
                 print(product_result['error'])
                 raise
 
-            # update variants (option)
-            #option = []
-            # if 'variants' in product:
-            #  variants = product.get('variants', [])
-            #  del product['variants']
-            # if has_option == 'T' and len(variants) > 0:
-            #  option_names = product['option_names']
-            #  del product['option_names']
-            #  options = {}
-            #  for variant in variants:
-            #    for key, value in variant.items():
-            #      if key in option_names:
-            #        values = options.get(key, [])
-            #        if value not in values: values.append(value)
-            #        options[key] = values
-            #  for option_name, values in options.items():
-            #    option_value = []
-            #    for val in values[0]:
-            #      option_value.append({'option_text': val })
-            #    option.append({'option_name': option_name, 'option_value': option_value})
-
             print(self.delete_option(tpid))
 
             if 'variants' in product:
@@ -1041,10 +1026,11 @@ class Cafe24Manager:
 
             num_combination = 1
             num_variant = 0
+            print(num_combination)
+            options = {}
             if has_option == 'T' and len(variants) > 0:
                 option_names = product['option_names']
                 del product['option_names']
-                options = {}
                 #print(variants)
                 for variant in variants:
                     for key, value in variant.items():
@@ -1058,6 +1044,7 @@ class Cafe24Manager:
                             #print(values)
                             options[key] = values 
                         num_combination = num_combination * num_variant 
+                        print(num_combination)
                 result = []
                 if num_combination < 1000:
                     for option_name, values in options.items():
@@ -1070,7 +1057,12 @@ class Cafe24Manager:
                 else:
                     print("Do not upload product option")
                     print("# of option combination: {}  (>= 1000)".format(num_combination))
-                    product['has_option'] = 'F'
+                    err_msg = "Do not upload product option \n# of option combination: {}  (>= 1000)".format(num_combination)
+                    try:
+                        self.graph_manager.log_err_msg_of_upload(product['mpid'], err_msg, log_mt_history_id )
+                    except:
+                        pass
+                    has_option = 'F'
 
             option_matrix = product.get('option_matrix','')
             matrix_row_name = product.get('matrix_row_name','')
@@ -1081,27 +1073,12 @@ class Cafe24Manager:
                del product['matrix_col_name']
 
 
-            #if has_option == 'T' and len(variants) > 0:
-            #    for cafe24_variant in self.list_variants(tpid)['variants']:
-            #        cafe24_code = cafe24_variant['variant_code']
-            #        cafe24_options = cafe24_variant['options']
-            #        for variant in variants:
-            #            stat = True
-            #            for cafe24_option in cafe24_options:
-            #                # if cafe24_option['value'] != variant.get(cafe24_option['name'], None):
-            #                #  stat = False
-            #                #  break
-            #                # if stat:
-            #                self.update_variant(tpid, cafe24_code, 999)
-            #                #self.update_variant(tpid, cafe24_code, variant['stock'])
-            #                #print(self.update_variant(tpid, cafe24_code, 999))
-
-            print(options)
-            print(option_matrix)
-            print(matrix_row_name)
-            print(matrix_col_name)
-            print('-------------------------------------------------------------------------')
-            if product['has_option'] == 'T' and len(variants) > 0:
+            if has_option == 'T' and len(variants) > 0:
+                print(options)
+                print(option_matrix)
+                print(matrix_row_name)
+                print(matrix_col_name)
+                print('-------------------------------------------------------------------------')
                 for cafe24_variant in self.list_variants(tpid)['variants']:
                     cafe24_code = cafe24_variant['variant_code']
                     cafe24_options = cafe24_variant['options']

@@ -162,7 +162,7 @@ class Cafe24SingleUploader(Resource):
             print('status : ', status)
             if gateway.upper() == 'CAFE24':
               tpid = self.graph_manager.get_tpid(job_id, targetsite_url, mpid)
-              self.cafe24manager.update_exist_product(product, profiling_info, job_id, tpid)
+              self.cafe24manager.update_exist_product(product, profiling_info, job_id, tpid, log_mt_history_id)
               self.cafe24manager.refresh()
             cnum  = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
             #smlee
@@ -204,7 +204,7 @@ class Cafe24SingleUploader(Resource):
                 product['targetsite_url'] = targetsite_url
                 product['mpid'] = mpid
                 print('mpid : ', mpid)
-                self.cafe24manager.upload_new_product(product, profiling_info, job_id)
+                self.cafe24manager.upload_new_product(product, profiling_info, job_id, log_mt_history_id)
                 cnum = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
                 #smlee
                 try:
@@ -222,7 +222,7 @@ class Cafe24SingleUploader(Resource):
                   tpid = self.graph_manager.get_tpid(job_id, targetsite_url, mpid)
                   print('mpid : ', mpid)
                   print('tpid : ', tpid)
-                  self.cafe24manager.update_exist_product(product, profiling_info, job_id, tpid)
+                  self.cafe24manager.update_exist_product(product, profiling_info, job_id, tpid, log_mt_history_id)
                   cnum = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
                   #smlee
                   try:
@@ -275,7 +275,7 @@ class Cafe24SingleUploader(Resource):
                 product['mpid'] = mpid
                 print('mpid : ', mpid)
                 log_operation = 'Create new product'
-                self.cafe24manager.upload_new_product(product, profiling_info, job_id)
+                self.cafe24manager.upload_new_product(product, profiling_info, job_id, log_mt_history_id)
                 cnum  = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
                 #smlee
                 try:
@@ -292,7 +292,7 @@ class Cafe24SingleUploader(Resource):
                   log_operation = 'Update exist product'
                   print('mpid : ', mpid)
                   tpid = self.graph_manager.get_tpid(job_id, targetsite_url, mpid)
-                  self.cafe24manager.update_exist_product(product, profiling_info, job_id, tpid)
+                  self.cafe24manager.update_exist_product(product, profiling_info, job_id, tpid, log_mt_history_id)
                   cnum  = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
                   #smlee
                   try:
