@@ -400,7 +400,6 @@ class TaskManager(Resource):
     def get_succeed_task(self, task_id, tables):
         try:
 
-            print ("shit..")
             cur = conn.cursor()
            
             query = "select task.input, stage.level from task join stage on stage.id = task.stage_id where task.id = %s;"

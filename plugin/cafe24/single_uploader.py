@@ -230,6 +230,13 @@ class Cafe24SingleUploader(Resource):
                   except:
                     self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid,{'Error':'Logging error'},{'Error':'Logging error'}, targetsite_url, cnum) 
                     pass 
+                elif status == 0:
+                  try:
+                    self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid, {'status':'0', 'p_name':'Up-to-date (Do not update)'}, {'status':'3', 'p_name':'Up-to-date (Do not update)'}, targetsite_url, cnum) 
+                  except:
+                    self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid,{'Error':'Logging error'},{'Error':'Logging error'}, targetsite_url, cnum) 
+                    pass 
+
                 elif status == 3:
                   tpid = self.graph_manager.get_tpid(job_id, targetsite_url, mpid)
                   print('tpid : ', tpid)
@@ -239,7 +246,7 @@ class Cafe24SingleUploader(Resource):
                   cnum  = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
                   #smlee
                   try:
-                    self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid, {'status':'3'}, {'status':'3'}, targetsite_url, cnum) 
+                    self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid, {'status':'3', 'p_name':'Deleted', 'stock': 0}, {'status':'3', 'p_name':'Deleted', 'stock': 0}, targetsite_url, cnum) 
                   except:
                     self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid,{'Error':'Logging error'},{'Error':'Logging error'}, targetsite_url, cnum) 
                     pass 
@@ -299,7 +306,14 @@ class Cafe24SingleUploader(Resource):
                     self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid, original_product_information, product, targetsite_url, cnum) 
                   except:
                     self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid,{'Error':'Logging error'},{'Error':'Logging error'}, targetsite_url, cnum) 
-                    pass 
+                    pass
+                elif status == 0:
+                  try:
+                    self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid, {'status':'0', 'p_name':'Up-to-date (Do not update)'}, {'status':'3', 'p_name':'Up-to-date (Do not update)'}, targetsite_url, cnum) 
+                  except:
+                    self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid,{'Error':'Logging error'},{'Error':'Logging error'}, targetsite_url, cnum) 
+                    pass
+ 
                 elif status == 3:
                   tpid = self.graph_manager.get_tpid(job_id, targetsite_url, mpid)
                   print('tpid : ', tpid)
@@ -309,7 +323,7 @@ class Cafe24SingleUploader(Resource):
                   cnum = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
                   #smlee
                   try:
-                    self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid, {'status':'3'}, {'status':'3'}, targetsite_url, cnum) 
+                    self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid, {'status':'3', 'p_name':'Deleted', 'stock': 0}, {'status':'3', 'p_name':'Deleted', 'stock': 0}, targetsite_url, cnum) 
                   except:
                     self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid,{'Error':'Logging error'},{'Error':'Logging error'}, targetsite_url, cnum) 
                     pass 
