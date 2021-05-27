@@ -232,8 +232,10 @@ class Cafe24SingleUploader(Resource):
                     pass 
                 elif status == 0:
                   try:
+                    cnum = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
                     self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid, {'status':'0', 'p_name':'Up-to-date (Do not update)'}, {'status':'3', 'p_name':'Up-to-date (Do not update)'}, targetsite_url, cnum) 
                   except:
+                    cnum = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
                     self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid,{'Error':'Logging error'},{'Error':'Logging error'}, targetsite_url, cnum) 
                     pass 
 
@@ -309,8 +311,10 @@ class Cafe24SingleUploader(Resource):
                     pass
                 elif status == 0:
                   try:
+                    cnum = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
                     self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid, {'status':'0', 'p_name':'Up-to-date (Do not update)'}, {'status':'3', 'p_name':'Up-to-date (Do not update)'}, targetsite_url, cnum) 
                   except:
+                    cnum = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
                     self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid,{'Error':'Logging error'},{'Error':'Logging error'}, targetsite_url, cnum) 
                     pass
  

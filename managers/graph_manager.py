@@ -1148,7 +1148,7 @@ class GraphManager():
       #col_names = self.gp_cur.fetchall()
       #self.gp_conn.commit()
 
-      query = 'select option_name, option_value, stock from job_option_source_view where mpid = {} and job_id = {}'.format(mpid, job_id)
+      query = 'select option_name, option_value, stock from job_option_source_view where mpid = {} and job_id = {} and (option_name != "6f7074696f6e5f6d61747269785f726f775f6e616d65" and option_name !="6f7074696f6e5f6d61747269785f636f6c5f6e616d65" )'.format(mpid, job_id)
       self.gp_cur.execute(query)
       rows = self.gp_cur.fetchall()
       self.gp_conn.commit()

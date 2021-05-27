@@ -94,7 +94,7 @@ class WebManager():
         
         #driver = webdriver.Chrome(driver_path, chrome_options = option)
         driver = webdriver.Chrome(driver_path, options = option)
-        driver.set_page_load_timeout(600)
+        #driver.set_page_load_timeout(600)
         driver.get('about:blank')
         driver.execute_script("Object.defineProperty(navigator, 'plugins', {get: function() {return[1, 2, 3, 4, 5];},});")
         self.drivers.append(driver)
@@ -109,7 +109,7 @@ class WebManager():
 
   def restart(self,sleep_time):
     try:
-      print('---start restart--')
+      print('---start restart func--')
       for driver in self.drivers:
         driver.quit()
       self.drivers = []
@@ -152,14 +152,14 @@ class WebManager():
         option.add_argument('--user-agent={}'.format(user_agent))
         driver = webdriver.Chrome(driver_path, options = option)
         #driver = webdriver.Chrome(driver_path, chrome_options = option)
-        driver.set_page_load_timeout(600)
+        #driver.set_page_load_timeout(600)
         driver.get('about:blank')
         driver.execute_script("Object.defineProperty(navigator, 'plugins', {get: function() {return[1, 2, 3, 4, 5];},});")
         self.drivers.append(driver)
         self.drivers_is_zipcode_reset.append(True)
         self.drivers_last_amazon_country.append("")
       self.driver_idx = 0
-      print('---end restart--')
+      print('---end restart func--')
     except Exception as e:
       if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
         raise WebDriverException(e); 

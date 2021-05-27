@@ -1427,8 +1427,8 @@ class OptionMatrixScrapper(BaseOperator):
             parent_node_id = gvar.stack_nodes[-1]
 
             option_name_query = self.props['option_name_query']
-            option_x_query = self.props['option_x_value_query']
-            option_y_query = self.props['option_y_value_query']
+            option_col_query = self.props['option_x_value_query']
+            option_row_query = self.props['option_y_value_query']
             option_combination_value_query = self.props['option_matrix_row_wise_value_query']
 
             build_time = time.time()
@@ -1438,19 +1438,21 @@ class OptionMatrixScrapper(BaseOperator):
 
             option_names = gvar.web_mgr.get_values_by_lxml(
                 option_name_query, 'alltext')
-            option_x_value = gvar.web_mgr.get_values_by_lxml(
-                option_x_query, 'alltext')
-            option_y_value = gvar.web_mgr.get_values_by_lxml(
-                option_y_query, 'alltext')
+            option_col_value = gvar.web_mgr.get_values_by_lxml(
+                option_col_query, 'alltext')
+            option_row_value = gvar.web_mgr.get_values_by_lxml(
+                option_row_query, 'alltext')
             option_combination_value = gvar.web_mgr.get_values_by_lxml(
                 option_combination_value_query, 'alltext')
 
             result = {}
             for idx, option_name in enumerate(option_names):
                 if idx == 0:
-                    result[option_name] = option_x_value
+                    result[option_name] = option_col_value
+                    result['option_matrix_col_name'] = [option_name]
                 elif idx == 1:
-                    result[option_name] = option_y_value
+                    result[option_name] = option_row_value
+                    result['option_matrix_row_name'] = [option_name]
 
             if len(result) >= 1:
                 result['option_maxtrix_value'] = option_combination_value
