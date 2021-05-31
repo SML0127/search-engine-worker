@@ -1148,7 +1148,8 @@ class GraphManager():
       #col_names = self.gp_cur.fetchall()
       #self.gp_conn.commit()
 
-      query = 'select option_name, option_value, stock from job_option_source_view where mpid = {} and job_id = {} and (option_name != "6f7074696f6e5f6d61747269785f726f775f6e616d65" and option_name !="6f7074696f6e5f6d61747269785f636f6c5f6e616d65" )'.format(mpid, job_id)
+      #query = "select option_name, option_value, stock from job_option_source_view where mpid = {} and job_id = {} and (option_name != '6f7074696f6e5f6d61747269785f726f775f6e616d65' and option_name !='6f7074696f6e5f6d61747269785f636f6c5f6e616d65')".format(mpid, job_id)
+      query = "select option_name, option_value, stock from job_option_source_view where mpid = {} and job_id = {}".format(mpid, job_id)
       self.gp_cur.execute(query)
       rows = self.gp_cur.fetchall()
       self.gp_conn.commit()
@@ -1160,9 +1161,10 @@ class GraphManager():
         #op_v_stock = row[2]
         if op_n not in result['option_name']:
           result['option_name'].append(op_n)
-        if result['option_value'].get(op_n,None) == None:
-          result['option_value'][op_n] = []
-        result['option_value'][op_n].append(op_v)
+        if (op_n != 'option_matrix_col_name' and op_n != 'option_matrix_row_name'):
+          if result['option_value'].get(op_n,None) == None:
+            result['option_value'][op_n] = []
+          result['option_value'][op_n].append(op_v)
       return result
     except:
       self.gp_conn.rollback()
