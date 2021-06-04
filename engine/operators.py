@@ -495,17 +495,25 @@ class BFSIterator(BaseOperator):
                         raise
                 gvar.graph_mgr.insert_node_property(
                     gvar.stack_nodes[-1], 'html', gvar.web_mgr.get_html())
+
+                for op in self.operators:
+                    op_name = op.props['name']
+                    op.run(gvar)
+
+                op_time = time.time() - op_start
+                gvar.profiling_info[op_id] = {'op_time': op_time}
                 break;
+
             except Exception as e:
+                print(e.__class__.__name__)
                 if e.__class__.__name__ == 'TimeoutException':
                     print('Chrome Error. Restart chrome')
                     print('chrome_err_cnt : ', chrome_err_cnt)
-                    print(str(traceback.format_exc()))
                     chrome_err_cnt = chrome_err_cnt + 1
                     if chrome_err_cnt >=3:
                         err_msg = '================================== URL ==================================\n'
                         err_msg += ' ' + str(gvar.task_url) + '\n\n'
-                        err_msg += '=============================== Opeartor ==================================\n'
+                        err_msg += '================================ Opeartor ==================================\n'
                         err_msg += ' BFSIterator \n\n'
                         err_msg += '================================ STACK TRACE ============================== \n TimeoutException \n' + \
                             str(traceback.format_exc())
@@ -514,7 +522,7 @@ class BFSIterator(BaseOperator):
                     else:
                         gvar.web_mgr.restart(5)
 
-                elif e.__class__.__name__ == 'WebDriverException':
+                elif e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'InvalidSessionIdException': 
                     print('Chrome Error. Restart chrome')
                     print('chrome_err_cnt : ', chrome_err_cnt)
                     print(str(traceback.format_exc()))
@@ -526,36 +534,13 @@ class BFSIterator(BaseOperator):
                     print("error html:", fname)
                     err_msg = '================================== URL ==================================\n'
                     err_msg += ' ' + str(gvar.task_url) + '\n\n'
-                    err_msg += '=============================== Opeartor ==================================\n'
+                    err_msg += '================================ Opeartor ==================================\n'
                     err_msg += ' BFSIterator \n\n'
                     err_msg += '================================ STACK TRACE ============================== \n' + \
                         str(traceback.format_exc())
                     gvar.graph_mgr.log_err_msg_of_task(gvar.task_id, err_msg)
                     raise OperatorError(e, self.props['id'])
 
-        try:
-            for op in self.operators:
-                op_name = op.props['name']
-                op.run(gvar)
-
-            op_time = time.time() - op_start
-            gvar.profiling_info[op_id] = {'op_time': op_time}
-
-        except Exception as e:
-            fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
-            gvar.web_mgr.store_page_source(fname)
-            print("error html:", fname)
-            err_msg = '================================== URL ==================================\n'
-            err_msg += ' ' + str(gvar.task_url) + '\n\n'
-            err_msg += '=============================== Opeartor ==================================\n'
-            err_msg += ' ' + str(op_name) + '\n\n'
-            err_msg += '================================ STACK TRACE ============================== \n' + \
-                str(traceback.format_exc())
-            gvar.graph_mgr.log_err_msg_of_task(gvar.task_id, err_msg)
-
-            if type(e) is OperatorError:
-                raise e
-            raise OperatorError(e, self.props['id'])
 
 
 class OpenNode(BaseOperator):
@@ -652,7 +637,6 @@ class ScrollOperator(BaseOperator):
          except Exception as e:
              if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
                  print('Chrome Error in ScrollOperator')
-                 print(str(traceback.format_exc()))
                  raise e
              else:
                  fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
@@ -675,7 +659,6 @@ class HoverOperator(BaseOperator):
         except Exception as e:
             if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
                 print('Chrome Error in HoverOperator')
-                print(str(traceback.format_exc()))
                 raise e
             else:
                 fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
@@ -754,7 +737,6 @@ class ClickOperator(BaseOperator):
         except Exception as e:
             if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
                 print('Chrome Error in ClickOperator')
-                print(str(traceback.format_exc()))
                 raise e
             else:
                 fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
@@ -787,7 +769,6 @@ class MoveCursorOperator(BaseOperator):
         except Exception as e:
             if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
                 print('Chrome Error in MoveCursorOperator')
-                print(str(traceback.format_exc()))
                 raise e
             else:
                 fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
@@ -895,7 +876,6 @@ class Expander(BaseOperator):
         except Exception as e:
             if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
                 print('Chrome Error in ExpanderOperator')
-                print(str(traceback.format_exc()))
                 raise e
             else:
                 raise OperatorError(e, self.props['id'])
@@ -967,7 +947,6 @@ class ValuesScrapper(BaseOperator):
         except Exception as e:
             if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
                 print('Chrome Error in ValuesScrapper')
-                print(str(traceback.format_exc()))
                 raise e
             else:
                 raise OperatorError(e, self.props['id'])
@@ -1030,7 +1009,6 @@ class ListsScrapper(BaseOperator):
         except Exception as e:
             if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
                 print('Chrome Error in ListsScrapper')
-                print(str(traceback.format_exc()))
                 raise e
             else:
                 raise OperatorError(e, self.props['id'])
@@ -1110,7 +1088,6 @@ class DictsScrapper(BaseOperator):
         except Exception as e:
             if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
                 print('Chrome Error in DictionariesScrapper')
-                print(str(traceback.format_exc()))
                 raise e
             else:
                 raise OperatorError(e, self.props['id'])
@@ -1172,7 +1149,6 @@ class OptionListScrapper(BaseOperator):
         except Exception as e:
             if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
                 print('Chrome Error in OptionListScrapper')
-                print(str(traceback.format_exc()))
                 raise e
             else:
                 raise OperatorError(e, self.props['id'])
@@ -1202,7 +1178,7 @@ class OptionMatrixScrapper(BaseOperator):
 
     def run(self, gvar):
         op_start = time.time()
-        print('Do OptionListScrapper')
+        print('Do OptionMatrixScrapper')
         op_id = self.props['id']
         parent_node_id = gvar.stack_nodes[-1]
         xpaths_time = ''
@@ -1244,7 +1220,6 @@ class OptionMatrixScrapper(BaseOperator):
         except Exception as e:
             if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
                 print('Chrome Error in OptionMatrixScrapper')
-                print(str(traceback.format_exc()))
                 raise e
             else:
                 raise OperatorError(e, self.props['id'])

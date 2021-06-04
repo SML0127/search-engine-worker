@@ -577,6 +577,16 @@ class GraphManager():
       value = json.dumps(value)
       self.gp_cur.execute(query, (str(nodeId), str(key), str(value)))
       self.gp_conn.commit()
+      if key == 'url':
+        query_mpid = "select my_product_id from url_to_mpid where url = '{}'".format(value)
+        self.gp_cur.execute(query_mpid)
+        rows = self.gp_cur.fetchall()
+        if len(rows) == 0:
+           query_insert = "insert into url_to_mpid(url) values('{}')".format(value)
+           self.gp_cur.execute(query_insert)
+           self.gp_conn.commit()
+
+
     except:
       self.gp_conn.rollback()
       print(str(traceback.format_exc()))
@@ -1089,11 +1099,11 @@ class GraphManager():
       print(str(traceback.format_exc()))
       raise
  
-  def get_node_properties_from_mysite(self, exec_id, mpid):
+  def get_node_properties_from_mysite(self, job_id, mpid):
     try:
-      query = 'select job_id from execution where id = {}'.format(exec_id)
-      self.gp_cur.execute(query)
-      job_id = self.gp_cur.fetchone()[0]
+      #query = 'select job_id from execution where id = {}'.format(exec_id)
+      #self.gp_cur.execute(query)
+      #job_id = self.gp_cur.fetchone()[0]
 
       query = "select column_name from information_schema.columns where table_name = 'job_source_view'";
       self.gp_cur.execute(query)
@@ -1284,32 +1294,6 @@ class GraphManager():
       print(str(traceback.format_exc()))
       raise
 
-
-
-  def update_targetsite_product_id(self, job_id, tpid, mpid, targetsite_url):
-    try:
-      targetsite_url = url_normalize(targetsite_url)
-      query = "update tpid_mapping set tpid = "+str(tpid)+" where mpid = {} and job_id = {} and targetsite_url = '{}';".format(mpid, job_id, targetsite_url)
-      print(query)
-      self.gp_cur.execute(query)
-      self.gp_conn.commit()
-      return
-    except:
-      self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
-      raise
-
-  def update_targetsite_product_id_oldversion(self, job_id, product_no, mpid):
-    try:
-      query = "update job_source_view set tpid = "+str(product_no)+" where mpid = {} and job_id = {};".format(mpid, job_id)
-      self.gp_cur.execute(query)
-      self.gp_conn.commit()
-      return
-    except:
-      self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
-      raise
-
   #def check_is_first_upload(self, job_id, mpid):
   #  try:
   #    query = "select tpid from job"+str(job_id)+"source_view where mpid = " + str(mpid)+";"
@@ -1471,6 +1455,7 @@ class GraphManager():
   def delete_from_tpid_mapping_table(self, tpid):
     try:
       query = "delete from tpid_mapping where tpid = {}".format(tpid)
+      print(query)
       self.gp_cur.execute(query)
       self.gp_conn.commit()
       return 
@@ -1494,7 +1479,6 @@ class GraphManager():
       if int(result) == 0:
         self.insert_tpid_into_mapping_table(job_id, targetsite_url, mpid, tpid)
       else: 
-        #query = "update tpid_mapping set tpid = {} where job_id = {} and targetsite_url = '{}' and mpid = {}".format(tpid, job_id, targetsite_url, mpid)
         query = "update tpid_mapping set tpid = {}, upload_time = now() where targetsite_url = '{}' and mpid = {}".format(tpid, targetsite_url, mpid)
         print(query)
         self.gp_cur.execute(query)
@@ -1509,8 +1493,8 @@ class GraphManager():
   def check_is_item_uploaded(self, job_id, targetsite_url, mpid):
     try:
       targetsite_url = url_normalize(targetsite_url)
-      query = "select count(*) from tpid_mapping where targetsite_url like '%{}%' and mpid = {}".format(targetsite_url, mpid)
-      print("select count(*) from tpid_mapping where targetsite_url like '%{}%' and mpid = {}".format(targetsite_url, mpid))
+      query = "select count(*) from tpid_mapping where targetsite_url = '{}' and mpid = {}".format(targetsite_url, mpid)
+      print("select count(*) from tpid_mapping where targetsite_url = '{}' and mpid = {}".format(targetsite_url, mpid))
       self.gp_cur.execute(query)
       rows = self.gp_cur.fetchone()
       self.gp_conn.commit()
@@ -1529,10 +1513,22 @@ class GraphManager():
   def insert_tpid_into_mapping_table(self, job_id, targetsite_url, mpid, tpid):
     try:
       targetsite_url = url_normalize(targetsite_url)
-      query = "insert into tpid_mapping(job_id, mpid, targetsite_url, tpid) values({},{},'{}',{})".format(job_id, mpid, targetsite_url, tpid)
-      print(query)
-      self.gp_cur.execute(query)
-      self.gp_conn.commit()
+      while True:
+        query = "insert into tpid_mapping(job_id, mpid, targetsite_url, tpid) values({},{},'{}',{});".format(job_id, mpid, targetsite_url, tpid)
+        print(query)
+        self.gp_cur.execute(query)
+        self.gp_conn.commit()
+
+        print('------------------ Check is inserted ----------------')
+        query = "select count(*) from tpid_mapping where targetsite_url = '{}' and mpid = {}".format(targetsite_url, mpid)
+        print(query)
+        self.gp_cur.execute(query)
+        rows = self.gp_cur.fetchone()
+        result = rows[0]
+        print(result)
+        if int(result) != 0:
+          break;
+      print("Success Insert mpid = {}".format(mpid)) 
       return
     except:
       self.gp_conn.rollback()
@@ -2059,7 +2055,7 @@ class GraphManager():
       print(str(traceback.format_exc()))
       raise
 
-  def logging_all_uploaded_product(self, job_id, execution_id, mpid, origin_product, converted_product, targetsite_url, cnum):
+  def logging_all_uploaded_product(self, job_id, execution_id, mpid, origin_product, converted_product, targetsite_url, cnum, status):
     try:
       targetsite_url = url_normalize(targetsite_url)
       if origin_product.get('Error', '') == '':
@@ -2079,7 +2075,7 @@ class GraphManager():
       #    origin_product.pop(key)
       origin_product = json.dumps(origin_product).encode('UTF-8').hex()
       converted_product = json.dumps(converted_product).encode('UTF-8').hex()
-      query =  "insert into all_uploaded_product(job_id, execution_id, mpid, origin_product, converted_product, targetsite_url, cnum) values({}, {}, {}, '{}', '{}','{}',{})".format(job_id, execution_id, mpid,  json.dumps(origin_product), json.dumps(converted_product), targetsite_url, cnum)
+      query =  "insert into all_uploaded_product(job_id, execution_id, mpid, origin_product, converted_product, targetsite_url, cnum, status) values({}, {}, {}, '{}', '{}','{}',{}, {})".format(job_id, execution_id, mpid,  json.dumps(origin_product), json.dumps(converted_product), targetsite_url, cnum, status)
       self.gp_cur.execute(query)
       self.gp_conn.commit()
       return 

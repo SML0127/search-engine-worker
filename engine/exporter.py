@@ -36,13 +36,13 @@ class Exporter():
 
 
 
-  def export_from_mpid_onetime(self, job_id, exec_id, mpid, tsid):
+  def export_from_mpid_onetime(self, job_id, mpid, tsid):
     graph_mgr = self.graph_mgr
    
     smpid = graph_mgr.get_site_code_from_job_id(job_id)
     cnum  = graph_mgr.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
     pricing_information = graph_mgr.get_pricing_information_onetime(tsid)
-    node_properties = graph_mgr.get_node_properties_from_mysite(exec_id, mpid)
+    node_properties = graph_mgr.get_node_properties_from_mysite(job_id, mpid)
     delivery_company = pricing_information['delivery_company']
     shipping_fee = graph_mgr.get_shipping_fee(delivery_company)
     node_properties['shipping_fee'] = shipping_fee
