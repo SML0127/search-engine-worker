@@ -437,15 +437,29 @@ class BFSIterator(BaseOperator):
                         invalid_page_xpath)
                     if len(is_invalid_page) != 0:
                         print("@@@@@@ Invalid page")
+                        # smlee
+                        node_id = gvar.graph_mgr.create_node(gvar.task_id, parent_node_id, label)
+                        gvar.stack_nodes.append(node_id)
+                        gvar.stack_indices.append(0)
+                        gvar.graph_mgr.insert_node_property(gvar.stack_nodes[-1], 'url', gvar.task_url)
+                        gvar.profiling_info[op_id] = {'invalid': True}
                         return
 
                 elif 'jomashop' in src_url:
                     print("@@@@@@@@@@ Check invalid page (jomashop)")
                     invalid_page_xpath = "//div[@class='image-404'] | //div[@class='product-buttons']//span[contains(text(),'OUT OF STOCK')] | //div[contains(text(),'Sold Out')] | //span[contains(text(),'Ships In')] | //span[contains(text(),'Contact us for')] | //*[text()='Unable to fetch data'] | //span[contains(text(),'Ships in')] "
+                    #invalid_page_xpath = "//div[@class='image-404'] | //*[text()='Unable to fetch data']"
+                    #out_of_stock_page_xpath = "//div[@class='product-buttons']//span[contains(text(),'OUT OF STOCK')] | //div[contains(text(),'Sold Out')] | //span[contains(text(),'Ships In')] | //span[contains(text(),'Contact us for')] | //span[contains(text(),'Ships in')] "
                     is_invalid_page = gvar.web_mgr.get_elements_by_lxml_(
                         invalid_page_xpath)
                     if len(is_invalid_page) != 0:
                         print("@@@@@@ Invalid page")
+                        # smlee
+                        node_id = gvar.graph_mgr.create_node(gvar.task_id, parent_node_id, label)
+                        gvar.stack_nodes.append(node_id)
+                        gvar.stack_indices.append(0)
+                        gvar.graph_mgr.insert_node_property(gvar.stack_nodes[-1], 'url', gvar.task_url)
+                        gvar.profiling_info[op_id] = {'invalid': True}
                         return
 
                 elif 'zalando' in src_url:
@@ -455,6 +469,12 @@ class BFSIterator(BaseOperator):
                         invalid_page_xpath)
                     if len(is_invalid_page) != 0:
                         print("@@@@@@ Invalid page")
+                        # smlee
+                        node_id = gvar.graph_mgr.create_node(gvar.task_id, parent_node_id, label)
+                        gvar.stack_nodes.append(node_id)
+                        gvar.stack_indices.append(0)
+                        gvar.graph_mgr.insert_node_property(gvar.stack_nodes[-1], 'url', gvar.task_url)
+                        gvar.profiling_info[op_id] = {'invalid': True}
                         return
 
                 if 'query' in self.props:

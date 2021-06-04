@@ -199,7 +199,10 @@ class pseWorker(Worker):
             print(str(traceback.format_exc()))
             print("----------------------------------------")
             raise
-        self.lm.end_task(task_id, 1, {'profiling_info': gvar.profiling_info})
+        if gvar.profiling_info.get('invalid', False) == True:
+            self.lm.end_task(task_id, -999, {'profiling_info': gvar.profiling_info})
+        else:
+            self.lm.end_task(task_id, 1, {'profiling_info': gvar.profiling_info})
         return rv
 
     #def perform_pse_job(self, job, queue, heartbeat_ttl = None):
