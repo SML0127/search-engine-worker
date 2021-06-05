@@ -446,10 +446,26 @@ class BFSIterator(BaseOperator):
                         return
 
                 elif 'jomashop' in src_url:
+                    wrong_to_rendering_xpath = "//div[@id='react-top-error-boundary'] | //*[contains(text(),'Unable to fetch data')] | //*[contains(text(),'Something went wrong')] | //div[@classname='splash-screen']"          
+                    render_cnt = 0 
+                    max_render_cnt = 5
+                    while True:
+                        print("@@@@@@@@@@ Check Wrong to rendering page (jomashop)")
+                        wrong_to_rendering_page = gvar.web_mgr.get_elements_by_lxml_(wrong_to_rendering_xpath)
+                        if len(wrong_to_rendering_page) != 0:
+                            render_cnt = render_cnt + 1
+                            if render_cnt >= max_render_cnt:
+                                break
+                            else:
+                                gvar.web_mgr.load(gvar.task_url)
+                                time.sleep(5)
+                                gvar.web_mgr.build_lxml_tree()
+                        else:
+                            break;
+
                     print("@@@@@@@@@@ Check invalid page (jomashop)")
-                    invalid_page_xpath = "//div[@class='image-404'] | //div[@class='product-buttons']//span[contains(text(),'OUT OF STOCK')] | //div[contains(text(),'Sold Out')] | //span[contains(text(),'Ships In')] | //span[contains(text(),'Contact us for')] | //*[text()='Unable to fetch data'] | //span[contains(text(),'Ships in')] "
+                    invalid_page_xpath = "//div[@class='image-404'] | //div[@class='product-buttons']//span[contains(text(),'OUT OF STOCK')] | //div[contains(text(),'Sold Out')] | //span[contains(text(),'Ships In')] | //span[contains(text(),'Contact us for')] | //span[contains(text(),'Ships in')] "
                     #invalid_page_xpath = "//div[@class='image-404'] | //*[text()='Unable to fetch data']"
-                    #out_of_stock_page_xpath = "//div[@class='product-buttons']//span[contains(text(),'OUT OF STOCK')] | //div[contains(text(),'Sold Out')] | //span[contains(text(),'Ships In')] | //span[contains(text(),'Contact us for')] | //span[contains(text(),'Ships in')] "
                     is_invalid_page = gvar.web_mgr.get_elements_by_lxml_(
                         invalid_page_xpath)
                     if len(is_invalid_page) != 0:
@@ -530,7 +546,7 @@ class BFSIterator(BaseOperator):
                     print('Chrome Error. Restart chrome')
                     print('chrome_err_cnt : ', chrome_err_cnt)
                     chrome_err_cnt = chrome_err_cnt + 1
-                    if chrome_err_cnt >=3:
+                    if chrome_err_cnt >= 10:
                         err_msg = '================================== URL ==================================\n'
                         err_msg += ' ' + str(gvar.task_url) + '\n\n'
                         err_msg += '================================ Opeartor ==================================\n'

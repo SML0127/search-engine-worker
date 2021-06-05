@@ -230,9 +230,11 @@ class WebManager():
   def build_lxml_tree(self):
     try:
       driver = self.get_cur_driver_()
+      driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
+      time.sleep(3)
       page_source = driver.page_source 
       self.lxml_tree = html.fromstring(page_source)
-      time.sleep(5)
+      time.sleep(2)
     except Exception as e:
       if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
         raise e; 
@@ -245,6 +247,20 @@ class WebManager():
       self.rotate_driver_()
       driver = self.get_cur_driver_()
       driver.get(url)
+      WebDriverWait(driver, 30).until(lambda d: d.execute_script('return document.readyState') == 'complete')
+      driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
+      cnt = 0
+      max_cnt = 10
+      while (self.get_html() == '<html><head></head><body></body></html>'):
+        print("Reload page (empty htmls)")
+        driver.get(url)
+        WebDriverWait(driver, 30).until(lambda d: d.execute_script('return document.readyState') == 'complete')
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
+        cnt = cnt + 1
+        if cnt >= max_cnt:
+          break;
+        
+
     except Exception as e:
       if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
         raise e; 
@@ -540,19 +556,27 @@ class WebManager():
     try:
       cnt = 0
       max_retry = 5
+      cnt_check_button = 0
+      max_retry_check_button = 2
       while True:
         try:
           self.get_cur_driver_().execute_script("window.scrollTo(0, document.body.scrollHeight)")
-          time.sleep(3)
+          time.sleep(5)
           elements = self.get_elements_by_selenium_(xpath)
           num_elements = len(elements)
-          if num_elements == 0: break
+          if num_elements == 0: 
+            cnt_check_button = cnt_check_button + 1
+            if cnt_check_button >=  max_retry_check_button:
+              break
+            else:
+              continue
           while True:
             try:
               element = WebDriverWait(self.get_cur_driver_(), 60).until(EC.element_to_be_clickable((By.XPATH, xpath)))  
               self.get_cur_driver_().execute_script("window.scrollTo(0, document.body.scrollHeight)")
               time.sleep(2)
               element.click()
+              cnt_check_button = 0
               break
             except Exception as e:
               raise
