@@ -45,7 +45,7 @@ class WebMgrErr(Exception):
   def __str__(self):
     return str("WebMgrErr: ") + "\n" + str(self.error)
 
-
+selenium_chrome_erros = ['StaleElementReferenceException', 'WebDriverException', 'TimeoutException']
 class WebManager():
 
   def __init__(self):
@@ -102,7 +102,8 @@ class WebManager():
         self.drivers_last_amazon_country.append("")
       self.driver_idx = 0
     except Exception as e:
-      if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+      if e.__class__.__name__ in selenium_chrome_erros:
+      #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
         raise e; 
       else:
         raise WebMgrErr(e)
@@ -161,7 +162,8 @@ class WebManager():
       self.driver_idx = 0
       print('---end restart func--')
     except Exception as e:
-      if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+      if e.__class__.__name__ in selenium_chrome_erros:
+      #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
         raise e; 
       else:
         raise WebMgrErr(e)
@@ -209,7 +211,8 @@ class WebManager():
       f.write(etree.tostring(lxml_tree, encoding='unicode', pretty_print=True))
       f.close()
     except Exception as e:
-      if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+      if e.__class__.__name__ in selenium_chrome_erros:
+      #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
         raise e; 
       else:
         raise WebMgrErr(e)
@@ -221,7 +224,8 @@ class WebManager():
       page_source = driver.page_source 
       return page_source
     except Exception as e:
-      if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+      if e.__class__.__name__ in selenium_chrome_erros:
+      #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
         raise e; 
       else:
         raise WebMgrErr(e)
@@ -236,7 +240,8 @@ class WebManager():
       self.lxml_tree = html.fromstring(page_source)
       time.sleep(2)
     except Exception as e:
-      if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+      if e.__class__.__name__ in selenium_chrome_erros:
+      #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
         raise e; 
       else:
         raise WebMgrErr(e)
@@ -262,7 +267,8 @@ class WebManager():
         
 
     except Exception as e:
-      if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+      if e.__class__.__name__ in selenium_chrome_erros:
+      #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
         raise e; 
       else:
         raise WebMgrErr(e)
@@ -273,7 +279,8 @@ class WebManager():
       driver = self.get_cur_driver_()
       return driver.current_url
     except Exception as e:
-      if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+      if e.__class__.__name__ in selenium_chrome_erros:
+      #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
         raise e; 
       else:
         raise WebMgrErr(e)
@@ -284,7 +291,8 @@ class WebManager():
       driver = self.get_cur_driver_()
       WebDriverWait(driver, 10).until(lambda d: d.execute_script('return document.readyState') == 'complete')
     except Exception as e:
-      if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+      if e.__class__.__name__ in selenium_chrome_erros:
+      #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
         raise e; 
       else:
         raise WebMgrErr(e)
@@ -295,7 +303,8 @@ class WebManager():
       driver = self.get_cur_driver_()
       return driver.execute_script(script)
     except Exception as e:
-      if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+      if e.__class__.__name__ in selenium_chrome_erros:
+      #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
         raise e; 
       else:
         raise WebMgrErr(e)
@@ -310,7 +319,8 @@ class WebManager():
         return driver.execute_script('return arguments[0].innerHTML;', elements[0])
       return ''
     except Exception as e:
-      if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+      if e.__class__.__name__ in selenium_chrome_erros:
+      #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
         raise e; 
       else:
         raise WebMgrErr(e)
@@ -325,7 +335,8 @@ class WebManager():
       print(driver.execute_script('return arguments[0].innerHTML;', elements[0]))
       return driver.execute_script('return arguments[0].innerHTML;', elements[0])
     except Exception as e:
-      if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+      if e.__class__.__name__ in selenium_chrome_erros:
+      #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
         raise e; 
       else:
         raise WebMgrErr(e)
@@ -342,7 +353,8 @@ class WebManager():
         return driver.execute_script('return arguments[0].serializeWithStyles();', elements[0])
       return ''
     except Exception as e:
-      if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+      if e.__class__.__name__ in selenium_chrome_erros:
+      #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
         raise e; 
       else:
         raise WebMgrErr(e)
@@ -356,7 +368,8 @@ class WebManager():
       driver.execute_script(self.javascripts['style'])
       return driver.execute_script('return arguments[0].serializeWithStyles();', elements[0])
     except Exception as e:
-      if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+      if e.__class__.__name__ in selenium_chrome_erros:
+      #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
         raise e; 
       else:
         raise WebMgrErr(e)
@@ -425,7 +438,8 @@ class WebManager():
       if len(elements) == 0: return None
       return self.get_attribute_by_selenium_(elements[0], attr)
     except Exception as e:
-      if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+      if e.__class__.__name__ in selenium_chrome_erros:
+      #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
         raise e; 
       else:
         raise WebMgrErr(e)
@@ -435,7 +449,8 @@ class WebManager():
       elements = self.get_elements_by_selenium_strong_(xpath)
       return self.get_attribute_by_selenium_strong_(elements[0], attr)
     except Exception as e:
-      if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+      if e.__class__.__name__ in selenium_chrome_erros:
+      #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
         raise e; 
       else:
         raise WebMgrErr(e)
@@ -465,7 +480,8 @@ class WebManager():
       time.sleep(20)
       print(driver.current_url)
     except Exception as e:
-      if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+      if e.__class__.__name__ in selenium_chrome_erros:
+      #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
         raise e; 
       else:
         raise WebMgrErr(e)
@@ -477,7 +493,8 @@ class WebManager():
       if len(elements) == 0: return None
       return self.get_attribute_by_lxml_(elements[0], attr)
     except Exception as e:
-      if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+      if e.__class__.__name__ in selenium_chrome_erros:
+      #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
         raise e; 
       else:
         raise WebMgrErr(e)
@@ -487,7 +504,8 @@ class WebManager():
       elements = self.get_elements_by_lxml_strong_(xpath)
       return self.get_attribute_by_lxml_strong_(elements[0], attr)
     except Exception as e:
-      if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+      if e.__class__.__name__ in selenium_chrome_erros:
+      #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
         raise e; 
       else:
         raise WebMgrErr(e)
@@ -502,7 +520,8 @@ class WebManager():
         if val != None: result.append(val)
       return result
     except Exception as e:
-      if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+      if e.__class__.__name__ in selenium_chrome_erros:
+      #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
         raise e; 
       else:
         raise WebMgrErr(e)
@@ -520,7 +539,8 @@ class WebManager():
       elements = self.get_elements_by_selenium_(xpath)
       num_elements = len(elements)
       if num_elements == 0:
-        if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+        if e.__class__.__name__ in selenium_chrome_erros:
+        #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
           raise e; 
         else:
           raise WebMgrErr(e)
@@ -533,7 +553,8 @@ class WebManager():
         action.send_keys_to_element(element, txt)
       action.perform()
     except Exception as e:
-      if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+      if e.__class__.__name__ in selenium_chrome_erros:
+      #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
         raise e; 
       else:
         raise WebMgrErr(e)
@@ -545,7 +566,8 @@ class WebManager():
       time.sleep(2)
 
     except Exception as e:
-      if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+      if e.__class__.__name__ in selenium_chrome_erros:
+      #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
         raise e; 
       else:
         raise WebMgrErr(e)
@@ -555,42 +577,37 @@ class WebManager():
   def click_elements_repeat(self, xpath, time_sleep, url):
     try:
       cnt = 0
-      max_retry = 5
-      cnt_check_button = 0
-      max_retry_check_button = 2
+      max_retry = 3
       while True:
         try:
           self.get_cur_driver_().execute_script("window.scrollTo(0, document.body.scrollHeight)")
-          time.sleep(5)
+          time.sleep(3)
           elements = self.get_elements_by_selenium_(xpath)
           num_elements = len(elements)
           if num_elements == 0: 
-            cnt_check_button = cnt_check_button + 1
-            if cnt_check_button >=  max_retry_check_button:
-              break
-            else:
-              continue
+            break
           while True:
             try:
               element = WebDriverWait(self.get_cur_driver_(), 60).until(EC.element_to_be_clickable((By.XPATH, xpath)))  
               self.get_cur_driver_().execute_script("window.scrollTo(0, document.body.scrollHeight)")
-              time.sleep(2)
+              time.sleep(3)
               element.click()
-              cnt_check_button = 0
               break
             except Exception as e:
               raise
           time.sleep(time_sleep)
         except Exception as e:
-          if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
-            if cnt < max_retry:
-              self.restart(5)
-              self.load(url)
-              cnt = cnt + 1
+          #if e.__class__.__name__ in selenium_chrome_erros:
+          #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException' or e.__class__.__name__ == 'StaleElementReferenceException':
+          if cnt < max_retry:
+            self.restart(5)
+            self.load(url)
+            cnt = cnt + 1
           else:
             raise e
     except Exception as e:
-      if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+      if e.__class__.__name__ in selenium_chrome_erros:
+      #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException' or e.__class__.__name__ == 'StaleElementReferenceException':
         raise e; 
       else:
         raise WebMgrErr(e)
@@ -611,7 +628,8 @@ class WebManager():
       elements = self.get_elements_by_selenium_(xpath)
       num_elements = len(elements)
       if num_elements == 0:
-        if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+        if e.__class__.__name__ in selenium_chrome_erros:
+        #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
           raise e; 
         else:
           raise WebMgrErr(e)
@@ -624,7 +642,8 @@ class WebManager():
         action.click(element)
       action.perform()
     except Exception as e:
-      if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+      if e.__class__.__name__ in selenium_chrome_erros:
+      #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
         raise e; 
       else:
         raise WebMgrErr(e)
@@ -637,7 +656,8 @@ class WebManager():
         action.move_to_element(element)
       action.perform();
     except Exception as e:
-      if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+      if e.__class__.__name__ in selenium_chrome_erros:
+      #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
         raise e; 
       else:
         raise WebMgrErr(e)
@@ -650,7 +670,8 @@ class WebManager():
       for element in elements:
         action.move_to_element(element).perform();
     except Exception as e:
-      if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+      if e.__class__.__name__ in selenium_chrome_erros:
+      #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
         raise e; 
       else:
         raise WebMgrErr(e)
@@ -665,7 +686,8 @@ class WebManager():
         if val != None: result.append(val)
       return result
     except Exception as e:
-      if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+      if e.__class__.__name__ in selenium_chrome_erros:
+      #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
         raise e; 
       else:
         raise WebMgrErr(e)
@@ -681,7 +703,8 @@ class WebManager():
       print(result)
       return result
     except Exception as e:
-      if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+      if e.__class__.__name__ in selenium_chrome_erros:
+      #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
         raise e; 
       else:
         raise WebMgrErr(e)
@@ -696,7 +719,8 @@ class WebManager():
       if len(result) == 0: raise NoElementFoundError(xpath)
       return result
     except Exception as e:
-      if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+      if e.__class__.__name__ in selenium_chrome_erros:
+      #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
         raise e; 
       else:
         raise WebMgrErr(e)
@@ -718,7 +742,8 @@ class WebManager():
         result[key] = val
       return result
     except Exception as e:
-      if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+      if e.__class__.__name__ in selenium_chrome_erros:
+      #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
         raise e; 
       else:
         raise WebMgrErr(e)
@@ -740,7 +765,8 @@ class WebManager():
         result[key] = val
       return result
     except Exception as e:
-      if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+      if e.__class__.__name__ in selenium_chrome_erros:
+      #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
         raise e; 
       else:
         raise WebMgrErr(e)
@@ -761,7 +787,8 @@ class WebManager():
         result.append(res_tmp)
       return result
     except Exception as e:
-      if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+      if e.__class__.__name__ in selenium_chrome_erros:
+      #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
         raise e; 
       else:
         raise WebMgrErr(e)
@@ -785,7 +812,8 @@ class WebManager():
       if len(result) == 0: raise NoElementFoundError(xpath)
       return result
     except Exception as e:
-      if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+      if e.__class__.__name__ in selenium_chrome_erros:
+      #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
         raise e; 
       else:
         raise WebMgrErr(e)
@@ -807,7 +835,8 @@ class WebManager():
       if len(result) == 0: raise NoElementFoundError(xpath)
       return result
     except Exception as e:
-      if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+      if e.__class__.__name__ in selenium_chrome_erros:
+      #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
         raise e; 
       else:
         raise WebMgrErr(e)
@@ -845,7 +874,8 @@ class WebManager():
 
       ###########################################################
     except Exception as e:
-      if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+      if e.__class__.__name__ in selenium_chrome_erros:
+      #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
         raise e; 
       else:
         raise WebMgrErr(e)
@@ -883,7 +913,8 @@ class WebManager():
 
       ###########################################################
     except Exception as e:
-      if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+      if e.__class__.__name__ in selenium_chrome_erros:
+      #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
         raise e; 
       else:
         raise WebMgrErr(e)
@@ -921,7 +952,8 @@ class WebManager():
 
       ###########################################################
     except Exception as e:
-      if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+      if e.__class__.__name__ in selenium_chrome_erros:
+      #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
         raise e; 
       else:
         raise WebMgrErr(e)

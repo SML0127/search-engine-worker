@@ -183,7 +183,7 @@ class pseWorker(Worker):
             err_name = e.error.__class__.__name__
             err = {'type': 0, 'op_id': e.op_id, 'error': str(e), 'err_msg': gvar.err_msg, 'traceback': traceback.format_exc()}
             self.lm.end_task(task_id, ErrorDict.get(err_name, -1), err)
-            print("-------Raised Exception in WORKER operator error-------")
+            print("-------Raised Exception in WORKER-------")
             print("----------------------------------------")
             print("--------------STACK TRACE---------------")
             print(str(traceback.format_exc()))

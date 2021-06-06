@@ -74,6 +74,7 @@ class BaseOperator():
         return query % (tuple(list(map(lambda x: stack_indices[int(x)] + 1, indices))))
 
 
+selenium_chrome_erros = ['StaleElementReferenceException', 'WebDriverException', 'TimeoutException']
 class BFSIterator(BaseOperator):
 
     def check_captcha(self, url, gvar):
@@ -135,7 +136,8 @@ class BFSIterator(BaseOperator):
 
         op_start = time.time()
         # Set up before running sub operators
-        chrome_err_cnt = 0
+        err_cnt = 0
+        err_op_name = "BFSIterator"
         while True:
             print('@@@@@ Set up before running sub operators in BFSIterator')
             try:
@@ -446,7 +448,7 @@ class BFSIterator(BaseOperator):
                         return
 
                 elif 'jomashop' in src_url:
-                    wrong_to_rendering_xpath = "//div[@id='react-top-error-boundary'] | //*[contains(text(),'Unable to fetch data')] | //*[contains(text(),'Something went wrong')] | //div[@classname='splash-screen']"          
+                    wrong_to_rendering_xpath = "//div[@id='react-top-error-boundary'] | //*[contains(text(),'Unable to fetch data')] | //*[contains(text(),'Something went wrong')] | //div[@classname='splash-screen'] | //*[contains(text(),'Data Fetch Error')]"          
                     render_cnt = 0 
                     max_render_cnt = 5
                     while True:
@@ -534,6 +536,7 @@ class BFSIterator(BaseOperator):
 
                 for op in self.operators:
                     op_name = op.props['name']
+                    err_op_name = op_name
                     op.run(gvar)
 
                 op_time = time.time() - op_start
@@ -542,40 +545,22 @@ class BFSIterator(BaseOperator):
 
             except Exception as e:
                 print(e.__class__.__name__)
-                if e.__class__.__name__ == 'TimeoutException':
-                    print('Chrome Error. Restart chrome')
-                    print('chrome_err_cnt : ', chrome_err_cnt)
-                    chrome_err_cnt = chrome_err_cnt + 1
-                    if chrome_err_cnt >= 10:
-                        err_msg = '================================== URL ==================================\n'
-                        err_msg += ' ' + str(gvar.task_url) + '\n\n'
-                        err_msg += '================================ Opeartor ==================================\n'
-                        err_msg += ' BFSIterator \n\n'
-                        err_msg += '================================ STACK TRACE ============================== \n TimeoutException \n' + \
-                            str(traceback.format_exc())
-                        gvar.graph_mgr.log_err_msg_of_task(gvar.task_id, err_msg)
-                        raise OperatorError(e, self.props['id'])
-                    else:
-                        gvar.web_mgr.restart(5)
-
-                elif e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'InvalidSessionIdException': 
-                    print('Chrome Error. Restart chrome')
-                    print('chrome_err_cnt : ', chrome_err_cnt)
-                    print(str(traceback.format_exc()))
-                    gvar.web_mgr.restart(5)
-
-                else:
+                err_cnt = err_cnt + 1
+                if err_cnt >= 3:
                     fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
                     gvar.web_mgr.store_page_source(fname)
                     print("error html:", fname)
                     err_msg = '================================== URL ==================================\n'
                     err_msg += ' ' + str(gvar.task_url) + '\n\n'
                     err_msg += '================================ Opeartor ==================================\n'
-                    err_msg += ' BFSIterator \n\n'
+                    err_msg += err_op_name + ' \n\n'
                     err_msg += '================================ STACK TRACE ============================== \n' + \
                         str(traceback.format_exc())
                     gvar.graph_mgr.log_err_msg_of_task(gvar.task_id, err_msg)
                     raise OperatorError(e, self.props['id'])
+
+                else:
+                    print('err_cnt : ', err_cnt)
 
 
 
@@ -671,7 +656,8 @@ class ScrollOperator(BaseOperator):
              gvar.profiling_info[op_id] = {'op_time': op_time}
              return
          except Exception as e:
-             if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+             if e.__class__.__name__ in selenium_chrome_erros:
+             #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
                  print('Chrome Error in ScrollOperator')
                  raise e
              else:
@@ -693,7 +679,8 @@ class HoverOperator(BaseOperator):
             gvar.profiling_info[op_id] = {'op_time': op_time}
             return
         except Exception as e:
-            if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+            if e.__class__.__name__ in selenium_chrome_erros:
+            #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
                 print('Chrome Error in HoverOperator')
                 raise e
             else:
@@ -771,7 +758,8 @@ class ClickOperator(BaseOperator):
             gvar.profiling_info[op_id] = {'op_time': op_time}
             return
         except Exception as e:
-            if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+            if e.__class__.__name__ in selenium_chrome_erros:
+            #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException' or e.__class__.__name__ ==  'StaleElementReferenceException':
                 print('Chrome Error in ClickOperator')
                 raise e
             else:
@@ -803,7 +791,8 @@ class MoveCursorOperator(BaseOperator):
             op_time = time.time() - op_start
             gvar.profiling_info[op_id] = {'op_time': op_time}
         except Exception as e:
-            if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+            if e.__class__.__name__ in selenium_chrome_erros:
+            #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
                 print('Chrome Error in MoveCursorOperator')
                 raise e
             else:
@@ -910,7 +899,8 @@ class Expander(BaseOperator):
             else:
                 return self.run_0(gvar)
         except Exception as e:
-            if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+            if e.__class__.__name__ in selenium_chrome_erros:
+            #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
                 print('Chrome Error in ExpanderOperator')
                 raise e
             else:
@@ -981,7 +971,8 @@ class ValuesScrapper(BaseOperator):
                                 xpath, attr)
             xpaths_time = time.time() - xpaths_time
         except Exception as e:
-            if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+            if e.__class__.__name__ in selenium_chrome_erros:
+            #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
                 print('Chrome Error in ValuesScrapper')
                 raise e
             else:
@@ -1043,7 +1034,8 @@ class ListsScrapper(BaseOperator):
 
             xpaths_time = time.time() - xpaths_time
         except Exception as e:
-            if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+            if e.__class__.__name__ in selenium_chrome_erros:
+            #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
                 print('Chrome Error in ListsScrapper')
                 raise e
             else:
@@ -1122,7 +1114,8 @@ class DictsScrapper(BaseOperator):
 
             xpaths_time = time.time() - xpaths_time
         except Exception as e:
-            if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+            if e.__class__.__name__ in selenium_chrome_erros:
+            #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
                 print('Chrome Error in DictionariesScrapper')
                 raise e
             else:
@@ -1183,7 +1176,8 @@ class OptionListScrapper(BaseOperator):
 
             xpaths_time = time.time() - xpaths_time
         except Exception as e:
-            if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+            if e.__class__.__name__ in selenium_chrome_erros:
+            #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
                 print('Chrome Error in OptionListScrapper')
                 raise e
             else:
@@ -1254,7 +1248,8 @@ class OptionMatrixScrapper(BaseOperator):
             xpaths_time = time.time() - xpaths_time
 
         except Exception as e:
-            if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+            if e.__class__.__name__ in selenium_chrome_erros:
+            #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
                 print('Chrome Error in OptionMatrixScrapper')
                 raise e
             else:
