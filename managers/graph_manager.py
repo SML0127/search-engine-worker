@@ -1175,6 +1175,12 @@ class GraphManager():
           if result['option_value'].get(op_n,None) == None:
             result['option_value'][op_n] = []
           result['option_value'][op_n].append(op_v)
+      tmp_list = result['option_name']
+      if len(tmp_list) >=1:
+         if tmp_list[0] == 'option_maxtrix_value':
+            if tmp_list[1] == 'option_matrix_col_name' or tmp_list[1] == 'option_matrix_row_name': 
+               tmp_list.reverse()
+               result['option_name'] = tmp_list
       return result
     except:
       self.gp_conn.rollback()
@@ -1528,6 +1534,8 @@ class GraphManager():
         print(result)
         if int(result) != 0:
           break;
+        else:
+          print("Fail Insert mpid = {}!!".format(mpid)) 
       print("Success Insert mpid = {}".format(mpid)) 
       return
     except:
