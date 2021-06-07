@@ -846,12 +846,16 @@ class Cafe24Manager:
                 del product['option_names']
                 #print(variants)
                 #variant = {'option_name1': [{name: 'v1', stock: ??}, {name: 'v2', stock: ??}]}
+                #ov2 = ov2.replace('"','').replace("'","").replace(',', ' ').replace(';', ' ').replace('#', '').replace('$', '').replace('%', '').replace('\\', '')     
+
                 for variant in variants:
                     for key, value in variant.items():
                         if key in option_names:
                             values = options.get(key, [])
                             if value not in values:
                                 #print(value)
+                                for op_v in value:
+                                    op_v['name'] = op_v['name'].replace('"','').replace("'","").replace(',', ' ').replace(';', ' ').replace('#', '').replace('$', '').replace('%', '').replace('\\', '')
                                 values.append(value)
                                 num_variant = len(value)
                             #print('-----------------------')
@@ -949,7 +953,14 @@ class Cafe24Manager:
                                     additional_amount = additional_amount + option_matrix[row_value, col_value]['additional_amount']  
                                     row_value = ""
                                     col_value = ""
-                    self.update_variant_additional_price(tpid, cafe24_code, stock, additional_amount)
+                    response = self.update_variant_additional_price(tpid, cafe24_code, stock, additional_amount)
+                    if 'error' in response:
+                        print("Product creation was successful, but option variant update failed")
+                        err_msg = "Product creation was successful, but option variant update failed"
+                        try:
+                            self.graph_manager.log_err_msg_of_upload(product['mpid'], err_msg, log_mt_history_id )
+                        except:
+                            pass
 
 
             # elif len(variants) == 0:
@@ -958,7 +969,14 @@ class Cafe24Manager:
             #  variant_code = cafe24_variant['variant_code']
 
             if len(additional_image) > 0:
-                self.update_additional_images(tpid, additional_image)
+                response = self.update_additional_images(tpid, additional_image)
+                if 'error' in response:
+                    print("Product creation was successful, but additional image update failed")
+                    err_msg = "Product creation was successful, but additional image update failed"
+                    try:
+                        self.graph_manager.log_err_msg_of_upload(product['mpid'], err_msg, log_mt_history_id )
+                    except:
+                        pass
 
             profiling_info['successful_node'] = profiling_info.get(
                 'successful_node', 0) + 1
@@ -1038,6 +1056,8 @@ class Cafe24Manager:
                             values = options.get(key, [])
                             if value not in values:
                                 #print(value)
+                                for op_v in value:
+                                    op_v['name'] = op_v['name'].replace('"','').replace("'","").replace(',', ' ').replace(';', ' ').replace('#', '').replace('$', '').replace('%', '').replace('\\', '')
                                 values.append(value)
                                 num_variant = num_variant + 1
                             #print('-----------------------')
@@ -1116,11 +1136,25 @@ class Cafe24Manager:
                                     additional_amount = additional_amount + option_matrix[row_value, col_value]['additional_amount']  
                                     row_value = ""
                                     col_value = ""
-                    self.update_variant_additional_price(tpid, cafe24_code, stock, additional_amount)
+                    response = self.update_variant_additional_price(tpid, cafe24_code, stock, additional_amount)
+                    if 'error' in response:
+                        print("Product creation was successful, but option variant update failed")
+                        err_msg = "Product creation was successful, but option variant update failed"
+                        try:
+                            self.graph_manager.log_err_msg_of_upload(product['mpid'], err_msg, log_mt_history_id )
+                        except:
+                            pass
 
 
             if len(additional_image) > 0:
-                self.update_additional_images(tpid, additional_image)
+                response = self.update_additional_images(tpid, additional_image)
+                if 'error' in response:
+                    print("Product update was successful, but additional image update failed")
+                    err_msg = "Product update was successful, but additional image update failed"
+                    try:
+                        self.graph_manager.log_err_msg_of_upload(product['mpid'], err_msg, log_mt_history_id )
+                    except:
+                        pass
                 #self.create_additional_images(tpid, additional_image)
 
             profiling_info['successful_node'] = profiling_info.get(
