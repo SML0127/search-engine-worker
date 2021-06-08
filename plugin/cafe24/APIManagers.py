@@ -64,7 +64,7 @@ class Cafe24Manager:
             self.graph_manager.disconnect()
             self.connected = False
 
-    def get_auth_code(self):
+    def get_auth_code(self, log_mt_history_id):
         option = webdriver.ChromeOptions()
         option.add_argument('--headless')
         option.add_argument('--disable-gpu')
@@ -78,24 +78,10 @@ class Cafe24Manager:
             self.mall_id, self.client_id, self.redirect_uri, self.scope)
         print(url)
 
-
-
-        # driver.get(url)
-        #cur_url = driver.current_url
-        #login_url = 'https://ec'
-        #agreement_url = 'https://{}'.format(self.mall_id)
-
         cnt = 0
         max_try = 3
         while cnt < max_try:
             cnt = cnt + 1
-            #=============== Try get auth code 1 time ==============
-            #https://eclogin.cafe24.com/Shop/?menu=recpy&submenu=%2Fapi%2Fv2%2Foauth%2Fauthorize%3Fresponse_type%3Dcode%26client_id%3D871bEAYAN9mnvRAgB07bjB%26state%3Dtest%26redirect_uri%3Dhttps%253A%252F%252Fwww.google.com%26scope%3Dmall.write_product%2Bmall.read_product%2Bmall.read_category%2Bmall.write_category%2Bmall.read_collection%2Bmall.write_collection%26shop_no%3D1
-            #try to log in
-            #user_id: topdepot
-            #user_pwd: topdepot1
-            #There is no auth code
-            #URL:  https://eclogin.cafe24.com/Shop/?mode=ipblock
 
             print("=============== Try get auth code {} time ==============".format(cnt))
             try:
@@ -118,9 +104,19 @@ class Cafe24Manager:
                     time.sleep(5)
                     cur_url = driver.current_url
 
+                #self.graph_manager.log_err_msg_of_upload(log_mpid, err_msg, log_mt_history_id )
+                #There is no auth code
+                #URL:  https://eclogin.cafe24.com/Shop/?mode=ipblock
+                if (cur_url == 'https://eclogin.cafe24.com/Shop/?mode=ipblock'):
+                    print("IP block: ", cur_url)
+                    cnt = 99999
+                    self.graph_manager.log_err_msg_of_upload(-1, "IP Block\n", log_mt_history_id )
+                    raise 
+
                 # Check is change password page
                 if (cur_url == 'https://user.cafe24.com/comLogin/?action=comForce&req=hosting'):
                     print('@@@@@@@@@@@ Please change password')
+                    self.graph_manager.log_err_msg_of_upload(-1, "!!!!!!!!! Change password", log_mt_history_id )
                     inputElement = driver.find_element_by_class_name('btnEm')
                     inputElement.click()
                     time.sleep(5)

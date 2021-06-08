@@ -2128,12 +2128,28 @@ class GraphManager():
   def log_err_msg_of_upload(self, mpid, err_msg, mt_history_id):
     try:
       err_msg = err_msg.replace("'",'"')
-      query = "insert into failed_target_site_detail(mpid, err_msg, mt_history_id) values({},'{}',{})".format(mpid,err_msg, mt_history_id)
-      self.gp_cur.execute(query)
-      self.gp_conn.commit()
+      if mpid == -1:
+        
+        query = "select count(*) from failed_target_site_detail where mpid = {} and mt_history_id = {}".format(mpid, mt_history_id)
+        self.gp_cur.execute(query)
+        self.gp_cur.execute(query)
+        result = self.gp_cur.fetchone()[0]
+        if int(result) == 0:
+          query = "insert into failed_target_site_detail(mpid, err_msg, mt_history_id) values({},'{}',{})".format(mpid,err_msg, mt_history_id)
+        else:
+          query = "update failed_target_site_detail set err_msg = err_msg || '{}' where mpid = {} and mt_history_id = {}".format(err_msg, mpid, mt_history_id) 
+       
+        self.gp_cur.execute(query)
+        self.gp_conn.commit()
+      else:
+        query = "insert into failed_target_site_detail(mpid, err_msg, mt_history_id) values({},'{}',{})".format(mpid,err_msg, mt_history_id)
+        print(query)
+        self.gp_cur.execute(query)
+        self.gp_conn.commit()
       return 
     except:
       self.gp_conn.rollback()
+      print(traceback.format_exc())
       raise
 
 

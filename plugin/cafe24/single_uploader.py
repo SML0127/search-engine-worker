@@ -88,12 +88,16 @@ class Cafe24SingleUploader(Resource):
     profiling_info = {}
     log_mpid = -1
     log_mt_history_id = -1
+    log_max_num_product = 0
+    log_mpids = []
     try:
       (args, mpids) = task
       log_mt_history_id = args['mt_history_id']
+      log_max_num_product = len(mpids)
+      log_mpids = ', '.join(map(str, mpids)) 
       self.cafe24manager = Cafe24Manager(args)
       print("-----------------------Request auth code----------------------")
-      self.cafe24manager.get_auth_code()
+      self.cafe24manager.get_auth_code(log_mt_history_id)
       print("-----------------------Request token--------------------------")
       self.cafe24manager.get_token()
       self.cafe24manager.list_brands()
@@ -284,8 +288,6 @@ class Cafe24SingleUploader(Resource):
  
                 elif status == 3:
                   tpid = self.graph_manager.get_tpid(job_id, targetsite_url, mpid)
-                  print('tpid : ', tpid)
-                  print('mpid : ', mpid)
                   log_operation = 'Delete product'
                   self.cafe24manager.hide_exist_product(profiling_info, job_id, tpid)
                   cnum = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
@@ -315,8 +317,16 @@ class Cafe24SingleUploader(Resource):
       self.exporter.close()
       print("Close cafe24 manager (no except)")
     except:
+      failed_node = log_max_num_product
+      err_msg = "Fail to upload items \n"
+      err_msg += "My site product pids: " + log_mpids + " \n" 
+      self.graph_manager.log_err_msg_of_upload(-1, err_msg, log_mt_history_id )
+
       profiling_info['total_time'] = time.time() - total_time
-      #print(profiling_info)
+      profiling_info['successful_node'] = 0
+      profiling_info['failed_node'] = failed_node
+      print('s/f', successful_node, '/', failed_node)
+      
       try:
          self.cafe24manager.close()
       except:
