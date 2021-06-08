@@ -37,45 +37,8 @@ class Cafe24SingleUploader(Resource):
     self.settings = self.setting_manager.get_settings()
     self.cafe24manager = ''
     self.graph_manager = ''
+    self.exporter = ''
     pass
-
-  #def upload_products(self, args):
-  #  total_time = time.time()
-  #  profiling_info = {}
-  #  try:
-  #    exec_id = args['execution_id']
-  #    exporter = Exporter()
-  #    exporter.init()
-  #    #node_ids = exporter.graph_mgr.find_nodes_of_execution_with_label(exec_id, label)
-  #    mpids = exporter.graph_mgr.get_mpid_from_mysite(exec_id)
-  #    job_id = exporter.graph_mgr.get_job_id_from_eid(exec_id)
-  #    exporter.close()
-  #    print("num of products: ", len(mpids))
-  #    #return {} 
-  #    num_threads = args['num_threads']
-  #    chunk_size = (len(mpids) // num_threads) + 1
-  #    mpid_chunks = [mpids[i:i + chunk_size] for i in range(0, len(mpids), chunk_size)]
-  #    pool = ThreadPool(num_threads)
-  #    tasks = []
-  #    for i in range(len(mpid_chunks)):
-  #      nargs = args.copy()
-  #      nargs.update(args['clients'][i])
-  #      tasks.append((nargs, mpid_chunks[i]))
-
-  #    tasks = list(map(lambda x: (args.copy(), x), mpid_chunks))
-  #    results = pool.map(self.upload_products_of_task, tasks)
-  #    #self.upload_products_of_nodes(args, node_ids)
-  #    pool.close()
-  #    pool.join()
-  #  except:
-  #    profiling_info['total_time'] = time.time() - total_time
-  #    print(profiling_info)
-  #    print(traceback.format_exc())
-  #    return {}
-  #  profiling_info['total_time'] = time.time() - total_time
-  #  print(profiling_info)
-  #  return {}
-
 
 
   def upload_products_of_mpid(self, args, mpids):
@@ -136,9 +99,9 @@ class Cafe24SingleUploader(Resource):
       self.cafe24manager.list_brands()
       #targetsite_url = 'https://{}.cafe24.com/'.format(args['mall_id'])
 
-      exporter = Exporter()
-      exporter.init()
-      exporter.import_rules_from_code(args['code'])
+      self.exporter = Exporter()
+      self.exporter.init()
+      self.exporter.import_rules_from_code(args['code'])
 
       #print(exec_id, label)
       #print(node_ids)
@@ -152,7 +115,7 @@ class Cafe24SingleUploader(Resource):
           log_mpid = mpid
           node_time = time.time()
           try:
-            product, original_product_information = exporter.export_from_selected_mpid(job_id, args['execution_id'], mpid)
+            product, original_product_information = self.exporter.export_from_selected_mpid(job_id, args['execution_id'], mpid)
             product['targetsite_url'] = targetsite_url
             product['mpid'] = mpid
             status = self.graph_manager.check_status_of_product(job_id, mpid)
@@ -199,7 +162,7 @@ class Cafe24SingleUploader(Resource):
               is_uploaded = self.graph_manager.check_is_item_uploaded(job_id, targetsite_url, mpid)
               print('is uploaded proudct? : ', is_uploaded)
               if is_uploaded == False and status != 3: # upload as new item
-                product, original_product_information = exporter.export_from_mpid_onetime(job_id, mpid, tsid)
+                product, original_product_information = self.exporter.export_from_mpid_onetime(job_id, mpid, tsid)
                 log_operation = 'Create new product'
 
                 product['targetsite_url'] = targetsite_url
@@ -216,7 +179,7 @@ class Cafe24SingleUploader(Resource):
 
               elif is_uploaded == True:
                 if status == 1:
-                  product, original_product_information = exporter.export_from_mpid_onetime(job_id, mpid, tsid)
+                  product, original_product_information = self.exporter.export_from_mpid_onetime(job_id, mpid, tsid)
                   log_operation = 'Update exist product'
                   product['targetsite_url'] = targetsite_url
                   product['mpid'] = mpid
@@ -280,7 +243,7 @@ class Cafe24SingleUploader(Resource):
               is_uploaded = self.graph_manager.check_is_item_uploaded(job_id, targetsite_url, mpid)
               print('is uploaded proudct? : ', is_uploaded)
               if is_uploaded == False and status != 3: # upload as new item
-                product, original_product_information = exporter.export_from_mpid_onetime(job_id, mpid, tsid)
+                product, original_product_information = self.exporter.export_from_mpid_onetime(job_id, mpid, tsid)
                 product['targetsite_url'] = targetsite_url
                 product['mpid'] = mpid
                 print('mpid : ', mpid)
@@ -296,7 +259,7 @@ class Cafe24SingleUploader(Resource):
  
               elif is_uploaded == True:
                 if status == 1:
-                  product, original_product_information = exporter.export_from_mpid_onetime(job_id, mpid, tsid)
+                  product, original_product_information = self.exporter.export_from_mpid_onetime(job_id, mpid, tsid)
                   product['targetsite_url'] = targetsite_url
                   product['mpid'] = mpid
                   log_operation = 'Update exist product'
@@ -349,6 +312,7 @@ class Cafe24SingleUploader(Resource):
             err_msg += '================================ STACK TRACE ============================== \n' + str(traceback.format_exc())
             self.graph_manager.log_err_msg_of_upload(log_mpid, err_msg, log_mt_history_id )
       self.cafe24manager.close()
+      self.exporter.close()
       print("Close cafe24 manager (no except)")
     except:
       profiling_info['total_time'] = time.time() - total_time
@@ -357,6 +321,11 @@ class Cafe24SingleUploader(Resource):
          self.cafe24manager.close()
       except:
          print("Error in close cafe24 manager")
+         print(traceback.format_exc())
+      try:
+         self.exporter.close()
+      except:
+         print("Error in close exporter")
          print(traceback.format_exc())
       print("Close cafe24 manager (in except)")
       print(traceback.format_exc())
@@ -372,6 +341,7 @@ class Cafe24SingleUploader(Resource):
   def close(self):
     try:
       self.cafe24manager.close()
+      self.exporter.close()
       self.graph_manager.disconnect()
     except:
       pass

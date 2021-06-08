@@ -6,12 +6,19 @@ import re
 
 class Exporter():
 
+  def __init__(self):
+    self.connected = False
+
   def init(self):
-    self.setting_manager = SettingsManager()
-    self.setting_manager.setting("/home/pse/PSE-engine/settings-worker.yaml")
-    settings = self.setting_manager.get_settings()
-    self.graph_mgr = GraphManager()
-    self.graph_mgr.init(settings)
+    try
+      self.setting_manager = SettingsManager()
+      self.setting_manager.setting("/home/pse/PSE-engine/settings-worker.yaml")
+      settings = self.setting_manager.get_settings()
+      self.graph_mgr = GraphManager()
+      self.graph_mgr.init(settings)
+      self.connected = True
+    except Exception as e:
+      raise e
 
 
   def export_from_selected_mpid(self, job_id, exec_id, mpid):
@@ -95,7 +102,7 @@ class Exporter():
   def import_rules_from_code(self, code):
     try:
       exec(code, globals(), globals())
-    raise Exception as e:
+    except Exception as e:
       raise e 
 
   def export_with_rules(self):
@@ -103,8 +110,9 @@ class Exporter():
 
   def close(self):
     try:
-      self.graph_mgr.disconnect()
-    raise Exception as e:
+      if self.connected == True:
+        self.graph_mgr.disconnect()
+    except Exception as e:
       raise e 
 
 
