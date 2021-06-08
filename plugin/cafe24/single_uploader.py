@@ -172,7 +172,7 @@ class Cafe24SingleUploader(Resource):
               pass 
 
             successful_node += 1
-          except:
+          except Exception as e:
             failed_node += 1
             err_msg = '================================ Operator ================================ \n'
             err_msg += 'Update exist product \n\n'
@@ -180,6 +180,8 @@ class Cafe24SingleUploader(Resource):
             err_msg += 'My site product id: ' + str(log_mpid) + '\n\n'
             err_msg += '================================ Target site URL ================================ \n'
             err_msg += 'URL: ' + targetsite_url + '\n\n'
+            err_msg += '================================ Error Message ================================ \n'
+            err_msg += str(e) + '\n\n'
             err_msg += '================================ STACK TRACE ============================== \n' + str(traceback.format_exc())
             self.graph_manager.log_err_msg_of_upload(log_mpid, err_msg, log_mt_history_id )
 
@@ -334,7 +336,7 @@ class Cafe24SingleUploader(Resource):
               self.cafe24manager.refresh()
 
             successful_node += 1
-          except:
+          except Exception as e:
             failed_node += 1
             err_msg = '================================ Operator ================================ \n'
             err_msg += log_operation +'\n\n'
@@ -342,6 +344,8 @@ class Cafe24SingleUploader(Resource):
             err_msg += 'My site product id: ' + str(log_mpid) + '\n\n'
             err_msg += '================================ Target site URL ================================ \n'
             err_msg += 'URL: ' + targetsite_url + '\n\n'
+            err_msg += '================================ Error Message ================================ \n'
+            err_msg += str(e) + '\n\n'
             err_msg += '================================ STACK TRACE ============================== \n' + str(traceback.format_exc())
             self.graph_manager.log_err_msg_of_upload(log_mpid, err_msg, log_mt_history_id )
       self.cafe24manager.close()

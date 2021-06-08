@@ -896,7 +896,7 @@ class Cafe24Manager:
 
             if 'product' not in product_result:
                 print(product_result['error'])
-                raise
+                raise Exception(product_result['error']['message'])
 
             # upload new product and then store target site product it to my site
             tpid = product_result['product']['product_no']
@@ -956,7 +956,9 @@ class Cafe24Manager:
                     response = self.update_variant_additional_price(tpid, cafe24_code, stock, additional_amount)
                     if 'error' in response:
                         print("Product creation was successful, but option variant update failed")
-                        err_msg = "Product creation was successful, but option variant update failed"
+                        err_msg = "Product creation was successful, but option variant update failed\n\n"
+                        err_msg += '================================ Error Message ================================ \n'
+                        err_msg += response['error']['message'] + '\n\n'
                         try:
                             self.graph_manager.log_err_msg_of_upload(product['mpid'], err_msg, log_mt_history_id )
                         except:
@@ -972,7 +974,9 @@ class Cafe24Manager:
                 response = self.update_additional_images(tpid, additional_image)
                 if 'error' in response:
                     print("Product creation was successful, but additional image update failed")
-                    err_msg = "Product creation was successful, but additional image update failed"
+                    err_msg = "Product creation was successful, but additional image update failed\n\n"
+                    err_msg += '================================ Error Message ================================ \n'
+                    err_msg += response['error']['message'] + '\n\n'
                     try:
                         self.graph_manager.log_err_msg_of_upload(product['mpid'], err_msg, log_mt_history_id )
                     except:
@@ -1139,7 +1143,9 @@ class Cafe24Manager:
                     response = self.update_variant_additional_price(tpid, cafe24_code, stock, additional_amount)
                     if 'error' in response:
                         print("Product creation was successful, but option variant update failed")
-                        err_msg = "Product creation was successful, but option variant update failed"
+                        err_msg = "Product creation was successful, but option variant update failed\n\n"
+                        err_msg += '================================ Error Message ================================ \n'
+                        err_msg += response['error']['message'] + '\n\n'
                         try:
                             self.graph_manager.log_err_msg_of_upload(product['mpid'], err_msg, log_mt_history_id )
                         except:
@@ -1150,7 +1156,9 @@ class Cafe24Manager:
                 response = self.update_additional_images(tpid, additional_image)
                 if 'error' in response:
                     print("Product update was successful, but additional image update failed")
-                    err_msg = "Product update was successful, but additional image update failed"
+                    err_msg = "Product update was successful, but additional image update failed\n\n"
+                    err_msg += '================================ Error Message ================================ \n'
+                    err_msg += response['error']['message'] + '\n\n'
                     try:
                         self.graph_manager.log_err_msg_of_upload(product['mpid'], err_msg, log_mt_history_id )
                     except:
