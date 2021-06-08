@@ -15,42 +15,48 @@ class Exporter():
 
 
   def export_from_selected_mpid(self, job_id, exec_id, mpid):
-    graph_mgr = self.graph_mgr
+    try:
+      graph_mgr = self.graph_mgr
    
-    #exchange_rate float, tariff_rate float, vat_rate float, tariff_threshold float, margin_rate float, min_margin float, delivery_company varchar(2048), shipping_cost float)
-    pricing_information = graph_mgr.get_pricing_information(job_id)
-    smpid = graph_mgr.get_site_code_from_job_id(job_id)
-    cnum  = graph_mgr.get_cnum_from_job_configuration(job_id)
-    selected_pricing_information = graph_mgr.get_selected_pricing_information(job_id, mpid)
-    pricing_information['margin_rate'] = selected_pricing_information['margin_rate']
-    pricing_information['min_margin'] = selected_pricing_information['min_margin']
-    pricing_information['shipping_cost'] = selected_pricing_information['shpping_cost']
-    pricing_information['min_price'] = selected_pricing_information['min_price']
-    node_properties = graph_mgr.get_node_properties_from_mysite(exec_id, mpid)
-    node_properties['pricing_information'] = pricing_information
-    node_properties['smpid'] = smpid
-    node_properties['cnum'] = cnum
-    print(smpid)
-    
-    return user_defined_export(graph_mgr, mpid, node_properties), node_properties
+      #exchange_rate float, tariff_rate float, vat_rate float, tariff_threshold float, margin_rate float, min_margin float, delivery_company varchar(2048), shipping_cost float)
+      pricing_information = graph_mgr.get_pricing_information(job_id)
+      smpid = graph_mgr.get_site_code_from_job_id(job_id)
+      cnum  = graph_mgr.get_cnum_from_job_configuration(job_id)
+      selected_pricing_information = graph_mgr.get_selected_pricing_information(job_id, mpid)
+      pricing_information['margin_rate'] = selected_pricing_information['margin_rate']
+      pricing_information['min_margin'] = selected_pricing_information['min_margin']
+      pricing_information['shipping_cost'] = selected_pricing_information['shpping_cost']
+      pricing_information['min_price'] = selected_pricing_information['min_price']
+      node_properties = graph_mgr.get_node_properties_from_mysite(exec_id, mpid)
+      node_properties['pricing_information'] = pricing_information
+      node_properties['smpid'] = smpid
+      node_properties['cnum'] = cnum
+      print(smpid)
+      
+      return user_defined_export(graph_mgr, mpid, node_properties), node_properties
+    except Exception as e:
+      raise e
 
 
 
   def export_from_mpid_onetime(self, job_id, mpid, tsid):
-    graph_mgr = self.graph_mgr
+    try:
+      graph_mgr = self.graph_mgr
    
-    smpid = graph_mgr.get_site_code_from_job_id(job_id)
-    cnum  = graph_mgr.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
-    pricing_information = graph_mgr.get_pricing_information_onetime(tsid)
-    node_properties = graph_mgr.get_node_properties_from_mysite(job_id, mpid)
-    delivery_company = pricing_information['delivery_company']
-    shipping_fee = graph_mgr.get_shipping_fee(delivery_company)
-    node_properties['shipping_fee'] = shipping_fee
-    node_properties['pricing_information'] = pricing_information
-    node_properties['smpid'] = smpid
-    node_properties['cnum'] = cnum
-    
-    return user_defined_export(graph_mgr, mpid, node_properties), node_properties
+      smpid = graph_mgr.get_site_code_from_job_id(job_id)
+      cnum  = graph_mgr.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
+      pricing_information = graph_mgr.get_pricing_information_onetime(tsid)
+      node_properties = graph_mgr.get_node_properties_from_mysite(job_id, mpid)
+      delivery_company = pricing_information['delivery_company']
+      shipping_fee = graph_mgr.get_shipping_fee(delivery_company)
+      node_properties['shipping_fee'] = shipping_fee
+      node_properties['pricing_information'] = pricing_information
+      node_properties['smpid'] = smpid
+      node_properties['cnum'] = cnum
+      
+      return user_defined_export(graph_mgr, mpid, node_properties), node_properties
+    except Exception as e:
+      raise e
 
 
 
@@ -87,13 +93,19 @@ class Exporter():
     f.close()
   
   def import_rules_from_code(self, code):
-    exec(code, globals(), globals())
+    try:
+      exec(code, globals(), globals())
+    raise Exception as e:
+      raise e 
 
   def export_with_rules(self):
     self.export()
 
   def close(self):
-    self.graph_mgr.disconnect()
+    try:
+      self.graph_mgr.disconnect()
+    raise Exception as e:
+      raise e 
 
 
 
