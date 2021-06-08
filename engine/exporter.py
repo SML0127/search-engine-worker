@@ -10,7 +10,7 @@ class Exporter():
     self.connected = False
 
   def init(self):
-    try
+    try:
       self.setting_manager = SettingsManager()
       self.setting_manager.setting("/home/pse/PSE-engine/settings-worker.yaml")
       settings = self.setting_manager.get_settings()
