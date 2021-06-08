@@ -78,6 +78,8 @@ class Cafe24Manager:
             self.mall_id, self.client_id, self.redirect_uri, self.scope)
         print(url)
 
+
+
         # driver.get(url)
         #cur_url = driver.current_url
         #login_url = 'https://ec'
@@ -87,6 +89,14 @@ class Cafe24Manager:
         max_try = 3
         while cnt < max_try:
             cnt = cnt + 1
+            #=============== Try get auth code 1 time ==============
+            #https://eclogin.cafe24.com/Shop/?menu=recpy&submenu=%2Fapi%2Fv2%2Foauth%2Fauthorize%3Fresponse_type%3Dcode%26client_id%3D871bEAYAN9mnvRAgB07bjB%26state%3Dtest%26redirect_uri%3Dhttps%253A%252F%252Fwww.google.com%26scope%3Dmall.write_product%2Bmall.read_product%2Bmall.read_category%2Bmall.write_category%2Bmall.read_collection%2Bmall.write_collection%26shop_no%3D1
+            #try to log in
+            #user_id: topdepot
+            #user_pwd: topdepot1
+            #There is no auth code
+            #URL:  https://eclogin.cafe24.com/Shop/?mode=ipblock
+
             print("=============== Try get auth code {} time ==============".format(cnt))
             try:
                 driver.get(url)
@@ -845,17 +855,16 @@ class Cafe24Manager:
                 option_names = product['option_names']
                 del product['option_names']
                 #print(variants)
-                #variant = {'option_name1': [{name: 'v1', stock: ??}, {name: 'v2', stock: ??}]}
-                #ov2 = ov2.replace('"','').replace("'","").replace(',', ' ').replace(';', ' ').replace('#', '').replace('$', '').replace('%', '').replace('\\', '')     
-
+                #variant = {'option_name1': [{value: 'v1', stock: ??}, {value: 'v2', stock: ??}]}
                 for variant in variants:
                     for key, value in variant.items():
                         if key in option_names:
                             values = options.get(key, [])
                             if value not in values:
-                                #print(value)
+                                print(value)
                                 for op_v in value:
-                                    op_v['name'] = op_v['name'].replace('"','').replace("'","").replace(',', ' ').replace(';', ' ').replace('#', '').replace('$', '').replace('%', '').replace('\\', '')
+                                    print(op_v)
+                                    op_v['value'] = op_v['value'].replace('"','').replace("'","").replace(',', ' ').replace(';', ' ').replace('#', '').replace('$', '').replace('%', '').replace('\\', '')
                                 values.append(value)
                                 num_variant = len(value)
                             #print('-----------------------')
@@ -1061,7 +1070,7 @@ class Cafe24Manager:
                             if value not in values:
                                 #print(value)
                                 for op_v in value:
-                                    op_v['name'] = op_v['name'].replace('"','').replace("'","").replace(',', ' ').replace(';', ' ').replace('#', '').replace('$', '').replace('%', '').replace('\\', '')
+                                    op_v['value'] = op_v['value'].replace('"','').replace("'","").replace(',', ' ').replace(';', ' ').replace('#', '').replace('$', '').replace('%', '').replace('\\', '')
                                 values.append(value)
                                 num_variant = num_variant + 1
                             #print('-----------------------')
