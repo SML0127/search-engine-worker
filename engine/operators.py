@@ -546,7 +546,7 @@ class BFSIterator(BaseOperator):
             except Exception as e:
                 print(e.__class__.__name__)
                 err_cnt = err_cnt + 1
-                if err_cnt >= 3:
+                if err_cnt >= 5:
                     fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
                     gvar.web_mgr.store_page_source(fname)
                     print("error html:", fname)
@@ -560,6 +560,7 @@ class BFSIterator(BaseOperator):
                     raise OperatorError(e, self.props['id'])
 
                 else:
+                    gvar.web_mgr.restart(5)
                     print('err_cnt : ', err_cnt)
 
 
