@@ -15,7 +15,8 @@ from io import StringIO
 from io import BytesIO
 from managers.graph_manager import GraphManager
 from managers.settings_manager import *
-
+from functools import partial
+print_flushed = partial(print, flush=True)
 
 class Cafe24Manager:
 
@@ -47,18 +48,18 @@ class Cafe24Manager:
                     self.client_id = client[0]
                     self.client_secret = client[1]
                     break
-                print('Waiting for available client id, secret .....')
+                print_flushed('Waiting for available client id, secret .....')
                 time.sleep(10)
             #self.graph_manager.connect("dbname='pse' user='pse' host='127.0.0.1' port='5432' password='pse'")
         self.brands = {}
         self.manufacturers = {}
-        print(client)
+        print_flushed(client)
         self.connected = True
 
     def close(self):
         # smlee
         if self.connected == True:
-            print('Close APIManager, so return client id, secret')
+            print_flushed('Close APIManager, so return client id, secret')
             self.graph_manager.return_client(
                 self.client_id, self.client_secret)
             self.graph_manager.disconnect()
@@ -76,29 +77,29 @@ class Cafe24Manager:
             './web_drivers/chromedriver', chrome_options=option)
         url = 'https://{}.cafe24api.com/api/v2/oauth/authorize?response_type=code&client_id={}&state=test&redirect_uri={}&scope={}'.format(
             self.mall_id, self.client_id, self.redirect_uri, self.scope)
-        print(url)
+        print_flushed(url)
 
         cnt = 0
         max_try = 3
         while cnt < max_try:
             cnt = cnt + 1
 
-            print("=============== Try get auth code {} time ==============".format(cnt))
+            print_flushed("=============== Try get auth code {} time ==============".format(cnt))
             try:
                 driver.get(url)
                 cur_url = driver.current_url
                 login_url = 'https://ec'
                 agreement_url = 'https://{}'.format(self.mall_id)
-                print(cur_url)
+                print_flushed(cur_url)
                 if (cur_url[0:len(login_url)] == login_url):
-                    print('try to log in')
+                    print_flushed('try to log in')
                     inputElement = driver.find_element_by_id("mall_id")
                     inputElement.send_keys(self.user_id)
-                    print('user_id:', self.user_id)
+                    print_flushed('user_id:', self.user_id)
                     inputElement = driver.find_element_by_id("userpasswd")
                     inputElement.send_keys(self.user_pwd)
                     time.sleep(3)
-                    print('user_pwd:', self.user_pwd)
+                    print_flushed('user_pwd:', self.user_pwd)
                     inputElement = driver.find_element_by_class_name('mButton')
                     inputElement.click()
                     time.sleep(5)
@@ -108,14 +109,14 @@ class Cafe24Manager:
                 #There is no auth code
                 #URL:  https://eclogin.cafe24.com/Shop/?mode=ipblock
                 if (cur_url == 'https://eclogin.cafe24.com/Shop/?mode=ipblock'):
-                    print("IP block: ", cur_url)
+                    print_flushed("IP block: ", cur_url)
                     cnt = 99999
                     self.graph_manager.log_err_msg_of_upload(-1, "IP Block\n", log_mt_history_id )
                     raise 
 
                 # Check is change password page
                 if (cur_url == 'https://user.cafe24.com/comLogin/?action=comForce&req=hosting'):
-                    print('@@@@@@@@@@@ Please change password')
+                    print_flushed('@@@@@@@@@@@ Please change password')
                     self.graph_manager.log_err_msg_of_upload(-1, "!!!!!!!!! Change password", log_mt_history_id )
                     inputElement = driver.find_element_by_class_name('btnEm')
                     inputElement.click()
@@ -123,9 +124,9 @@ class Cafe24Manager:
                     cur_url = driver.current_url
 
                 if (cur_url[0:len(agreement_url)] == agreement_url):
-                    print('try to agree')
+                    print_flushed('try to agree')
                     time.sleep(1)
-                    print(cur_url)
+                    print_flushed(cur_url)
                     if driver.current_url[0:len('google')] != 'google':
                         inputElement = driver.find_element_by_class_name(
                             'btnSubmit')
@@ -144,8 +145,8 @@ class Cafe24Manager:
                 break
             except:
                 if cnt < max_try:
-                    print('There is no auth code')
-                    print('URL: ', driver.current_url)
+                    print_flushed('There is no auth code')
+                    print_flushed('URL: ', driver.current_url)
                     pass
                 else:
                     driver.quit()
@@ -157,19 +158,19 @@ class Cafe24Manager:
         cnt = 0
         max_try = 3
         while cnt < max_try:
-            print("=============== Try do post {} time ==============".format(cnt))
+            print_flushed("=============== Try do post {} time ==============".format(cnt))
             try:
                 response = requests.request(
                     "POST", url, data=data, headers=headers)
                 response = json.loads(response.text)
-                print(response)
+                print_flushed(response)
                 while 'error' in response and type(response['error']) == type({}) and response['error'].get('code', 0) == 429:
                     response = requests.request(
                         "POST", url, data=data, headers=headers)
                     response = json.loads(response.text)
-                    print(response)
+                    print_flushed(response)
                 if 'error' in response:
-                    print(response)
+                    print_flushed(response)
                 return response
             except:
                 if cnt < max_try:
@@ -182,16 +183,16 @@ class Cafe24Manager:
         cnt = 0
         max_try = 3
         while cnt < max_try:
-            print("=============== Try do put {} time ==============".format(cnt))
+            print_flushed("=============== Try do put {} time ==============".format(cnt))
             try:
                 response = requests.request(
                     "PUT", url, data=data, headers=headers)
-                print(response)
+                print_flushed(response)
                 response = json.loads(response.text)
                 while 'error' in response and response['error']['code'] == 429:
                     response = requests.request(
                         "PUT", url, data=data, headers=headers)
-                    print(response)
+                    print_flushed(response)
                     response = json.loads(response.text)
                 return response
             except:
@@ -205,10 +206,10 @@ class Cafe24Manager:
         cnt = 0
         max_try = 3
         while cnt < max_try:
-            print("=============== Try do get {} time ==============".format(cnt))
+            print_flushed("=============== Try do get {} time ==============".format(cnt))
             try:
                 response = requests.request("GET", url, headers=headers)
-                print(response)
+                print_flushed(response)
                 response = json.loads(response.text)
                 while 'error' in response and response['error']['code'] == 429:
                     response = requests.request("GET", url, headers=headers)
@@ -239,16 +240,16 @@ class Cafe24Manager:
         }
 
         response = self.do_post(url, data, headers)
-        # print(response)
+        # print_flushed(response)
         self.token = response['access_token']
         self.refresh_token = response['refresh_token']
-        #print('get_token', self.token, self.refresh_token)
+        #print_flushed('get_token', self.token, self.refresh_token)
 
     def refresh(self):
         cnt = 0
         max_try = 3
         while cnt < max_try:
-            print("=============== Try refresh token {} time ==============".format(cnt))
+            print_flushed("=============== Try refresh token {} time ==============".format(cnt))
             time.sleep(10)
             try:
                 auth = (self.client_id + ':' +
@@ -272,7 +273,7 @@ class Cafe24Manager:
                 self.token = response['access_token']
                 self.refresh_token = response['refresh_token']
                 break
-                #print('refresh token', self.token, self.refresh_token)
+                #print_flushed('refresh token', self.token, self.refresh_token)
             except:
                 if cnt < max_try:
                     cnt = cnt + 1
@@ -294,26 +295,26 @@ class Cafe24Manager:
                 "image": image
             }]
         }
-        # print(url)
-        # print(headers)
-        # print(data)
+        # print_flushed(url)
+        # print_flushed(headers)
+        # print_flushed(data)
         response = self.do_post(url, json.dumps(data), headers)
 
         try:
             image_path = response['images'][0]['path']
-            print(response['images'])
-            print(image_path)
+            print_flushed(response['images'])
+            print_flushed(image_path)
         except Exception as e:
-            print(e)
-            print(response)
+            print_flushed(e)
+            print_flushed(response)
             raise e
 
         if 'cafe24.com' in image_path:
-            print(
+            print_flushed(
                 image_path[len('http://{}.cafe24.com'.format(self.mall_id)):])
             return image_path[len('http://{}.cafe24.com'.format(self.mall_id)):]
         else:
-            print(image_path[len('http://{}.shop'.format(self.mall_id)):])
+            print_flushed(image_path[len('http://{}.shop'.format(self.mall_id)):])
             return image_path[len('http://{}.shop'.format(self.mall_id)):]
 
     def upload_image_from_file(self, fpath):
@@ -325,11 +326,11 @@ class Cafe24Manager:
         cnt = 0
         max_try = 3
         while cnt < max_try:
-            print(
+            print_flushed(
                 "=============== Try download & upload detail image {} time ==============".format(cnt))
             try:
                 image = self.get_image_from_link(link)
-                #print("upload_image_from_link: ", image)
+                #print_flushed("upload_image_from_link: ", image)
                 return self.upload_image(image)
             except:
                 if cnt < max_try:
@@ -472,7 +473,7 @@ class Cafe24Manager:
         cnt = 0
         max_try = 3
         while cnt < max_try:
-            print(
+            print_flushed(
                 "=============== Try create brand code {} time ==============".format(cnt))
             try:
                 url = "https://{}.cafe24api.com/api/v2/admin/brands".format(
@@ -489,7 +490,7 @@ class Cafe24Manager:
                 }
                 response = self.do_post(url, json.dumps(data), headers)
                 if 'brand' not in response:
-                    print(response)
+                    print_flushed(response)
                 brand = response['brand']
                 self.brands[brand['brand_name']] = brand['brand_code']
                 return brand['brand_code']
@@ -504,7 +505,7 @@ class Cafe24Manager:
         cnt = 0
         max_try = 3
         while cnt < max_try:
-            print(
+            print_flushed(
                 "=============== Try create manufacturer code {} time ==============".format(cnt))
             try:
                 url = "https://{}.cafe24api.com/api/v2/admin/manufacturers".format(
@@ -521,7 +522,7 @@ class Cafe24Manager:
                 }
                 response = self.do_post(url, json.dumps(data), headers)
                 if 'manufacturer' not in response:
-                    print(response)
+                    print_flushed(response)
                 manufacturer = response['manufacturer']
                 self.manufacturers[manufacturer['manufacturer_name']
                                    ] = manufacturer['manufacturer_code']
@@ -561,7 +562,7 @@ class Cafe24Manager:
             'request': args
         }
         response = self.do_post(url, json.dumps(data), headers)
-        # print(response)
+        # print_flushed(response)
         return response['category']['category_no']
 
     def list_categories(self):
@@ -601,7 +602,7 @@ class Cafe24Manager:
             }
         }
         response = self.do_post(url, json.dumps(data), headers)
-        # print(response)
+        # print_flushed(response)
         return response
 
     def update_additional_images(self, product_no, links):
@@ -610,7 +611,7 @@ class Cafe24Manager:
         cnt = 0
         max_try = 3
         while cnt < max_try:
-            print(
+            print_flushed(
                 "=============== Try download & upload additional images {} time ==============".format(cnt))
             try:
                 additional_image = []
@@ -633,7 +634,7 @@ class Cafe24Manager:
                     }
                 }
                 response = self.do_put(url, json.dumps(data), headers)
-                # print(response)
+                # print_flushed(response)
                 return response
             except:
                 if cnt < max_try:
@@ -662,7 +663,7 @@ class Cafe24Manager:
             }
         }
         response = self.do_post(url, json.dumps(data), headers)
-        # print(response)
+        # print_flushed(response)
         return response
 
     def update_option(self, product_no, option):
@@ -685,7 +686,7 @@ class Cafe24Manager:
             }
         }
         response = self.do_post(url, json.dumps(data), headers)
-        # print(response)
+        # print_flushed(response)
         return response
 
     def list_variants(self, product_no):
@@ -698,7 +699,7 @@ class Cafe24Manager:
             'Connection': "keep-alive",
         }
         response = self.do_get(url, headers)
-        # print(response)
+        # print_flushed(response)
         return response
 
     # Used for insert stock(quantity) information of no option product
@@ -749,9 +750,9 @@ class Cafe24Manager:
                 "inventory_control_type": "B",
             }]
         }
-        print(data)
+        print_flushed(data)
         response = self.do_put(url, json.dumps(data), headers)
-        print(response)
+        print_flushed(response)
         return response
 
     def update_variant_additional_price(self, product_no, variant_code, quantity, additional_amount):
@@ -850,21 +851,21 @@ class Cafe24Manager:
             if product['has_option'] == 'T' and len(variants) > 0:
                 option_names = product['option_names']
                 del product['option_names']
-                #print(variants)
+                #print_flushed(variants)
                 #variant = {'option_name1': [{value: 'v1', stock: ??}, {value: 'v2', stock: ??}]}
                 for variant in variants:
                     for key, value in variant.items():
                         if key in option_names:
                             values = options.get(key, [])
                             if value not in values:
-                                print(value)
+                                print_flushed(value)
                                 for op_v in value:
-                                    print(op_v)
+                                    print_flushed(op_v)
                                     op_v['value'] = op_v['value'].replace('"','').replace("'","").replace(',', ' ').replace(';', ' ').replace('#', '').replace('$', '').replace('%', '').replace('\\', '')
                                 values.append(value)
                                 num_variant = len(value)
-                            #print('-----------------------')
-                            #print(values)
+                            #print_flushed('-----------------------')
+                            #print_flushed(values)
                             options[key] = values 
                         num_combination = num_combination * num_variant 
                 result = []
@@ -877,8 +878,8 @@ class Cafe24Manager:
                         result.append({'name': option_name, 'value': option_value})
                     product['options'] = result
                 else:
-                    print("Do not upload product option")
-                    print("# of option combination: {}  (>= 1000)".format(num_combination))
+                    print_flushed("Do not upload product option")
+                    print_flushed("# of option combination: {}  (>= 1000)".format(num_combination))
                     err_msg = "Do not upload product option \n# of option combination: {}  (>= 1000)".format(num_combination)
                     try:
                         self.graph_manager.log_err_msg_of_upload(product['mpid'], err_msg, log_mt_history_id )
@@ -900,7 +901,7 @@ class Cafe24Manager:
                 'create_product', 0) + time.time() - tmp_time
 
             if 'product' not in product_result:
-                print(product_result['error'])
+                print_flushed(product_result['error'])
                 raise Exception(product_result['error']['message'])
 
             # upload new product and then store target site product it to my site
@@ -915,15 +916,15 @@ class Cafe24Manager:
                 profiling_info['memo'] = profiling_info.get(
                     'memo', 0) + time.time() - tmp_time
             if product['has_option'] == 'T' and len(variants) > 0:
-                print(options)
-                print(option_matrix)
-                print(matrix_row_name)
-                print(matrix_col_name)
-                print('-------------------------------------------------------------------------')
+                print_flushed(options)
+                print_flushed(option_matrix)
+                print_flushed(matrix_row_name)
+                print_flushed(matrix_col_name)
+                print_flushed('-------------------------------------------------------------------------')
                 for cafe24_variant in self.list_variants(tpid)['variants']:
                     cafe24_code = cafe24_variant['variant_code']
                     cafe24_options = cafe24_variant['options']
-                    print(cafe24_variant)
+                    print_flushed(cafe24_variant)
                     stock = 999
                     additional_amount = 0
                     row_value = ""
@@ -931,7 +932,7 @@ class Cafe24Manager:
                     # one variant [{name:color, value:blue}, {name:size, value:small}]
                     for cafe24_option in cafe24_options:
                         # {name:color, value:blue}
-                        #print(cafe24_option)
+                        #print_flushed(cafe24_option)
                         if matrix_row_name == '':
                             for option in options[cafe24_option['name']][0]:
                                 if option['value'] == cafe24_option['value']:
@@ -951,8 +952,8 @@ class Cafe24Manager:
                                             stock = option['stock']  
                                         additional_amount = additional_amount + option['additional_amount']  
                                 if row_value != "" and col_value != "":
-                                    #print(row_value, col_value)
-                                    #print(option_matrix)
+                                    #print_flushed(row_value, col_value)
+                                    #print_flushed(option_matrix)
                                     if stock > option_matrix[row_value, col_value]['stock']:
                                         stock = option_matrix[row_value, col_value]['stock']  
                                     additional_amount = additional_amount + option_matrix[row_value, col_value]['additional_amount']  
@@ -960,7 +961,7 @@ class Cafe24Manager:
                                     col_value = ""
                     response = self.update_variant_additional_price(tpid, cafe24_code, stock, additional_amount)
                     if 'error' in response:
-                        print("Product creation was successful, but option variant update failed")
+                        print_flushed("Product creation was successful, but option variant update failed")
                         err_msg = "Product creation was successful, but option variant update failed\n\n"
                         err_msg += '================================ Error Message ================================ \n'
                         err_msg += response['error']['message'] + '\n\n'
@@ -978,7 +979,7 @@ class Cafe24Manager:
             if len(additional_image) > 0:
                 response = self.update_additional_images(tpid, additional_image)
                 if 'error' in response:
-                    print("Product creation was successful, but additional image update failed")
+                    print_flushed("Product creation was successful, but additional image update failed")
                     err_msg = "Product creation was successful, but additional image update failed\n\n"
                     err_msg += '================================ Error Message ================================ \n'
                     err_msg += response['error']['message'] + '\n\n'
@@ -990,7 +991,7 @@ class Cafe24Manager:
             profiling_info['successful_node'] = profiling_info.get(
                 'successful_node', 0) + 1
         except:
-            print(str(traceback.format_exc()))
+            print_flushed(str(traceback.format_exc()))
             profiling_info['failed_node'] = profiling_info.get(
                 'failed_node', 0) + 1
             raise
@@ -999,7 +1000,7 @@ class Cafe24Manager:
 
     def update_exist_product(self, product, profiling_info, job_id, tpid, log_mt_history_id):
         try:
-            print('---------update product--------')
+            print_flushed('---------update product--------')
             product['product_no'] = tpid
             product['image_upload_type'] = "A"
             product['display'] = "T"
@@ -1021,7 +1022,7 @@ class Cafe24Manager:
                     'manufacturer', 0) + (time.time() - tmp_time)
 
             # delete image from product in target site
-            print(self.delete_image(tpid))
+            print_flushed(self.delete_image(tpid))
 
             # add detail image
             if 'detail_image' in product:
@@ -1042,10 +1043,10 @@ class Cafe24Manager:
             profiling_info['update_product'] = profiling_info.get(
                 'update_product', 0) + time.time() - tmp_time
             if 'product' not in product_result:
-                print(product_result['error'])
+                print_flushed(product_result['error'])
                 raise
 
-            print(self.delete_option(tpid))
+            print_flushed(self.delete_option(tpid))
 
             if 'variants' in product:
                 variants = product.get('variants', [])
@@ -1053,27 +1054,27 @@ class Cafe24Manager:
 
             num_combination = 1
             num_variant = 0
-            print(num_combination)
+            print_flushed(num_combination)
             options = {}
             if has_option == 'T' and len(variants) > 0:
                 option_names = product['option_names']
                 del product['option_names']
-                #print(variants)
+                #print_flushed(variants)
                 for variant in variants:
                     for key, value in variant.items():
                         if key in option_names:
                             values = options.get(key, [])
                             if value not in values:
-                                #print(value)
+                                #print_flushed(value)
                                 for op_v in value:
                                     op_v['value'] = op_v['value'].replace('"','').replace("'","").replace(',', ' ').replace(';', ' ').replace('#', '').replace('$', '').replace('%', '').replace('\\', '')
                                 values.append(value)
                                 num_variant = num_variant + 1
-                            #print('-----------------------')
-                            #print(values)
+                            #print_flushed('-----------------------')
+                            #print_flushed(values)
                             options[key] = values 
                         num_combination = num_combination * num_variant 
-                        print(num_combination)
+                        print_flushed(num_combination)
                 result = []
                 if num_combination < 1000:
                     for option_name, values in options.items():
@@ -1084,8 +1085,8 @@ class Cafe24Manager:
                         result.append({'name': option_name, 'value': option_value})
                     product['options'] = result
                 else:
-                    print("Do not upload product option")
-                    print("# of option combination: {}  (>= 1000)".format(num_combination))
+                    print_flushed("Do not upload product option")
+                    print_flushed("# of option combination: {}  (>= 1000)".format(num_combination))
                     err_msg = "Do not upload product option \n# of option combination: {}  (>= 1000)".format(num_combination)
                     try:
                         self.graph_manager.log_err_msg_of_upload(product['mpid'], err_msg, log_mt_history_id )
@@ -1103,11 +1104,11 @@ class Cafe24Manager:
 
 
             if has_option == 'T' and len(variants) > 0:
-                print(options)
-                print(option_matrix)
-                print(matrix_row_name)
-                print(matrix_col_name)
-                print('-------------------------------------------------------------------------')
+                print_flushed(options)
+                print_flushed(option_matrix)
+                print_flushed(matrix_row_name)
+                print_flushed(matrix_col_name)
+                print_flushed('-------------------------------------------------------------------------')
                 for cafe24_variant in self.list_variants(tpid)['variants']:
                     cafe24_code = cafe24_variant['variant_code']
                     cafe24_options = cafe24_variant['options']
@@ -1118,7 +1119,7 @@ class Cafe24Manager:
                     # one variant [{name:color, value:blue}, {name:size, value:small}]
                     for cafe24_option in cafe24_options:
                         # {name:color, value:blue}
-                        #print(cafe24_option)
+                        #print_flushed(cafe24_option)
                         if matrix_row_name == '':
                             for option in options[cafe24_option['name']][0]:
                                 if option['value'] == cafe24_option['value']:
@@ -1138,8 +1139,8 @@ class Cafe24Manager:
                                             stock = option['stock']  
                                         additional_amount = additional_amount + option['additional_amount']  
                                 if row_value != "" and col_value != "":
-                                    #print(row_value, col_value)
-                                    #print(option_matrix)
+                                    #print_flushed(row_value, col_value)
+                                    #print_flushed(option_matrix)
                                     if stock > option_matrix[row_value, col_value]['stock']:
                                         stock = option_matrix[row_value, col_value]['stock']  
                                     additional_amount = additional_amount + option_matrix[row_value, col_value]['additional_amount']  
@@ -1147,7 +1148,7 @@ class Cafe24Manager:
                                     col_value = ""
                     response = self.update_variant_additional_price(tpid, cafe24_code, stock, additional_amount)
                     if 'error' in response:
-                        print("Product creation was successful, but option variant update failed")
+                        print_flushed("Product creation was successful, but option variant update failed")
                         err_msg = "Product creation was successful, but option variant update failed\n\n"
                         err_msg += '================================ Error Message ================================ \n'
                         err_msg += response['error']['message'] + '\n\n'
@@ -1160,7 +1161,7 @@ class Cafe24Manager:
             if len(additional_image) > 0:
                 response = self.update_additional_images(tpid, additional_image)
                 if 'error' in response:
-                    print("Product update was successful, but additional image update failed")
+                    print_flushed("Product update was successful, but additional image update failed")
                     err_msg = "Product update was successful, but additional image update failed\n\n"
                     err_msg += '================================ Error Message ================================ \n'
                     err_msg += response['error']['message'] + '\n\n'
@@ -1173,7 +1174,7 @@ class Cafe24Manager:
             profiling_info['successful_node'] = profiling_info.get(
                 'successful_node', 0) + 1
         except:
-            print(str(traceback.format_exc()))
+            print_flushed(str(traceback.format_exc()))
             profiling_info['failed_node'] = profiling_info.get(
                 'failed_node', 0) + 1
            
@@ -1183,7 +1184,7 @@ class Cafe24Manager:
 
     def hide_exist_product_no_profiling(self, tpid):  # delete
         try:
-            print('---------hide product--------')
+            print_flushed('---------hide product--------')
             product = {}
             product['product_no'] = tpid
             product['display'] = "F"
@@ -1191,9 +1192,9 @@ class Cafe24Manager:
 
             tmp_time = time.time()
             product_result = self.update_product(product, tpid)
-            print(product_result)
+            print_flushed(product_result)
             if 'error' in product_result:
-                print('Do not delete tpid = {} from tpid mapping table'.format(tpid))
+                print_flushed('Do not delete tpid = {} from tpid mapping table'.format(tpid))
         except:
             raise
 
@@ -1201,7 +1202,7 @@ class Cafe24Manager:
 
     def hide_exist_product(self, profiling_info, job_id, tpid):  # delete
         try:
-            print('---------hide product--------')
+            print_flushed('---------hide product--------')
             product = {}
             product['product_no'] = tpid
             product['display'] = "F"
@@ -1209,7 +1210,7 @@ class Cafe24Manager:
 
             tmp_time = time.time()
             product_result = self.update_product(product, tpid)
-            print(product_result)
+            print_flushed(product_result)
             profiling_info['update_product'] = profiling_info.get(
                 'update_product', 0) + time.time() - tmp_time
             profiling_info['successful_node'] = profiling_info.get(
@@ -1217,7 +1218,7 @@ class Cafe24Manager:
             if 'error' not in product_result:
                 self.graph_manager.delete_from_tpid_mapping_table(tpid)
             else:
-                print('Do not delete tpid = {} from tpid mapping table'.format(tpid))
+                print_flushed('Do not delete tpid = {} from tpid mapping table'.format(tpid))
         except:
             profiling_info['failed_node'] = profiling_info.get(
                 'failed_node', 0) + 1
@@ -1239,8 +1240,8 @@ if __name__ == '__main__':
     cafe24manager.get_auth_code()
     cafe24manager.get_token()
     cafe24manager.refresh()
-    # print(cafe24manager.list_brands())
-    # print(cafe24manager.list_categories())
+    # print_flushed(cafe24manager.list_brands())
+    # print_flushed(cafe24manager.list_categories())
     #image_path = cafe24manager.upload_image_from_link('https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png')
 
     args = {

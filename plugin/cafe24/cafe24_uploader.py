@@ -53,6 +53,8 @@ except ImportError:
         pass
 
 from rq import Worker
+from functools import partial
+print_flushed = partial(print, flush=True)
 
 """ smlee, jhko import """
 
@@ -105,12 +107,12 @@ class Cafe24Uploader(Worker):
             super(Cafe24Uploader, self).__init__(*args, **kwargs)
             self.uploader = Cafe24SingleUploader()
         except Exception as e:
-            print("-------Raised Exception in WORKER-------")
-            print(e)
-            print("----------------------------------------")
-            print("--------------STACK TRACE---------------")
-            print(str(traceback.format_exc()))
-            print("----------------------------------------")
+            print_flushed("-------Raised Exception in WORKER-------")
+            print_flushed(e)
+            print_flushed("----------------------------------------")
+            print_flushed("--------------STACK TRACE---------------")
+            print_flushed(str(traceback.format_exc()))
+            print_flushed("----------------------------------------")
 
     # added by smlee
     def handle_warm_shutdown_request(self):
@@ -120,16 +122,16 @@ class Cafe24Uploader(Worker):
             self.log.info('Chromedriver process shutdown.')
             self.uploader.close()
         except Exception as e:
-            print("-------Raised Exception in WORKER-------")
-            print(e)
-            print("----------------------------------------")
-            print("--------------STACK TRACE---------------")
-            print(traceback.format_exc())
-            print("----------------------------------------")
+            print_flushed("-------Raised Exception in WORKER-------")
+            print_flushed(e)
+            print_flushed("----------------------------------------")
+            print_flushed("--------------STACK TRACE---------------")
+            print_flushed(traceback.format_exc())
+            print_flushed("----------------------------------------")
             self.log.info(
                 'Chromedriver not found OR process failed to shutdown.')
         finally:
-            print('GOODBYE.')
+            print_flushed('GOODBYE.')
 
     def main_work_horse(self, *args, **kwargs):
         raise NotImplementedError("Test worker does not implement this method")
@@ -157,13 +159,13 @@ class Cafe24Uploader(Worker):
             #op, gvar = self.prepare_task(task)
             # op.run(gvar)
             #self.complete_task(op, gvar)
-            # print(gvar.profiling_info)
+            # print_flushed(gvar.profiling_info)
         except Exception as e:
-            print("-------Raised Exception in WORKER-------")
-            print("----------------------------------------")
-            print("--------------STACK TRACE---------------")
-            print(str(traceback.format_exc()))
-            print("----------------------------------------")
+            print_flushed("-------Raised Exception in WORKER-------")
+            print_flushed("----------------------------------------")
+            print_flushed("--------------STACK TRACE---------------")
+            print_flushed(str(traceback.format_exc()))
+            print_flushed("----------------------------------------")
             raise
         # self.logging_manager.logging_successful_task_detail(task))
         return rv
@@ -190,7 +192,7 @@ class Cafe24Uploader(Worker):
             job.started_at = utcnow()
             timeout = job.timeout or self.queue_class.DEFAULT_TIMEOUT
             with self.death_penalty_class(timeout, JobTimeoutException, job_id=job.id):
-                # print(job.args)
+                # print_flushed(job.args)
                 rv = self.perform_task(job.args[0])
 
             job.ended_at = utcnow()

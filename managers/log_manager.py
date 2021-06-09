@@ -5,6 +5,8 @@ from yaml import load, Loader
 import os
 import json
 import traceback
+from functools import partial
+print_flushed = partial(print, flush=True)
 
 
 class LogMgrErr(Exception):
@@ -147,11 +149,11 @@ class LogManager():
             self.cur.execute(query, (str(program_id), str(previous_id),
                                       str(start_time), str(job_id)))
             result = self.cur.fetchone()[0]
-            print("start execution:  ", result)
-            print("  job_id: ", job_id)
-            print("  program_id: ", program_id)
-            print("  previous_id: ", previous_id)
-            print("  start_time: ", start_time)
+            print_flushed("start execution:  ", result)
+            print_flushed("  job_id: ", job_id)
+            print_flushed("  program_id: ", program_id)
+            print_flushed("  previous_id: ", previous_id)
+            print_flushed("  start_time: ", start_time)
             self.conn.commit()
             return result
         except Exception as e:
@@ -168,13 +170,13 @@ class LogManager():
             self.cur.execute(query, (str(program_id), str(previous_id),
                                      str(category_id), str(category_no), str(start_time), str(job_id)))
             result = self.cur.fetchone()[0]
-            print("start execution:  ", result)
-            print("  job_id: ", job_id)
-            print("  program_id: ", program_id)
-            print("  previous_id: ", previous_id)
-            print("  category_id: ", category_id)
-            print("  category_no: ", category_no)
-            print("  start_time: ", start_time)
+            print_flushed("start execution:  ", result)
+            print_flushed("  job_id: ", job_id)
+            print_flushed("  program_id: ", program_id)
+            print_flushed("  previous_id: ", previous_id)
+            print_flushed("  category_id: ", category_id)
+            print_flushed("  category_no: ", category_no)
+            print_flushed("  start_time: ", start_time)
             self.conn.commit()
             return result
         except Exception as e:
@@ -185,8 +187,8 @@ class LogManager():
         try:
             time_gap = timedelta(hours=9)
             end_time = datetime.utcnow() + time_gap
-            print("end execution:  ", execution_id)
-            print("  end_time: ", end_time)
+            print_flushed("end execution:  ", execution_id)
+            print_flushed("  end_time: ", end_time)
             query = "update execution "
             query += "set end_time = %s "
             query += "where id = %s;"
@@ -209,9 +211,9 @@ class LogManager():
             query += "values(%s, %s, %s) returning id;"
             self.cur.execute(query, (str(execution_id), str(level), str(start_time)))
             result = self.cur.fetchone()[0]
-            print("start stage:  ", result)
-            print("  level: ", level)
-            print("  start_time: ", start_time)
+            print_flushed("start stage:  ", result)
+            print_flushed("  level: ", level)
+            print_flushed("  start_time: ", start_time)
             self.conn.commit()
             return result
         except Exception as e:
@@ -222,8 +224,8 @@ class LogManager():
         try:
             time_gap = timedelta(hours=9)
             end_time = datetime.utcnow() + time_gap
-            print("end stage:  ", stage_id)
-            print("  end_time: ", end_time)
+            print_flushed("end stage:  ", stage_id)
+            print_flushed("  end_time: ", end_time)
             query = "update stage "
             query += "set end_time = %s "
             query += "where id = %s;"

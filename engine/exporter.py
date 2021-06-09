@@ -1,8 +1,10 @@
 import traceback
+import re
 from managers.graph_manager import GraphManager
 from managers.settings_manager import *
 from price_parser import Price
-import re
+from functools import partial
+print_flushed = partial(print, flush=True)
 
 class Exporter():
 
@@ -38,7 +40,7 @@ class Exporter():
       node_properties['pricing_information'] = pricing_information
       node_properties['smpid'] = smpid
       node_properties['cnum'] = cnum
-      print(smpid)
+      print_flushed(smpid)
       
       return user_defined_export(graph_mgr, mpid, node_properties), node_properties
     except Exception as e:
@@ -85,14 +87,14 @@ class Exporter():
     return user_defined_export(graph_mgr, mpid, node_properties), node_properties
 
   def export(self, node_id):
-    #print(self.graph_mgr.get_node_properties(node_id))
+    #print_flushed(self.graph_mgr.get_node_properties(node_id))
     graph_mgr = self.graph_mgr
     node_properties = graph_mgr.get_node_properties(node_id)
 
     return user_defined_export(graph_mgr, node_id, node_properties)
-    #exec('print(graph_mgr.get_node_properties(node_id))')
+    #exec('print_flushed(graph_mgr.get_node_properties(node_id))')
   def import_rules(self):
-    exec('def get_price(graph_mgr, node_id, node_properties): print(node_id); return node_properties["price"]', globals())
+    exec('def get_price(graph_mgr, node_id, node_properties): print_flushed(node_id); return node_properties["price"]', globals())
   
   def import_rules_from_file(self, name):
     f = open(name, 'r')
@@ -127,7 +129,7 @@ if __name__ == '__main__':
     exporter.import_rules_from_file('./cafe24_zalando.py')
     exporter.export(node_ids[0])
   except:
-    print(str(traceback.format_exc()))
+    print_flushed(str(traceback.format_exc()))
     pass
   exporter.close()
 

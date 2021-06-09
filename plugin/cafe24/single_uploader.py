@@ -27,6 +27,8 @@ from managers.settings_manager import *
 from engine.exporter import Exporter
 
 from multiprocessing.dummy import Pool as ThreadPool
+from functools import partial
+print_flushed = partial(print, flush=True)
 
 
 class Cafe24SingleUploader(Resource):
@@ -47,7 +49,7 @@ class Cafe24SingleUploader(Resource):
     try:
       num_threads = args.get('num_threads', 1)
       pool = ThreadPool(num_threads)
-      print('num threads in args: ', num_threads)
+      print_flushed('num threads in args: ', num_threads)
       self.graph_manager = GraphManager()
       self.graph_manager.init(self.settings)
 
@@ -70,11 +72,11 @@ class Cafe24SingleUploader(Resource):
       pool.close()
       pool.join()
       self.graph_manager.disconnect()
-      #print(profiling_info)
-      #print(traceback.format_exc())
+      #print_flushed(profiling_info)
+      #print_flushed(traceback.format_exc())
       return profiling_info
     profiling_info['total_time'] = time.time() - total_time
-    #print(profiling_info)
+    #print_flushed(profiling_info)
     pool.close()
     pool.join()
     self.graph_manager.disconnect()
@@ -96,9 +98,9 @@ class Cafe24SingleUploader(Resource):
       log_max_num_product = len(mpids)
       log_mpids = ', '.join(map(str, mpids)) 
       self.cafe24manager = Cafe24Manager(args)
-      print("-----------------------Request auth code----------------------")
+      print_flushed("-----------------------Request auth code----------------------")
       self.cafe24manager.get_auth_code(log_mt_history_id)
-      print("-----------------------Request token--------------------------")
+      print_flushed("-----------------------Request token--------------------------")
       self.cafe24manager.get_token()
       self.cafe24manager.list_brands()
       #targetsite_url = 'https://{}.cafe24.com/'.format(args['mall_id'])
@@ -107,13 +109,13 @@ class Cafe24SingleUploader(Resource):
       self.exporter.init()
       self.exporter.import_rules_from_code(args['code'])
 
-      #print(exec_id, label)
-      #print(node_ids)
+      #print_flushed(exec_id, label)
+      #print_flushed(node_ids)
       job_id = args['job_id'] 
       tsid = args['tsid'] 
       targetsite_url, gateway = self.graph_manager.get_targetsite(tsid)
-      print("tsid: ", tsid)
-      print("targetsite: ", targetsite_url)
+      print_flushed("tsid: ", tsid)
+      print_flushed("targetsite: ", targetsite_url)
       if 'selected' in args:
         for mpid in mpids:
           log_mpid = mpid
@@ -125,7 +127,7 @@ class Cafe24SingleUploader(Resource):
             status = self.graph_manager.check_status_of_product(job_id, mpid)
              
             #Status 0 = up to date, 1 = changed, 2 = New, 3 = Deleted 4 = Duplicated
-            print('status : ', status)
+            print_flushed('status : ', status)
             if gateway.upper() == 'CAFE24':
               tpid = self.graph_manager.get_tpid(job_id, targetsite_url, mpid)
               self.cafe24manager.update_exist_product(product, profiling_info, job_id, tpid, log_mt_history_id)
@@ -161,17 +163,17 @@ class Cafe24SingleUploader(Resource):
             status = self.graph_manager.check_status_of_product(job_id, mpid)
              
             #Status 0 = up to date, 1 = changed, 2 = New, 3 = Deleted 4 = Duplicated
-            print('status : ', status)
+            print_flushed('status : ', status)
             if gateway.upper() == 'CAFE24':
               is_uploaded = self.graph_manager.check_is_item_uploaded(job_id, targetsite_url, mpid)
-              print('is uploaded proudct? : ', is_uploaded)
+              print_flushed('is uploaded proudct? : ', is_uploaded)
               if is_uploaded == False and status != 3: # upload as new item
                 product, original_product_information = self.exporter.export_from_mpid_onetime(job_id, mpid, tsid)
                 log_operation = 'Create new product'
 
                 product['targetsite_url'] = targetsite_url
                 product['mpid'] = mpid
-                print('mpid : ', mpid)
+                print_flushed('mpid : ', mpid)
                 self.cafe24manager.upload_new_product(product, profiling_info, job_id, log_mt_history_id)
                 cnum = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
                 #smlee
@@ -188,8 +190,8 @@ class Cafe24SingleUploader(Resource):
                   product['targetsite_url'] = targetsite_url
                   product['mpid'] = mpid
                   tpid = self.graph_manager.get_tpid(job_id, targetsite_url, mpid)
-                  print('mpid : ', mpid)
-                  print('tpid : ', tpid)
+                  print_flushed('mpid : ', mpid)
+                  print_flushed('tpid : ', tpid)
                   self.cafe24manager.update_exist_product(product, profiling_info, job_id, tpid, log_mt_history_id)
                   cnum = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
                   #smlee
@@ -209,8 +211,8 @@ class Cafe24SingleUploader(Resource):
 
                 elif status == 3:
                   tpid = self.graph_manager.get_tpid(job_id, targetsite_url, mpid)
-                  print('tpid : ', tpid)
-                  print('mpid : ', mpid)
+                  print_flushed('tpid : ', tpid)
+                  print_flushed('mpid : ', mpid)
                   log_operation = 'Delete product'
                   self.cafe24manager.hide_exist_product(profiling_info, job_id, tpid)
                   cnum  = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
@@ -242,15 +244,15 @@ class Cafe24SingleUploader(Resource):
           try:
             status = self.graph_manager.check_status_of_product(job_id, mpid)
             #Status 0 = up to date, 1 = changed, 2 = New, 3 = Deleted 4 = Duplicated
-            print('status : ', status)
+            print_flushed('status : ', status)
             if gateway.upper() == 'CAFE24':
               is_uploaded = self.graph_manager.check_is_item_uploaded(job_id, targetsite_url, mpid)
-              print('is uploaded proudct? : ', is_uploaded)
+              print_flushed('is uploaded proudct? : ', is_uploaded)
               if is_uploaded == False and status != 3: # upload as new item
                 product, original_product_information = self.exporter.export_from_mpid_onetime(job_id, mpid, tsid)
                 product['targetsite_url'] = targetsite_url
                 product['mpid'] = mpid
-                print('mpid : ', mpid)
+                print_flushed('mpid : ', mpid)
                 log_operation = 'Create new product'
                 self.cafe24manager.upload_new_product(product, profiling_info, job_id, log_mt_history_id)
                 cnum  = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
@@ -267,7 +269,7 @@ class Cafe24SingleUploader(Resource):
                   product['targetsite_url'] = targetsite_url
                   product['mpid'] = mpid
                   log_operation = 'Update exist product'
-                  print('mpid : ', mpid)
+                  print_flushed('mpid : ', mpid)
                   tpid = self.graph_manager.get_tpid(job_id, targetsite_url, mpid)
                   self.cafe24manager.update_exist_product(product, profiling_info, job_id, tpid, log_mt_history_id)
                   cnum  = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
@@ -315,7 +317,7 @@ class Cafe24SingleUploader(Resource):
             self.graph_manager.log_err_msg_of_upload(log_mpid, err_msg, log_mt_history_id )
       self.cafe24manager.close()
       self.exporter.close()
-      print("Close cafe24 manager (no except)")
+      print_flushed("Close cafe24 manager (no except)")
     except:
       failed_node = log_max_num_product
       err_msg = "Fail to upload items \n"
@@ -325,26 +327,26 @@ class Cafe24SingleUploader(Resource):
       profiling_info['total_time'] = time.time() - total_time
       profiling_info['successful_node'] = 0
       profiling_info['failed_node'] = failed_node
-      print('s/f', successful_node, '/', failed_node)
+      print_flushed('s/f', successful_node, '/', failed_node)
       
       try:
          self.cafe24manager.close()
       except:
-         print("Error in close cafe24 manager")
-         print(traceback.format_exc())
+         print_flushed("Error in close cafe24 manager")
+         print_flushed(traceback.format_exc())
       try:
          self.exporter.close()
       except:
-         print("Error in close exporter")
-         print(traceback.format_exc())
-      print("Close cafe24 manager (in except)")
-      print(traceback.format_exc())
+         print_flushed("Error in close exporter")
+         print_flushed(traceback.format_exc())
+      print_flushed("Close cafe24 manager (in except)")
+      print_flushed(traceback.format_exc())
       return profiling_info
-    print('s/f', successful_node, '/', failed_node)
+    print_flushed('s/f', successful_node, '/', failed_node)
     profiling_info['total_time'] = time.time() - total_time
     profiling_info['successful_node'] = successful_node
     profiling_info['failed_node'] = failed_node
-    #print(profiling_info)
+    #print_flushed(profiling_info)
     return profiling_info
 
   # smlee

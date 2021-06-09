@@ -22,6 +22,9 @@ import time
 import requests
 import http
 
+from functools import partial
+print_flushed = partial(print, flush=True)
+
 software_names = [SoftwareName.CHROME.value]
 operating_systems = [OperatingSystem.WINDOWS.value, OperatingSystem.LINUX.value]
 user_agent_rotator = UserAgent(software_names=software_names, operating_systems=operating_systems, limit=100)
@@ -110,7 +113,7 @@ class WebManager():
 
   def restart(self,sleep_time):
     try:
-      print('---start restart func--')
+      print_flushed('---start restart func--')
       for driver in self.drivers:
         driver.quit()
       self.drivers = []
@@ -134,7 +137,7 @@ class WebManager():
       prefs = {"profile.managed_default_content_settings.images": 2}
       option.add_experimental_option("prefs", prefs)
 
-      #print(self.settings)
+      #print_flushed(self.settings)
       driver_path = self.settings.get('chromedriver_path', './web_drivers/chromedriver')
       
       self.javascripts = {
@@ -160,7 +163,7 @@ class WebManager():
         self.drivers_is_zipcode_reset.append(True)
         self.drivers_last_amazon_country.append("")
       self.driver_idx = 0
-      print('---end restart func--')
+      print_flushed('---end restart func--')
     except Exception as e:
       if e.__class__.__name__ in selenium_chrome_erros:
       #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
@@ -170,7 +173,7 @@ class WebManager():
 
   def close(self):
     try:
-      print(self.drivers)
+      print_flushed(self.drivers)
       for driver in self.drivers:
         driver.quit()
     except Exception as e:
@@ -257,7 +260,7 @@ class WebManager():
       cnt = 0
       max_cnt = 10
       while (self.get_html() == '<html><head></head><body></body></html>'):
-        print("Reload page (empty htmls)")
+        print_flushed("Reload page (empty htmls)")
         driver.get(url)
         WebDriverWait(driver, 30).until(lambda d: d.execute_script('return document.readyState') == 'complete')
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
@@ -315,7 +318,7 @@ class WebManager():
       elements = driver.find_elements_by_xpath(xpath)
       if len(elements) > 0:
         driver.execute_script(self.javascripts['style'])
-        print(driver.execute_script('return arguments[0].innerHTML;', elements[0]))
+        print_flushed(driver.execute_script('return arguments[0].innerHTML;', elements[0]))
         return driver.execute_script('return arguments[0].innerHTML;', elements[0])
       return ''
     except Exception as e:
@@ -332,7 +335,7 @@ class WebManager():
       elements = driver.find_elements_by_xpath(xpath)
       if len(elements) == 0: raise NoElementFoundError(xpath)
       driver.execute_script(self.javascripts['style'])
-      print(driver.execute_script('return arguments[0].innerHTML;', elements[0]))
+      print_flushed(driver.execute_script('return arguments[0].innerHTML;', elements[0]))
       return driver.execute_script('return arguments[0].innerHTML;', elements[0])
     except Exception as e:
       if e.__class__.__name__ in selenium_chrome_erros:
@@ -378,7 +381,7 @@ class WebManager():
   def get_elements_by_selenium_(self, xpath):
     driver = self.get_cur_driver_()
     elements = driver.find_elements_by_xpath(xpath)
-    print(len(elements), xpath)
+    print_flushed(len(elements), xpath)
     return elements
 
 
@@ -393,13 +396,13 @@ class WebManager():
   def get_elements_by_lxml_(self, xpath):
     #self.build_lxml_tree()
     elements = self.lxml_tree.xpath(xpath)
-    print(len(elements), xpath)
+    print_flushed(len(elements), xpath)
     return elements
 
   def get_elements_by_lxml_strong_(self, xpath):
     elements = self.get_elements_by_lxml_(xpath)
     if len(elements) == 0:
-      print("Re-build lxml tree and retry")
+      print_flushed("Re-build lxml tree and retry")
       self.build_lxml_tree()
       elements = self.get_elements_by_lxml_(xpath)
       if len(elements) == 0:
@@ -424,7 +427,7 @@ class WebManager():
     elif attr == 'innerHTML': val = etree.tostring(element, pretty_print=True)
     else: val = element.get(attr)
     if val != None: val = val.strip()
-    print(val)
+    print_flushed(val)
     return val
 
   def get_attribute_by_lxml_strong_(self, element, attr):
@@ -459,26 +462,26 @@ class WebManager():
   def login_by_xpath(self, user_id, pwd, xpath_user_id, xpath_pwd, click_xpath):
     try:
       driver = self.get_cur_driver_()
-      #print(xpath_user_id)
+      #print_flushed(xpath_user_id)
       #elem = driver.find_element_by_xpath(xpath_user_id)
       elem1 = driver.find_element_by_id("fm-login-id")
-      print(user_id)
-      print(elem1)
+      print_flushed(user_id)
+      print_flushed(elem1)
       elem1.send_keys(user_id)
       
-      #print(xpath_pwd)
+      #print_flushed(xpath_pwd)
       #elem = driver.find_element_by_xpath(xpath_pwd)
       elem2 = driver.find_element_by_id("fm-login-password")
-      print(pwd)
-      print(elem2)
+      print_flushed(pwd)
+      print_flushed(elem2)
       elem2.send_keys(pwd)
-      print(click_xpath)
+      print_flushed(click_xpath)
       #driver.find_element_by_xpath(click_xpath).click()
       
       inputElement = driver.find_element_by_class_name('fm-submit')
       inputElement.click()
       time.sleep(20)
-      print(driver.current_url)
+      print_flushed(driver.current_url)
     except Exception as e:
       if e.__class__.__name__ in selenium_chrome_erros:
       #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
@@ -577,7 +580,7 @@ class WebManager():
   def click_elements_repeat(self, xpath, time_sleep, url):
     try:
       cnt = 0
-      max_retry = 3
+      max_retry = 99999
       while True:
         try:
           self.get_cur_driver_().execute_script("window.scrollTo(0, document.body.scrollHeight)")
@@ -600,6 +603,7 @@ class WebManager():
           #if e.__class__.__name__ in selenium_chrome_erros:
           #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException' or e.__class__.__name__ == 'StaleElementReferenceException':
           if cnt < max_retry:
+            print_flushed("cnt: ", cnt)
             self.restart(5)
             self.load(url)
             cnt = cnt + 1
@@ -700,7 +704,7 @@ class WebManager():
         val = self.get_attribute_by_selenium_(element, attr)
         if val != None: result.append(val)
       if len(result) == 0: raise NoElementFoundError(xpath)
-      print(result)
+      print_flushed(result)
       return result
     except Exception as e:
       if e.__class__.__name__ in selenium_chrome_erros:
@@ -843,7 +847,7 @@ class WebManager():
 
   def change_zipcode_us(self):
     try:
-      print('@@@@@@@@ Get ctrf token get-address-slections.html API')
+      print_flushed('@@@@@@@@ Get ctrf token get-address-slections.html API')
       # get token for zipcode
       url = "https://www.amazon.com/gp/glow/get-address-selections.html?deviceType=desktop&pageType=Gateway"
       def interceptor(request):
@@ -851,20 +855,20 @@ class WebManager():
       self.get_cur_driver_().request_interceptor = interceptor 
       self.load(url)
       time.sleep(1) 
-      print(self.get_html())
+      print_flushed(self.get_html())
       token = self.get_html().split('CSRF_TOKEN : "')[1].split('", IDs')[0]
-      print("@@@@@@@@@@ Get ctrf token {} ".format(token))
+      print_flushed("@@@@@@@@@@ Get ctrf token {} ".format(token))
       url = 'http://www.amazon.com/gp/delivery/ajax/address-change.html?locationType=LOCATION_INPUT&zipCode=94024&storeContext=office-products&deviceType=web&pageType=Detail&actionSource=glow&almBrandId=undefined'
       def interceptor2(request):
         del request.headers['anti-csrftoken-a2z']
         request.headers['anti-csrftoken-a2z'] = token 
       self.get_cur_driver_().request_interceptor = interceptor2
 
-      print("@@@@@@@@@@ Change zipcode address-change.html API")
+      print_flushed("@@@@@@@@@@ Change zipcode address-change.html API")
       self.load(url)
       time.sleep(1)
       is_valid = '"isValidAddress":1' in self.get_html()
-      print("@@@@@@@ is return valid address? {}".format(is_valid))
+      print_flushed("@@@@@@@ is return valid address? {}".format(is_valid))
 
       def interceptor3(request):
         del request.headers['anti-csrftoken-a2z']
@@ -882,7 +886,7 @@ class WebManager():
 
   def change_zipcode_uk(self):
     try:
-      print('@@@@@@@@ Get ctrf token get-address-slections.html API')
+      print_flushed('@@@@@@@@ Get ctrf token get-address-slections.html API')
       # get token for zipcode
       url = "https://www.amazon.co.uk/gp/glow/get-address-selections.html?deviceType=desktop&pageType=Gateway"
       def interceptor(request):
@@ -890,20 +894,20 @@ class WebManager():
       self.get_cur_driver_().request_interceptor = interceptor 
       self.load(url)
       time.sleep(1) 
-      print(self.get_html())
+      print_flushed(self.get_html())
       token = self.get_html().split('CSRF_TOKEN : "')[1].split('", IDs')[0]
-      print("@@@@@@@@@@ Get ctrf token {} ".format(token))
+      print_flushed("@@@@@@@@@@ Get ctrf token {} ".format(token))
       url = 'http://www.amazon.co.uk/gp/delivery/ajax/address-change.html?locationType=LOCATION_INPUT&zipCode=TW13 6DH&storeContext=office-products&deviceType=web&pageType=Detail&actionSource=glow&almBrandId=undefined'
       def interceptor2(request):
         del request.headers['anti-csrftoken-a2z']
         request.headers['anti-csrftoken-a2z'] = token 
       self.get_cur_driver_().request_interceptor = interceptor2
 
-      print("@@@@@@@@@@ Change zipcode address-change.html API")
+      print_flushed("@@@@@@@@@@ Change zipcode address-change.html API")
       self.load(url)
       time.sleep(1)
       is_valid = '"isValidAddress":1' in self.get_html()
-      print("@@@@@@@ is return valid address? {}".format(is_valid))
+      print_flushed("@@@@@@@ is return valid address? {}".format(is_valid))
 
       def interceptor3(request):
         del request.headers['anti-csrftoken-a2z']
@@ -921,7 +925,7 @@ class WebManager():
 
   def change_zipcode_de(self):
     try:
-      print('@@@@@@@@ Get ctrf token get-address-slections.html API')
+      print_flushed('@@@@@@@@ Get ctrf token get-address-slections.html API')
       # get token for zipcode
       url = "https://www.amazon.co.de/gp/glow/get-address-selections.html?deviceType=desktop&pageType=Gateway"
       def interceptor(request):
@@ -929,20 +933,20 @@ class WebManager():
       self.get_cur_driver_().request_interceptor = interceptor 
       self.load(url)
       time.sleep(1) 
-      print(self.get_html())
+      print_flushed(self.get_html())
       token = self.get_html().split('CSRF_TOKEN : "')[1].split('", IDs')[0]
-      print("@@@@@@@@@@ Get ctrf token {} ".format(token))
+      print_flushed("@@@@@@@@@@ Get ctrf token {} ".format(token))
       url = 'http://www.amazon.co.de/gp/delivery/ajax/address-change.html?locationType=LOCATION_INPUT&zipCode=60598&storeContext=office-products&deviceType=web&pageType=Detail&actionSource=glow&almBrandId=undefined'
       def interceptor2(request):
         del request.headers['anti-csrftoken-a2z']
         request.headers['anti-csrftoken-a2z'] = token 
       self.get_cur_driver_().request_interceptor = interceptor2
 
-      print("@@@@@@@@@@ Change zipcode address-change.html API")
+      print_flushed("@@@@@@@@@@ Change zipcode address-change.html API")
       self.load(url)
       time.sleep(1)
       is_valid = '"isValidAddress":1' in self.get_html()
-      print("@@@@@@@ is return valid address? {}".format(is_valid))
+      print_flushed("@@@@@@@ is return valid address? {}".format(is_valid))
 
       def interceptor3(request):
         del request.headers['anti-csrftoken-a2z']
@@ -967,56 +971,56 @@ if __name__ == '__main__':
   url = "https://www.amazon.com/gp/glow/get-address-selections.html?deviceType=desktop&pageType=Gateway&storeContext=NoStoreName"
   headers = {'User-Agent':'PostmanRuntime/7.19.0'}
   response = requests.request("POST", url, headers=headers)
-  print(response.text.split('CSRF_TOKEN : "')[1].split('", IDs')[0])
+  print_flushed(response.text.split('CSRF_TOKEN : "')[1].split('", IDs')[0])
   token = response.text.split('CSRF_TOKEN : "')[1].split('", IDs')[0]
 
   web_manager = WebManager()
   web_manager.init({"chromedriver_user_agent":"PostmanRuntime/7.19.0", 'token': token})
   #web_manager.load('https://www.amazon.com/gp/glow/get-address-selections.html?deviceType=desktop&pageType=Gateway&storeContext=NoStoreName')
-  #print(web_manager.get_html().split('CSRF_TOKEN : "')[1].split('", IDs')[0])
+  #print_flushed(web_manager.get_html().split('CSRF_TOKEN : "')[1].split('", IDs')[0])
   web_manager.get_cur_driver_().delete_all_cookies()
   web_manager.load('http://www.amazon.com/gp/delivery/ajax/address-change.html?locationType=LOCATION_INPUT&zipCode=94024&storeContext=office-products&deviceType=web&pageType=Detail&actionSource=glow&almBrandId=undefined')
-  print(web_manager.get_html())
+  print_flushed(web_manager.get_html())
   web_manager.close()
 #
 #  try:
 #    web_manager.load("https://www.amazon.com/Sensodyne-Pronamel-Whitening-Strengthening-Toothpaste/dp/B0762LYFKP?pf_rd_p=9dbbfba7-e756-51ca-b790-09e9b92beee1&pf_rd_r=EG4J8ZAJZNB9B3HBQ9G1&pd_rd_wg=W8hx6&ref_=pd_gw_ri&pd_rd_w=kynj4&pd_rd_r=6365323e-7c16-4273-a2c5-5d85b04565f5")
 #    web_manager.wait_loading()
 #
-#    print(web_manager.get_value_by_selenium("//span[@id='productTitle']", "alltext"))
-#    #print(web_manager.get_value_by_selenium("//span[@id='productTitle1']", "alltext"))
-#    print(web_manager.get_value_by_selenium_strong("//span[@id='productTitle']", "alltext"))
-#    #print(web_manager.get_value_by_selenium_strong("//span[@id='productTitle1']", "alltext"))
-#    print(web_manager.get_values_by_selenium("//div[@id='centerCol']//li/span", "alltext"))
-#    print(web_manager.get_values_by_selenium("//div[@id='centerCol']//li/span1", "alltext"))
-#    print(web_manager.get_values_by_selenium_strong("//div[@id='centerCol']//li/span", "alltext"))
-#    #print(web_manager.get_values_by_selenium_strong("//div[@id='centerCol']//li/span1", "alltext"))
+#    print_flushed(web_manager.get_value_by_selenium("//span[@id='productTitle']", "alltext"))
+#    #print_flushed(web_manager.get_value_by_selenium("//span[@id='productTitle1']", "alltext"))
+#    print_flushed(web_manager.get_value_by_selenium_strong("//span[@id='productTitle']", "alltext"))
+#    #print_flushed(web_manager.get_value_by_selenium_strong("//span[@id='productTitle1']", "alltext"))
+#    print_flushed(web_manager.get_values_by_selenium("//div[@id='centerCol']//li/span", "alltext"))
+#    print_flushed(web_manager.get_values_by_selenium("//div[@id='centerCol']//li/span1", "alltext"))
+#    print_flushed(web_manager.get_values_by_selenium_strong("//div[@id='centerCol']//li/span", "alltext"))
+#    #print_flushed(web_manager.get_values_by_selenium_strong("//div[@id='centerCol']//li/span1", "alltext"))
 #
-#    print(web_manager.get_key_values_by_selenium("//div[@class='content']/ul/li", "./b", "alltext", ".", "alltext"))
-#    print(web_manager.get_key_values_by_selenium("//div[@class='content']/ul/li1", "./b", "alltext", ".", "alltext"))
-#    print(web_manager.get_key_values_by_selenium_strong("//div[@class='content']/ul/li", "./b", "alltext", ".", "alltext"))
-#    #print(web_manager.get_key_values_by_selenium_strong("//div[@class='content']/ul/li1", "./b", "alltext", ".", "alltext"))
+#    print_flushed(web_manager.get_key_values_by_selenium("//div[@class='content']/ul/li", "./b", "alltext", ".", "alltext"))
+#    print_flushed(web_manager.get_key_values_by_selenium("//div[@class='content']/ul/li1", "./b", "alltext", ".", "alltext"))
+#    print_flushed(web_manager.get_key_values_by_selenium_strong("//div[@class='content']/ul/li", "./b", "alltext", ".", "alltext"))
+#    #print_flushed(web_manager.get_key_values_by_selenium_strong("//div[@class='content']/ul/li1", "./b", "alltext", ".", "alltext"))
 #
 #    web_manager.build_lxml_tree()
-#    print(web_manager.get_value_by_lxml("//span[@id='productTitle']", "alltext"))
-#    #print(web_manager.get_value_by_lxml("//span[@id='productTitle1']", "alltext"))
-#    print(web_manager.get_value_by_lxml_strong("//span[@id='productTitle']", "alltext"))
-#    #print(web_manager.get_value_by_lxml_strong("//span[@id='productTitle1']", "alltext"))
-#    print(web_manager.get_values_by_lxml("//div[@id='centerCol']//li/span", "alltext"))
-#    print(web_manager.get_values_by_lxml("//div[@id='centerCol']//li/span1", "alltext"))
-#    print(web_manager.get_values_by_lxml_strong("//div[@id='centerCol']//li/span", "alltext"))
-#    #print(web_manager.get_values_by_lxml_strong("//div[@id='centerCol']//li/span1", "alltext"))
+#    print_flushed(web_manager.get_value_by_lxml("//span[@id='productTitle']", "alltext"))
+#    #print_flushed(web_manager.get_value_by_lxml("//span[@id='productTitle1']", "alltext"))
+#    print_flushed(web_manager.get_value_by_lxml_strong("//span[@id='productTitle']", "alltext"))
+#    #print_flushed(web_manager.get_value_by_lxml_strong("//span[@id='productTitle1']", "alltext"))
+#    print_flushed(web_manager.get_values_by_lxml("//div[@id='centerCol']//li/span", "alltext"))
+#    print_flushed(web_manager.get_values_by_lxml("//div[@id='centerCol']//li/span1", "alltext"))
+#    print_flushed(web_manager.get_values_by_lxml_strong("//div[@id='centerCol']//li/span", "alltext"))
+#    #print_flushed(web_manager.get_values_by_lxml_strong("//div[@id='centerCol']//li/span1", "alltext"))
 #
-#    print(web_manager.get_key_values_by_lxml("//div[@class='content']/ul/li", "./b", "alltext", ".", "alltext"))
-#    print(web_manager.get_key_values_by_lxml("//div[@class='content']/ul/li1", "./b", "alltext", ".", "alltext"))
-#    print(web_manager.get_key_values_by_lxml_strong("//div[@class='content']/ul/li", "./b", "alltext", ".", "alltext"))
-#    #print(web_manager.get_key_values_by_lxml_strong("//div[@class='content']/ul/li1", "./b", "alltext", ".", "alltext"))
+#    print_flushed(web_manager.get_key_values_by_lxml("//div[@class='content']/ul/li", "./b", "alltext", ".", "alltext"))
+#    print_flushed(web_manager.get_key_values_by_lxml("//div[@class='content']/ul/li1", "./b", "alltext", ".", "alltext"))
+#    print_flushed(web_manager.get_key_values_by_lxml_strong("//div[@class='content']/ul/li", "./b", "alltext", ".", "alltext"))
+#    #print_flushed(web_manager.get_key_values_by_lxml_strong("//div[@class='content']/ul/li1", "./b", "alltext", ".", "alltext"))
 #
-#    print(web_manager.get_subtree_with_style("//ul[@class='a-unordered-list a-vertical a-spacing-none']"))
-#    print(web_manager.get_subtree_with_style_strong("//ul[@class='a-unordered-list a-vertical a-spacing-none']"))
+#    print_flushed(web_manager.get_subtree_with_style("//ul[@class='a-unordered-list a-vertical a-spacing-none']"))
+#    print_flushed(web_manager.get_subtree_with_style_strong("//ul[@class='a-unordered-list a-vertical a-spacing-none']"))
 #
 #  except Exception as e:
-#    print(e)
+#    print_flushed(e)
 #    pass
 #  web_manager.close()
 

@@ -61,6 +61,8 @@ from util.pse_utils import *
 from engine.operators import *
 from engine.operators import GlovalVariable
 from yaml import load, Loader
+from functools import partial
+print_flushed = partial(print, flush=True)
 
 green = make_colorizer('darkgreen')
 yellow = make_colorizer('darkyellow')
@@ -109,12 +111,12 @@ class pseWorker(Worker):
             self.lm.init(self.settings)
             super(pseWorker, self).__init__(*args, **kwargs)
         except Exception as e:
-            print("-------Raised Exception in WORKER init -------")
-            print(e)
-            print("----------------------------------------")
-            print("--------------STACK TRACE---------------")
-            print(str(traceback.format_exc()))
-            print("----------------------------------------")
+            print_flushed("-------Raised Exception in WORKER init -------")
+            print_flushed(e)
+            print_flushed("----------------------------------------")
+            print_flushed("--------------STACK TRACE---------------")
+            print_flushed(str(traceback.format_exc()))
+            print_flushed("----------------------------------------")
     
     # added by smlee
     def handle_warm_shutdown_request(self):
@@ -123,15 +125,15 @@ class pseWorker(Worker):
             self.web_mgr.close()
             self.log.info('Chromedriver process shutdown.')
         except Exception as e:
-            print("-------Raised Exception in WORKER shutdown-------")
-            print(e)
-            print("----------------------------------------")
-            print("--------------STACK TRACE---------------")
-            print(traceback.format_exc())
-            print("----------------------------------------")
+            print_flushed("-------Raised Exception in WORKER shutdown-------")
+            print_flushed(e)
+            print_flushed("----------------------------------------")
+            print_flushed("--------------STACK TRACE---------------")
+            print_flushed(traceback.format_exc())
+            print_flushed("----------------------------------------")
             self.log.info('Chromedriver not found OR process failed to shutdown.')
         finally:
-            print('GOODBYE.')
+            print_flushed('GOODBYE.')
 
 
     def main_work_horse(self, *args, **kwargs):
@@ -178,26 +180,26 @@ class pseWorker(Worker):
             op.run(gvar)
             self.complete_task(op, gvar)
             rv = gvar.results
-            #print(gvar.profiling_info)
+            #print_flushed(gvar.profiling_info)
         except OperatorError as e:
             err_name = e.error.__class__.__name__
             err = {'type': 0, 'op_id': e.op_id, 'error': str(e), 'err_msg': gvar.err_msg, 'traceback': traceback.format_exc()}
             self.lm.end_task(task_id, ErrorDict.get(err_name, -1), err)
-            print("-------Raised Exception in WORKER-------")
-            print("----------------------------------------")
-            print("--------------STACK TRACE---------------")
-            print(str(traceback.format_exc()))
-            print("----------------------------------------")
+            print_flushed("-------Raised Exception in WORKER-------")
+            print_flushed("----------------------------------------")
+            print_flushed("--------------STACK TRACE---------------")
+            print_flushed(str(traceback.format_exc()))
+            print_flushed("----------------------------------------")
             raise
         except Exception as e:
             err_name = e.__class__.__name__
             err = {'type': 1, 'error': str(e), 'err_msg': gvar.err_msg, 'traceback': traceback.format_exc()}
             self.lm.end_task(task_id, ErrorDict.get(err_name, -1), err)
-            print("-------Raised Exception in WORKER-------")
-            print("----------------------------------------")
-            print("--------------STACK TRACE---------------")
-            print(str(traceback.format_exc()))
-            print("----------------------------------------")
+            print_flushed("-------Raised Exception in WORKER-------")
+            print_flushed("----------------------------------------")
+            print_flushed("--------------STACK TRACE---------------")
+            print_flushed(str(traceback.format_exc()))
+            print_flushed("----------------------------------------")
             raise
         if gvar.profiling_info.get('invalid', False) == True:
             self.lm.end_task(task_id, -999, {'profiling_info': gvar.profiling_info})

@@ -13,6 +13,8 @@ from price_parser import Price
 from datetime import datetime, timedelta, date
 from urllib.parse import urlparse
 from url_normalize import url_normalize
+from functools import partial
+print_flushed = partial(print, flush=True)
 
 def is_hex_str(s):
     return set(s).issubset(string.hexdigits)
@@ -35,7 +37,7 @@ class GraphManager():
       self.pg_cur = self.pg_conn.cursor()
       self.gp_cur = self.pg_cur
     except Exception as e:
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise e
 
   def connect(self, pg_info, gp_info=''):
@@ -49,7 +51,7 @@ class GraphManager():
         self.gp_conn = self.pg_conn
         self.gp_cur = self.pg_cur
     except Exception as e:
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise e
 
   def disconnect(self):
@@ -66,7 +68,7 @@ class GraphManager():
       self.pg_conn.commit()
     except Exception as e:
       self.pg_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise e
     try:
       query = 'create table node_property(id bigserial primary key, node_id bigint, key varchar(1048), value json);'
@@ -74,7 +76,7 @@ class GraphManager():
       self.gp_conn.commit()
     except Exception as e:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise e
 
   def drop_db(self):
@@ -84,7 +86,7 @@ class GraphManager():
       self.pg_conn.commit()
     except Exception as e:
       self.pg_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise e
     try:
       query = 'drop table if exists node_property;'
@@ -92,7 +94,7 @@ class GraphManager():
       self.gp_conn.commit()
     except Exception as e:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise e
 
   def create_node(self, task_id, parent_id, label):
@@ -106,7 +108,7 @@ class GraphManager():
       return result
     except Exception as e:
       self.pg_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise e
 
   def find_nodes_of_execution(self, exec_id):
@@ -118,7 +120,7 @@ class GraphManager():
       return list(map(lambda x: x[0], result))
     except Exception as e:
       self.pg_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise e
 
   
@@ -143,7 +145,7 @@ class GraphManager():
           deleted = 0
           prd_in_other_job = 0
           new_but_out_of_stock = 0
-          print("# of product to compare: ", len(result))
+          print_flushed("# of product to compare: ", len(result))
           max_update_chunk = 30
           update_chunk = 0
           for product in result:
@@ -486,15 +488,15 @@ class GraphManager():
           self.log_to_job_current_mysite_working('{}\n[Finished] \nUp-to-date: {} items\nChanged: {} items\n New: {} items\n Deleted: {} items\n'.format(cur_time, up_to_date, changed, new_item, deleted), job_id)
            
 
-          print("# of up to date: ", up_to_date)
+          print_flushed("# of up to date: ", up_to_date)
           #############
-          print("# of changed: ", changed)
+          print_flushed("# of changed: ", changed)
           #############
-          print("# of new item: ", new_item)
+          print_flushed("# of new item: ", new_item)
           ############3
-          print("# of deleted item: ", deleted)
-          print("# of new but out of stock item: ", new_but_out_of_stock)
-          print("# of item in other job (deleted by unique constraint): ", prd_in_other_job)
+          print_flushed("# of deleted item: ", deleted)
+          print_flushed("# of new but out of stock item: ", new_but_out_of_stock)
+          print_flushed("# of item in other job (deleted by unique constraint): ", prd_in_other_job)
           query = "insert into job_update_statistics_history(job_id, up_to_date, changed, new_item, deleted) values({}, {}, {}, {}, {})".format(job_id, up_to_date, changed, new_item, deleted)
           self.pg_cur.execute(query)
           self.pg_conn.commit()
@@ -517,7 +519,7 @@ class GraphManager():
           return { "success": True}
       except:
           self.pg_conn.rollback()
-          print(traceback.format_exc())
+          print_flushed(traceback.format_exc())
           return { "success": False, "traceback": str(traceback.format_exc()) }       
 
 
@@ -526,14 +528,14 @@ class GraphManager():
       query =  'select n.id'
       query += ' from node n, stage s, task t'
       query += ' where n.task_id = t.id and t.stage_id = s.id and s.execution_id = %s and n.label = %s order by n.id asc'
-      print(query % (str(exec_id), str(label)))
+      print_flushed(query % (str(exec_id), str(label)))
       self.pg_cur.execute(query, (str(exec_id), str(label)))
       result = self.pg_cur.fetchall()
       self.pg_conn.commit()
       return list(map(lambda x: x[0], result))
     except Exception as e:
       self.pg_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise e
 
   def find_nodes_of_task_with_label(self, task_id, label):
@@ -547,7 +549,7 @@ class GraphManager():
       return list(map(lambda x: x[0], result))
     except Exception as e:
       self.pg_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise e
 
   def find_n_hop_neighbors(self, node_id, labels):
@@ -566,7 +568,7 @@ class GraphManager():
       return result
     except Exception as e:
       self.pg_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise e
 
 
@@ -589,7 +591,7 @@ class GraphManager():
 
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -637,7 +639,7 @@ class GraphManager():
       price = self.none_to_blank(str(value['result_for_source_view']['price']))
       stock = self.check_stock(value['result_for_source_view']) 
       if stock == '0':
-         #print("Out ot stock. mpid = {}, url = {}".format(mpid, url))
+         #print_flushed("Out ot stock. mpid = {}, url = {}".format(mpid, url))
          return
       origin = self.none_to_blank(str(value['result_for_source_view']['origin']))
       company = self.none_to_blank(str(value['result_for_source_view']['company']))
@@ -701,7 +703,7 @@ class GraphManager():
       self.gp_conn.commit()
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -850,7 +852,7 @@ class GraphManager():
       self.gp_conn.commit()
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -945,7 +947,7 @@ class GraphManager():
       self.gp_conn.commit()
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -974,7 +976,7 @@ class GraphManager():
       price = self.none_to_blank(str(value['result_for_source_view']['price']))
       stock = self.check_stock(value['result_for_source_view']) 
       if stock == '0':
-         #print("Out ot stock. mpid = {}, url = {}".format(mpid, url))
+         #print_flushed("Out ot stock. mpid = {}, url = {}".format(mpid, url))
          return
       origin = self.none_to_blank(str(value['result_for_source_view']['origin']))
       company = self.none_to_blank(str(value['result_for_source_view']['company']))
@@ -1038,7 +1040,7 @@ class GraphManager():
       self.gp_conn.commit()
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -1048,11 +1050,11 @@ class GraphManager():
       self.gp_cur.execute(query)
       res = self.gp_cur.fetchall()
       self.gp_conn.commit()
-      print(res)
+      print_flushed(res)
 
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
  
 
@@ -1074,7 +1076,7 @@ class GraphManager():
       return result
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
  
  
@@ -1096,7 +1098,7 @@ class GraphManager():
       return result
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
  
   def get_node_properties_from_mysite(self, job_id, mpid):
@@ -1184,7 +1186,7 @@ class GraphManager():
       return result
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -1257,7 +1259,7 @@ class GraphManager():
       return result
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
   # get description and product name using mpid
@@ -1283,7 +1285,7 @@ class GraphManager():
       return (node_id,name, description)
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -1297,7 +1299,7 @@ class GraphManager():
       return rows
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
   #def check_is_first_upload(self, job_id, mpid):
@@ -1313,7 +1315,7 @@ class GraphManager():
   #    return result
   #  except:
   #    self.gp_conn.rollback()
-  #    print(str(traceback.format_exc()))
+  #    print_flushed(str(traceback.format_exc()))
   #    raise
 
   def check_status_of_product(self, job_id, mpid):
@@ -1326,7 +1328,7 @@ class GraphManager():
       return int(result)
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
   
@@ -1358,7 +1360,7 @@ class GraphManager():
       return result
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -1371,15 +1373,15 @@ class GraphManager():
       rows = self.gp_cur.fetchall()
       self.gp_conn.commit()
       result = {}
-      print(rows)
+      print_flushed(rows)
       for row in rows:
-        #print(row[1])
+        #print_flushed(row[1])
         result[row[0]] = row[1]
-      print(result)
+      print_flushed(result)
       return result
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
   def get_latest_eid_from_job_id(self, job_id):
@@ -1392,7 +1394,7 @@ class GraphManager():
       return exec_id
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
   def get_max_label_from_eid(self, eid):
@@ -1405,7 +1407,7 @@ class GraphManager():
       return exec_id
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -1421,7 +1423,7 @@ class GraphManager():
       return exec_id
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
   def none_to_blank(self, str):
@@ -1439,7 +1441,7 @@ class GraphManager():
       return ;
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -1454,20 +1456,20 @@ class GraphManager():
       return
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
   def delete_from_tpid_mapping_table(self, tpid):
     try:
       query = "delete from tpid_mapping where tpid = {}".format(tpid)
-      print(query)
+      print_flushed(query)
       self.gp_cur.execute(query)
       self.gp_conn.commit()
       return 
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -1477,22 +1479,22 @@ class GraphManager():
       #query = "select count(*) from tpid_mapping where job_id = {} and targetsite_url = '{}' and mpid = {}".format(job_id, targetsite_url, mpid)
       targetsite_url = url_normalize(targetsite_url)
       query = "select count(*) from tpid_mapping where targetsite_url = '{}' and mpid = {}".format(targetsite_url, mpid)
-      print(query)
+      print_flushed(query)
       self.gp_cur.execute(query)
       rows = self.gp_cur.fetchone()
       result = rows[0]
-      print(result)
+      print_flushed(result)
       if int(result) == 0:
         self.insert_tpid_into_mapping_table(job_id, targetsite_url, mpid, tpid)
       else: 
         query = "update tpid_mapping set tpid = {}, upload_time = now() where targetsite_url = '{}' and mpid = {}".format(tpid, targetsite_url, mpid)
-        print(query)
+        print_flushed(query)
         self.gp_cur.execute(query)
         self.gp_conn.commit()
       return 
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -1500,19 +1502,19 @@ class GraphManager():
     try:
       targetsite_url = url_normalize(targetsite_url)
       query = "select count(*) from tpid_mapping where targetsite_url = '{}' and mpid = {}".format(targetsite_url, mpid)
-      print("select count(*) from tpid_mapping where targetsite_url = '{}' and mpid = {}".format(targetsite_url, mpid))
+      print_flushed("select count(*) from tpid_mapping where targetsite_url = '{}' and mpid = {}".format(targetsite_url, mpid))
       self.gp_cur.execute(query)
       rows = self.gp_cur.fetchone()
       self.gp_conn.commit()
       result = rows[0]
-      print(result)
+      print_flushed(result)
       if int(result) == 0:
         return False
       else:
         return True
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -1521,26 +1523,26 @@ class GraphManager():
       targetsite_url = url_normalize(targetsite_url)
       while True:
         query = "insert into tpid_mapping(job_id, mpid, targetsite_url, tpid) values({},{},'{}',{});".format(job_id, mpid, targetsite_url, tpid)
-        print(query)
+        print_flushed(query)
         self.gp_cur.execute(query)
         self.gp_conn.commit()
 
-        print('------------------ Check is inserted ----------------')
+        print_flushed('------------------ Check is inserted ----------------')
         query = "select count(*) from tpid_mapping where targetsite_url = '{}' and mpid = {}".format(targetsite_url, mpid)
-        print(query)
+        print_flushed(query)
         self.gp_cur.execute(query)
         rows = self.gp_cur.fetchone()
         result = rows[0]
-        print(result)
+        print_flushed(result)
         if int(result) != 0:
           break;
         else:
-          print("Fail Insert mpid = {}!!".format(mpid)) 
-      print("Success Insert mpid = {}".format(mpid)) 
+          print_flushed("Fail Insert mpid = {}!!".format(mpid)) 
+      print_flushed("Success Insert mpid = {}".format(mpid)) 
       return
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -1552,7 +1554,7 @@ class GraphManager():
       return result
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -1570,7 +1572,7 @@ class GraphManager():
       return result
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -1584,7 +1586,7 @@ class GraphManager():
       return result
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -1599,7 +1601,7 @@ class GraphManager():
       return result
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
   def update_sm_history(self, end_date, input_id):
@@ -1610,7 +1612,7 @@ class GraphManager():
       return 
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
   #(id integer primary key generated always as identity, sm_history_id bigint, start_time timestamp, end_time timestamp, targetsite text, job_id integer);
@@ -1624,7 +1626,7 @@ class GraphManager():
       return result
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
   def update_mt_history(self, end_date, input_id):
@@ -1635,7 +1637,7 @@ class GraphManager():
       return 
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -1649,7 +1651,7 @@ class GraphManager():
       return result[0] 
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -1662,7 +1664,7 @@ class GraphManager():
       return result[0] 
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -1677,7 +1679,7 @@ class GraphManager():
       return result[0] 
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -1690,7 +1692,7 @@ class GraphManager():
       return result[0] 
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -1706,7 +1708,7 @@ class GraphManager():
       return 
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
   def get_targetsite(self, target_id):
@@ -1726,7 +1728,7 @@ class GraphManager():
       return url, gateway                   
     except:                                
       self.gp_conn.rollback()             
-      print(str(traceback.format_exc()))  
+      print_flushed(str(traceback.format_exc()))  
       raise
 
   def get_targetsiteOld(self, job_id):  
@@ -1745,7 +1747,7 @@ class GraphManager():
       return url, gateway                   
     except:                                
       self.gp_conn.rollback()             
-      print(str(traceback.format_exc()))  
+      print_flushed(str(traceback.format_exc()))  
       raise
 
 
@@ -1760,7 +1762,7 @@ class GraphManager():
       return site_code
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -1774,7 +1776,7 @@ class GraphManager():
       return result
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
   def get_shipping_prd_mpid_using_stage_id(self, stage_id):
@@ -1801,7 +1803,7 @@ class GraphManager():
       return mpids 
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
  
   def get_cnum_from_job_configuration(self, job_id):
@@ -1812,7 +1814,7 @@ class GraphManager():
       return result[0]
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
  
  
@@ -1824,7 +1826,7 @@ class GraphManager():
       return result[0]
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
  
   def add_worker(self, ip, port):
@@ -1836,7 +1838,7 @@ class GraphManager():
       return wid 
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
  
   def delete_worker(self, worker_name):
@@ -1847,7 +1849,7 @@ class GraphManager():
       return 
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
  
@@ -1859,7 +1861,7 @@ class GraphManager():
       return result
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -1872,7 +1874,7 @@ class GraphManager():
       return result
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -1888,7 +1890,7 @@ class GraphManager():
       return final_results
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -1902,7 +1904,7 @@ class GraphManager():
       return result[0]
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -1922,7 +1924,7 @@ class GraphManager():
       return result[0]
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -1942,7 +1944,7 @@ class GraphManager():
       return result[0]
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -1962,7 +1964,7 @@ class GraphManager():
       return result
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -1982,7 +1984,7 @@ class GraphManager():
       return result
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -2004,7 +2006,7 @@ class GraphManager():
       return delivery_charge_list
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -2033,7 +2035,7 @@ class GraphManager():
       return result
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -2060,7 +2062,7 @@ class GraphManager():
       return result
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
   def logging_all_uploaded_product(self, job_id, execution_id, mpid, origin_product, converted_product, targetsite_url, cnum, status):
@@ -2089,12 +2091,12 @@ class GraphManager():
       return 
     except:
       self.gp_conn.rollback()
-      print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
-      print(origin_product)
-      print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
-      print(converted_product)
-      print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
-      print(str(traceback.format_exc()))
+      print_flushed('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
+      print_flushed(origin_product)
+      print_flushed('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
+      print_flushed(converted_product)
+      print_flushed('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -2108,7 +2110,7 @@ class GraphManager():
       return 
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -2121,7 +2123,7 @@ class GraphManager():
       return 
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
   #failed_target_site_detail (id integer primary key generated always as identity, sm_history_id integer, mpid bigint, err_msg text);
@@ -2143,13 +2145,13 @@ class GraphManager():
         self.gp_conn.commit()
       else:
         query = "insert into failed_target_site_detail(mpid, err_msg, mt_history_id) values({},'{}',{})".format(mpid,err_msg, mt_history_id)
-        print(query)
+        print_flushed(query)
         self.gp_cur.execute(query)
         self.gp_conn.commit()
       return 
     except:
       self.gp_conn.rollback()
-      print(traceback.format_exc())
+      print_flushed(traceback.format_exc())
       raise
 
 
@@ -2163,7 +2165,7 @@ class GraphManager():
       return 
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -2177,7 +2179,7 @@ class GraphManager():
       return 
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -2189,7 +2191,7 @@ class GraphManager():
       return 
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -2202,7 +2204,7 @@ class GraphManager():
       return 
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -2215,7 +2217,7 @@ class GraphManager():
       return 
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -2231,7 +2233,7 @@ class GraphManager():
       return result
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -2243,7 +2245,7 @@ class GraphManager():
       return
     except:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
 
@@ -2274,7 +2276,7 @@ class GraphManager():
 
       return stock
     except:
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 
   def json_default(self, value):
@@ -2282,7 +2284,7 @@ class GraphManager():
        return str(value.strftime('%Y-%m-%d %H:%M:%S'))
     elif isinstance(value, set):
        return ''
-    print(value.replace("'","\'"))
+    print_flushed(value.replace("'","\'"))
     return value.replace("'","\'")
     raise TypeError('not JSON serializable')
 
@@ -2295,7 +2297,7 @@ class GraphManager():
       self.gp_cur.execute(query)
       result = self.gp_cur.fetchone()
       self.gp_conn.commit()
-      print(result)
+      print_flushed(result)
       query = "COMMIT;"
       self.gp_cur.execute(query)
       #query =  "update cafe24_client_id set use_now = 1 where id in (select min(id) from cafe24_client_id where use_now = -1 and mall_id = '{}') returning client_id, client_secret".format(mall_id)
@@ -2305,10 +2307,10 @@ class GraphManager():
       #result = self.gp_cur.fetchone()
       return result
     except Exception as e:
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       return None
       #self.pg_conn.rollback()
-      #print(str(traceback.format_exc()))
+      #print_flushed(str(traceback.format_exc()))
       #raise e
 
   def return_client(self, cid, cs):
@@ -2320,7 +2322,7 @@ class GraphManager():
       return 
     except Exception as e:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise e
 
 
@@ -2347,7 +2349,7 @@ class GraphManager():
           return result
     except Exception as e:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise e
 
   def update_zipcode(self, url, zipcode):
@@ -2365,7 +2367,7 @@ class GraphManager():
       return
     except Exception as e:
       self.gp_conn.rollback()
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise e
 
 
@@ -2413,6 +2415,6 @@ class GraphManager():
           stock = '999'
       return stock
     except:
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise
 

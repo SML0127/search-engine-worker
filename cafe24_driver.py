@@ -7,6 +7,8 @@ import argparse
 from managers.redis_manager import *
 from engine.exporter import Exporter
 from plugin.cafe24.single_uploader import Cafe24SingleUploader
+from functools import partial
+print_flushed = partial(print, flush=True)
 
 class Cafe24Driver():
 
@@ -33,14 +35,14 @@ class Cafe24Driver():
           failed_tasks.append(task)
       for val in sorted(indexes, reverse = True):
         running_tasks.pop(val)
-      print("### SUCCESSFUL: {}, FAILED: {}, RUNNING: {} ".format(len(successful_tasks), len(failed_tasks), len(running_tasks)))
+      print_flushed("### SUCCESSFUL: {}, FAILED: {}, RUNNING: {} ".format(len(successful_tasks), len(failed_tasks), len(running_tasks)))
       time.sleep(10)
 
     for task in successful_tasks:
       if (type(self.redis_manager.get_result(task)) == type({})):
         for key, item in self.redis_manager.get_result(task).items():
-          print(key, item)
-    print('elapsed time per step:', time.time() - start_time)
+          print_flushed(key, item)
+    print_flushed('elapsed time per step:', time.time() - start_time)
     time.sleep(900)
 
 
@@ -51,9 +53,9 @@ class Cafe24Driver():
       running_tasks = []
 
       num_product_per_task = 20
-      print("# of task "+str(int(len(node_ids))))
+      print_flushed("# of task "+str(int(len(node_ids))))
       end = int(len(node_ids) / num_product_per_task) + 1
-      print("end "+str(int(end)))
+      print_flushed("end "+str(int(end)))
       num_threads_per_worker = args['num_threads']
 
       num_workers, max_num_workers = 0, args['max_num_workers']
@@ -61,7 +63,7 @@ class Cafe24Driver():
       clients = args['clients']
 
       if len(clients) < max_num_workers * num_threads_per_worker:
-        print("The clients are not enough")
+        print_flushed("The clients are not enough")
         raise
 
       clients_per_worker = []
@@ -73,7 +75,7 @@ class Cafe24Driver():
         job['node_ids'] = node_ids[(idx)*num_product_per_task:(idx+1)*num_product_per_task]
         job['args'] = args.copy()
         job['args']['clients'] = clients_per_worker[num_workers]
-        #print(job)
+        #print_flushed(job)
         running_tasks.append(self.redis_manager.enqueue(job))
         num_workers += 1
         if num_workers == max_num_workers:
@@ -81,12 +83,12 @@ class Cafe24Driver():
           num_workers = 0
       self.wait(running_tasks)
     except Exception as e:
-      print("-------Raised Exception in DRIVER-------")
-      print(e)
-      print("---------------------------------------")
-      print("--------------STACK TRACE--------------")
-      print(str(traceback.format_exc()))
-      print("---------------------------------------")
+      print_flushed("-------Raised Exception in DRIVER-------")
+      print_flushed(e)
+      print_flushed("---------------------------------------")
+      print_flushed("--------------STACK TRACE--------------")
+      print_flushed(str(traceback.format_exc()))
+      print_flushed("---------------------------------------")
     finally:
       pass
 
@@ -100,17 +102,17 @@ class Cafe24Driver():
     exporter.init()
     node_ids = exporter.graph_mgr.find_nodes_of_execution_with_label(exec_id, label)
     exporter.close()
-    print("num of nodes: ", len(node_ids))
-    #print(args)
+    print_flushed("num of nodes: ", len(node_ids))
+    #print_flushed(args)
     self.run(args, node_ids)
-    print("num of nodes: ", len(node_ids))
-    print("elapsed time: ", time.time() - start_time)
+    print_flushed("num of nodes: ", len(node_ids))
+    print_flushed("elapsed time: ", time.time() - start_time)
 
   def single_run_from_file(self, args):
     start_time = time.time()
     uploader = Cafe24SingleUploader()
     uploader.upload_products(args)
-    print("elapsed time: ", time.time() - start_time)
+    print_flushed("elapsed time: ", time.time() - start_time)
 
   def execute(self, args):
     try:
@@ -149,7 +151,7 @@ class Cafe24Driver():
       elif sys_args.cafe24_c == 'single_run':
         self.single_run_from_fiㅣe(args)
     except Exception as e:
-      print(str(traceback.format_exc()))
+      print_flushed(str(traceback.format_exc()))
       raise e
 
 if __name__ == "__main__":
