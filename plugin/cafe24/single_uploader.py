@@ -211,8 +211,8 @@ class Cafe24SingleUploader(Resource):
 
                 elif status == 3:
                   tpid = self.graph_manager.get_tpid(job_id, targetsite_url, mpid)
-                  print_flushed('tpid : ', tpid)
-                  print_flushed('mpid : ', mpid)
+                  print_flushed('Delete tpid : ', tpid)
+                  print_flushed('Delete mpid : ', mpid)
                   log_operation = 'Delete product'
                   self.cafe24manager.hide_exist_product(profiling_info, job_id, tpid)
                   cnum  = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
@@ -290,6 +290,8 @@ class Cafe24SingleUploader(Resource):
  
                 elif status == 3:
                   tpid = self.graph_manager.get_tpid(job_id, targetsite_url, mpid)
+                  print_flushed('Delete tpid : ', tpid)
+                  print_flushed('Delete mpid : ', mpid)
                   log_operation = 'Delete product'
                   self.cafe24manager.hide_exist_product(profiling_info, job_id, tpid)
                   cnum = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)

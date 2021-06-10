@@ -1483,7 +1483,7 @@ class GraphManager():
       self.gp_cur.execute(query)
       rows = self.gp_cur.fetchone()
       result = rows[0]
-      print_flushed(result)
+      print_flushed("count: ", result)
       if int(result) == 0:
         self.insert_tpid_into_mapping_table(job_id, targetsite_url, mpid, tpid)
       else: 
@@ -1505,7 +1505,6 @@ class GraphManager():
       print_flushed("select count(*) from tpid_mapping where targetsite_url = '{}' and mpid = {}".format(targetsite_url, mpid))
       self.gp_cur.execute(query)
       rows = self.gp_cur.fetchone()
-      self.gp_conn.commit()
       result = rows[0]
       print_flushed(result)
       if int(result) == 0:
@@ -1533,7 +1532,7 @@ class GraphManager():
         self.gp_cur.execute(query)
         rows = self.gp_cur.fetchone()
         result = rows[0]
-        print_flushed(result)
+        print_flushed("count: ", result)
         if int(result) != 0:
           break;
         else:
@@ -1565,10 +1564,11 @@ class GraphManager():
       targetsite_url = url_normalize(targetsite_url)
       #query =  "select tpid from tpid_mapping where job_id = {} and targetsite_url = '{}' and mpid = {}".format(job_id, targetsite_url, mpid)
       query =  "select tpid from tpid_mapping where targetsite_url = '{}' and mpid = {}".format(targetsite_url, mpid)
+      print_flushed(query)
       self.gp_cur.execute(query)
       rows = self.gp_cur.fetchone()
-      self.gp_conn.commit()
       result = rows[0]
+      print_flushed('tpid: ', result)
       return result
     except:
       self.gp_conn.rollback()

@@ -187,13 +187,13 @@ class Cafe24Manager:
             try:
                 response = requests.request(
                     "PUT", url, data=data, headers=headers)
-                print_flushed(response)
                 response = json.loads(response.text)
+                print_flushed(response)
                 while 'error' in response and response['error']['code'] == 429:
                     response = requests.request(
                         "PUT", url, data=data, headers=headers)
-                    print_flushed(response)
                     response = json.loads(response.text)
+                    print_flushed(response)
                 return response
             except:
                 if cnt < max_try:
