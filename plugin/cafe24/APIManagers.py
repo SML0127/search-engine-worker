@@ -16,6 +16,7 @@ from io import BytesIO
 from managers.graph_manager import GraphManager
 from managers.settings_manager import *
 from functools import partial
+from util.pse_timeout import *
 print_flushed = partial(print, flush=True)
 
 class Cafe24Manager:
@@ -329,7 +330,13 @@ class Cafe24Manager:
             print_flushed(
                 "=============== Try download & upload detail image {} time ==============".format(cnt))
             try:
-                image = self.get_image_from_link(link)
+                result = ""
+                try: 
+                  result = get_image_from_link(link)
+                  additional_image.append(result)
+                except:
+                  print_flushed("Time out to download image from link: ", link)
+                  pass
                 #print_flushed("upload_image_from_link: ", image)
                 return self.upload_image(image)
             except:
@@ -339,7 +346,9 @@ class Cafe24Manager:
                 else:
                     raise
 
+    @pse_timeout(30)
     def get_image_from_link(self, link):
+        print_flushed('START download image from link: ', link)
         if link[:12] == 'https://cdn2':
             scraper = cfscrape.create_scraper()
             r = scraper.get(link)
@@ -368,6 +377,7 @@ class Cafe24Manager:
 
             u = u.content
 
+        print_flushed('END download image from link: ', link)
         u = str(base64.b64encode(u))
         return u[2:-1]
 
@@ -584,7 +594,13 @@ class Cafe24Manager:
 
         additional_image = []
         for link in links:
-            additional_image.append(self.get_image_from_link(link))
+            result = ""
+            try: 
+              result = get_image_from_link(link)
+              additional_image.append(result)
+            except:
+              print_flushed("Time out to download image from link: ", link)
+              pass
 
         url = "https://{}.cafe24api.com/api/v2/admin/products/{}/additionalimages".format(
             self.mall_id, product_no)
@@ -616,7 +632,13 @@ class Cafe24Manager:
             try:
                 additional_image = []
                 for link in links:
-                    additional_image.append(self.get_image_from_link(link))
+                    result = ""
+                    try: 
+                      result = get_image_from_link(link)
+                      additional_image.append(result)
+                    except:
+                      print_flushed("Time out to download image from link: ", link)
+                      pass
 
                 url = "https://{}.cafe24api.com/api/v2/admin/products/{}/additionalimages".format(
                     self.mall_id, product_no)
