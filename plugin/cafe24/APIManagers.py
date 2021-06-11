@@ -349,11 +349,16 @@ class Cafe24Manager:
     @pse_timeout(30)
     def get_image_from_link(self, link):
         print_flushed('START download image from link: ', link)
+        u = ""
         if link[:12] == 'https://cdn2':
             scraper = cfscrape.create_scraper()
             r = scraper.get(link)
             u = r.content
-            im = Image.open(BytesIO(u))
+            #print(u)
+            dimage = BytesIO()
+            im = Image.open(BytesIO(u)).convert("RGB").save(dimage, "JPEG")
+            u = dimage.getvalue()
+            #im = Image.open(BytesIO(u))
 
         elif link[:len("data:image/webp;base64,")] == "data:image/webp;base64,":
             im = link[len("data:image/webp;base64,"):]
@@ -374,7 +379,6 @@ class Cafe24Manager:
                 "Accept": "*/*"
             }
             u = requests.request("GET", link, headers=headers)
-
             u = u.content
 
         print_flushed('END download image from link: ', link)
