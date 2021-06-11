@@ -1462,10 +1462,19 @@ class GraphManager():
 
   def delete_from_tpid_mapping_table(self, tpid):
     try:
+      query = "BEGIN;  Lock table tpid_mapping in ACCESS EXCLUSIVE MODE;"
+      self.gp_cur.execute(query)
+      self.gp_conn.commit()
+
       query = "delete from tpid_mapping where tpid = {}".format(tpid)
       print_flushed(query)
       self.gp_cur.execute(query)
       self.gp_conn.commit()
+
+      query = "COMMIT;"
+      self.gp_cur.execute(query)
+      self.gp_conn.commit()
+
       return 
     except:
       self.gp_conn.rollback()
@@ -1487,8 +1496,16 @@ class GraphManager():
       if int(result) == 0:
         self.insert_tpid_into_mapping_table(job_id, targetsite_url, mpid, tpid)
       else: 
+        query = "BEGIN;  Lock table tpid_mapping in ACCESS EXCLUSIVE MODE;"
+        self.gp_cur.execute(query)
+        self.gp_conn.commit()
+
         query = "update tpid_mapping set tpid = {}, upload_time = now() where targetsite_url = '{}' and mpid = {}".format(tpid, targetsite_url, mpid)
         print_flushed(query)
+        self.gp_cur.execute(query)
+        self.gp_conn.commit()
+
+        query = "COMMIT;"
         self.gp_cur.execute(query)
         self.gp_conn.commit()
       return 
@@ -1521,8 +1538,16 @@ class GraphManager():
     try:
       targetsite_url = url_normalize(targetsite_url)
       while True:
+        query = "BEGIN;  Lock table tpid_mapping in ACCESS EXCLUSIVE MODE;"
+        self.gp_cur.execute(query)
+        self.gp_conn.commit()
+
         query = "insert into tpid_mapping(job_id, mpid, targetsite_url, tpid) values({},{},'{}',{});".format(job_id, mpid, targetsite_url, tpid)
         print_flushed(query)
+        self.gp_cur.execute(query)
+        self.gp_conn.commit()
+
+        query = "COMMIT;"
         self.gp_cur.execute(query)
         self.gp_conn.commit()
 
