@@ -48,7 +48,7 @@ class Cafe24SingleUploader(Resource):
     profiling_info = {}
     try:
       num_threads = args.get('num_threads', 1)
-      pool = ThreadPool(num_threads)
+      #pool = ThreadPool(num_threads)
       print_flushed('num threads in args: ', num_threads)
       self.graph_manager = GraphManager()
       self.graph_manager.init(self.settings)
@@ -63,22 +63,23 @@ class Cafe24SingleUploader(Resource):
         nargs = args.copy()
         nargs.update(args['clients'][i])
         tasks.append((nargs, mpid_chunks[i]))
-      #results = pool.map(self.upload_products_of_task, tasks)
       #tasks = list(map(lambda x: (args.copy(), x), mpid_chunks))
-      results = pool.map(self.upload_products_of_task_from_mpid, tasks)
+      #results = pool.map(self.upload_products_of_task_from_mpid, tasks)
+      results = self.upload_products_of_task_from_mpid(tasks[0])
       profiling_info['threads'] = results
     except:
       profiling_info['total_time'] = time.time() - total_time
-      pool.close()
-      pool.join()
+      #print_flushed(traceback.format_exc())
+      #pool.close()
+      #pool.join()
+      
       self.graph_manager.disconnect()
       #print_flushed(profiling_info)
-      #print_flushed(traceback.format_exc())
       return profiling_info
     profiling_info['total_time'] = time.time() - total_time
     #print_flushed(profiling_info)
-    pool.close()
-    pool.join()
+    #pool.close()
+    #pool.join()
     self.graph_manager.disconnect()
     return profiling_info
 

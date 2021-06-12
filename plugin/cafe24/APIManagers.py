@@ -326,16 +326,18 @@ class Cafe24Manager:
     def upload_image_from_link(self, link):
         cnt = 0
         max_try = 3
+        image = ""
         while cnt < max_try:
             print_flushed(
                 "=============== Try download & upload detail image {} time ==============".format(cnt))
             try:
                 result = ""
                 try: 
-                  result = get_image_from_link(link)
-                  additional_image.append(result)
+                  scraper = cfscrape.create_scraper()
+                  image = self.get_image_from_link(link, scraper)
                 except:
-                  print_flushed("Time out to download image from link: ", link)
+                  print_flushed('Fail to download image from link: ', link)
+                  print_flushed(str(traceback.format_exc()))
                   pass
                 #print_flushed("upload_image_from_link: ", image)
                 return self.upload_image(image)
@@ -347,11 +349,9 @@ class Cafe24Manager:
                     raise
 
     @pse_timeout(30)
-    def get_image_from_link(self, link):
-        print_flushed('START download image from link: ', link)
+    def get_image_from_link(self, link, scraper):
         u = ""
         if link[:12] == 'https://cdn2':
-            scraper = cfscrape.create_scraper()
             r = scraper.get(link)
             u = r.content
             #print(u)
@@ -381,7 +381,6 @@ class Cafe24Manager:
             u = requests.request("GET", link, headers=headers)
             u = u.content
 
-        print_flushed('END download image from link: ', link)
         u = str(base64.b64encode(u))
         return u[2:-1]
 
@@ -600,10 +599,12 @@ class Cafe24Manager:
         for link in links:
             result = ""
             try: 
-              result = get_image_from_link(link)
+              scraper = cfscrape.create_scraper()
+              result = self.get_image_from_link(link, scraper)
               additional_image.append(result)
             except:
-              print_flushed("Time out to download image from link: ", link)
+              print_flushed('Fail to download image from link: ', link)
+              print_flushed(str(traceback.format_exc()))
               pass
 
         url = "https://{}.cafe24api.com/api/v2/admin/products/{}/additionalimages".format(
@@ -638,10 +639,12 @@ class Cafe24Manager:
                 for link in links:
                     result = ""
                     try: 
-                      result = get_image_from_link(link)
+                      scraper = cfscrape.create_scraper()
+                      result = self.get_image_from_link(link, scraper)
                       additional_image.append(result)
                     except:
-                      print_flushed("Time out to download image from link: ", link)
+                      print_flushed('Fail to download image from link: ', link)
+                      print_flushed(str(traceback.format_exc()))
                       pass
 
                 url = "https://{}.cafe24api.com/api/v2/admin/products/{}/additionalimages".format(
