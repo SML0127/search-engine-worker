@@ -380,6 +380,9 @@ class Cafe24Manager:
             }
             u = requests.request("GET", link, headers=headers)
             u = u.content
+            dimage = BytesIO()
+            im = Image.open(BytesIO(u)).convert("RGB").save(dimage, "JPEG")
+            u = dimage.getvalue()
 
         u = str(base64.b64encode(u))
         return u[2:-1]
