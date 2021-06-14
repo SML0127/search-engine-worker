@@ -581,6 +581,7 @@ class WebManager():
     try:
       cnt = 0
       max_retry = 99999
+      is_click = 0
       while True:
         try:
           self.get_cur_driver_().execute_script("window.scrollTo(0, document.body.scrollHeight)")
@@ -588,25 +589,30 @@ class WebManager():
           elements = self.get_elements_by_selenium_(xpath)
           num_elements = len(elements)
           if num_elements == 0: 
-            break
+            if is_click == 0:
+              raise WebDriverException("No button element in html")  
+            else:
+              break
           while True:
             try:
               element = WebDriverWait(self.get_cur_driver_(), 60).until(EC.element_to_be_clickable((By.XPATH, xpath)))  
               self.get_cur_driver_().execute_script("window.scrollTo(0, document.body.scrollHeight)")
               time.sleep(3)
               element.click()
+              is_click = 1
               break
             except Exception as e:
               raise
           time.sleep(time_sleep)
         except Exception as e:
-          #if e.__class__.__name__ in selenium_chrome_erros:
-          #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException' or e.__class__.__name__ == 'StaleElementReferenceException':
           if cnt < max_retry:
+            if cnt >= 10 and is_click == 0:
+              break
             print_flushed("cnt: ", cnt)
             self.restart(5)
             self.load(url)
             cnt = cnt + 1
+             
           else:
             raise e
     except Exception as e:

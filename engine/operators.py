@@ -216,7 +216,8 @@ class BFSIterator(BaseOperator):
                     #     del request.headers['anti-csrftoken-a2z']
                     #     request.method = 'GET'
                     #   gvar.web_mgr.get_cur_driver_().request_interceptor = interceptor_de3
-                elif 'amazon.com' in src_url:
+                #elif 'amazon.com' in src_url:
+                elif 'DISABLE-amazon.com' in src_url:
                     print_flushed('@@@@@@@@ Current chrome country = {}, input = {}'.format(
                         gvar.web_mgr.get_cur_driver_zipcode_country(), src_url))
                     if 'amazon.com' not in gvar.web_mgr.get_cur_driver_zipcode_country():
@@ -237,6 +238,7 @@ class BFSIterator(BaseOperator):
                             try:
                                 gvar.web_mgr.load(url)
                                 time.sleep(1)
+                                print(gvar.web_mgr.get_html())
                                 token = gvar.web_mgr.get_html().split(
                                     'CSRF_TOKEN : "')[1].split('", IDs')[0]
                                 print_flushed("@@@@@@@@@@ Token {} ".format(token))
@@ -319,7 +321,8 @@ class BFSIterator(BaseOperator):
                             '//*[@id="glow-ingress-line2"]', "alltext")
                         print_flushed('@@@@@@@@@@ Current zipcode = ', site_zipcode)
 
-                elif 'amazon.co.uk' in src_url:
+                #elif 'amazon.co.uk' in src_url:
+                elif 'DISABLE-amazon.co.uk' in src_url:
                     print_flushed('@@@@@@@@ Current chrome country = {}, input = {}'.format(
                         gvar.web_mgr.get_cur_driver_zipcode_country(), src_url))
                     if 'amazon.co.uk' not in gvar.web_mgr.get_cur_driver_zipcode_country():
@@ -548,7 +551,7 @@ class BFSIterator(BaseOperator):
             except Exception as e:
                 print_flushed(e.__class__.__name__)
                 err_cnt = err_cnt + 1
-                if err_cnt >= 5:
+                if err_cnt >= 10:
                     fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
                     gvar.web_mgr.store_page_source(fname)
                     print_flushed("error html:", fname)
