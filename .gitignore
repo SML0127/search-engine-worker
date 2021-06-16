@@ -7,10 +7,13 @@ htmls/
 # Node artifact files
 node_modules/
 dist/
+crawling_*
 
 share*
 dump*
 .dump*
+crawl_*
+.crawl_*
 # Compiled Java class files
 *.class
 

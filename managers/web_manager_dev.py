@@ -642,7 +642,7 @@ class WebManager():
         if len(velements) == 0: continue
         res_tmp = []
         for velement in velements:
-          val = self.get_attribute_by_selenium_(velement, vattr)
+          val = self.get_attribute_by_lxml_(velement, vattr)
           res_tmp.append(val)
         result.append(res_tmp)
       return result
@@ -660,66 +660,66 @@ if __name__ == '__main__':
   #url = "https://en.zalando.de/jdy-jdynew-brighton-spring-coat-classic-coat-black-jy121g019-q11.html"
   #url = "https://item.rakuten.co.jp/tsuruyagolf/0136200086/"
   #url = "https://item.rakuten.co.jp/alpen/0116550027/"
-  url = "https://item.rakuten.co.jp/atomicgolf/2010-umzk/"
+  url = "https://en.zalando.de/tommy-hilfiger-day-dress-red-to121c0jt-t11.html"
   #url = "https://item.rakuten.co.jp/firststage/2020020110h/"
   web_manager.load(url)
-  web_manager.build_lxml_tree()
   
   try:
     #For zalando
-    #web_manager.click_elements("//*[@id='picker-trigger']")
-    #time.sleep(3)
+    web_manager.click_elements("//*[@id='picker-trigger']")
+    time.sleep(3)
+    web_manager.build_lxml_tree()
 
     print('Crawling option name')
     #For rakuten
     #option_names = web_manager.get_values_by_lxml("//td[@class='floating-cart-options-table']//span[contains(@class,'choiceText')]",'alltext')
-    option_names = web_manager.get_values_by_lxml("//td[position() mod 2 = 1]/span[@class='inventory_title']",'alltext')
-    print(option_names)
+    #option_names = web_manager.get_values_by_lxml("//td[position() mod 2 = 1]/span[@class='inventory_title']",'alltext')
+    #print(option_names)
 
     #For zalando
-    #option_names = web_manager.get_values_by_lxml("//*[@id='picker-trigger']/span/span",'alltext')
+    option_names = web_manager.get_values_by_lxml("//*[@id='picker-trigger']/span/span",'alltext')
 
     #//tr[1]/td[@class='inventory_choice_name']//span 
     #//tr[position()>1]/td[@class='inventory_choice_name']//span
-
-
 
     print('Crawling option values')
     #For rakuten
     #option_values = web_manager.get_option_values_by_lxml("//td[@class='floating-cart-options-table']//select[@name='choice']", "./option", 'alltext')
 
 
-    option_x_value = web_manager.get_values_by_lxml("//tr[1]/td[@class='inventory_choice_name']//span",'alltext')
-    option_y_value = web_manager.get_values_by_lxml("//tr[position()>1]/td[@class='inventory_choice_name']//span",'alltext')
+    #option_x_value = web_manager.get_values_by_lxml("//tr[1]/td[@class='inventory_choice_name']//span",'alltext')
+    #option_y_value = web_manager.get_values_by_lxml("//tr[position()>1]/td[@class='inventory_choice_name']//span",'alltext')
 
-    option_combination_value = web_manager.get_values_by_lxml("//td[@class='inventory']/span[@class='inventory_soldout'] | //input[@name='inventory_id']",'alltext')
+    #option_combination_value = web_manager.get_values_by_lxml("//td[@class='inventory']/span[@class='inventory_soldout'] | //input[@name='inventory_id']",'alltext')
     #//td[@class='inventory'] (row-wise)
     #For zalando
-    #option_values = web_manager.get_option_values_by_lxml("/html/body//div/div/div[3]/div/form/div", "./div/div/label/span/div/span[1]", 'alltext')
-
+    option_values = web_manager.get_option_values_by_lxml("/html/body//div/div/div[3]/div/form/div", "./div/div/label/span/div/span[1]", 'alltext')
+    print(option_values)
+    option_values = web_manager.get_option_values_by_lxml("/html/body//div/div/div[3]/div/form/div", "./div/div/label", 'alltext')
+    print(option_values)
     #res = {}
     #for idx, option_name in enumerate(option_names):
     #  res[option_name] = option_values[idx]
 
     res = {}
-    for idx, option_name in enumerate(option_names):
-      print(idx)
-      if idx == 0:
-        res[option_name] = option_x_value
-      elif idx == 1:
-        res[option_name] = option_y_value
+    #for idx, option_name in enumerate(option_names):
+    #  print(idx)
+    #  if idx == 0:
+    #    res[option_name] = option_x_value
+    #  elif idx == 1:
+    #    res[option_name] = option_y_value
   
-    res['option_matrix_row_wise_value'] = option_combination_value 
+    #res['option_matrix_row_wise_value'] = option_combination_value 
     
-    print('---------------------------------------')
-    print(res)
-    print('---------------------------------------')
-    for key in res.keys():
-      print('Option name: ', key)
-      print('Option values: ', res[key])
-      print('\n')
+    #print('---------------------------------------')
+    #print(res)
+    #print('---------------------------------------')
+    #for key in res.keys():
+    #  print('Option name: ', key)
+    #  print('Option values: ', res[key])
+    #  print('\n')
   except:
-    
+    print(str(traceback.format_exc()))
     pass 
   web_manager.close()
 

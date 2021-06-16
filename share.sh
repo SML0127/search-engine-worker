@@ -14,7 +14,9 @@ scp -P 20220 $file 141.223.197.31:~/PSE-engine/$file
 #scp -P 20220 $file 141.223.197.33:~/PSE-engine/$file
 echo 'scp to 141.223.197.34'
 scp -P 20220 $file 141.223.197.34:~/PSE-engine/$file
-echo 'scp to 141.223.197.37'
-scp -P 20220 $file 141.223.197.37:~/PSE-engine/$file
+#echo 'scp to 141.223.197.37'
+#scp -P 20220 $file 141.223.197.37:~/PSE-engine/$file
 echo 'scp to 141.223.197.38'
 scp -P 20220 $file 141.223.197.38:~/PSE-engine/$file
+echo 'scp to 141.223.199.146'
+scp -P 20220 $file 141.223.199.146:~/PSE-engine/$file
