@@ -127,6 +127,7 @@ class ParsedDataWrongTypeError(Exception):
 
 class BtnNumError(Exception):
     def __init__(self):
+        pass
     def __str__(self):
         return str("SummarPageBtnNumError") + "\n" 
 
