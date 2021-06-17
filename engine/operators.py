@@ -217,6 +217,10 @@ class BFSIterator(BaseOperator):
                     #     request.method = 'GET'
                     #   gvar.web_mgr.get_cur_driver_().request_interceptor = interceptor_de3
                 #elif 'amazon.com' in src_url:
+                elif 'amazon.com' in src_url:
+                    self.check_captcha(gvar.task_url, gvar)
+                elif 'amazon.co.uk' in src_url:
+                    self.check_captcha(gvar.task_url, gvar)
                 elif 'DISABLE-amazon.com' in src_url:
                     print_flushed('@@@@@@@@ Current chrome country = {}, input = {}'.format(
                         gvar.web_mgr.get_cur_driver_zipcode_country(), src_url))
@@ -449,7 +453,8 @@ class BFSIterator(BaseOperator):
                         gvar.stack_nodes.append(node_id)
                         gvar.stack_indices.append(0)
                         gvar.graph_mgr.insert_node_property(gvar.stack_nodes[-1], 'url', gvar.task_url)
-                        gvar.profiling_info[op_id] = {'invalid': True}
+                        #gvar.profiling_info[op_id] = {'invalid': True}
+                        gvar.profiling_info['invalid'] = True
                         return
 
                 elif 'jomashop' in src_url:
@@ -482,7 +487,8 @@ class BFSIterator(BaseOperator):
                         gvar.stack_nodes.append(node_id)
                         gvar.stack_indices.append(0)
                         gvar.graph_mgr.insert_node_property(gvar.stack_nodes[-1], 'url', gvar.task_url)
-                        gvar.profiling_info[op_id] = {'invalid': True}
+                        #gvar.profiling_info[op_id] = {'invalid': True}
+                        gvar.profiling_info['invalid'] = True
                         return
 
                 elif 'zalando' in src_url:
@@ -497,7 +503,8 @@ class BFSIterator(BaseOperator):
                         gvar.stack_nodes.append(node_id)
                         gvar.stack_indices.append(0)
                         gvar.graph_mgr.insert_node_property(gvar.stack_nodes[-1], 'url', gvar.task_url)
-                        gvar.profiling_info[op_id] = {'invalid': True}
+                        #gvar.profiling_info[op_id] = {'invalid': True}
+                        gvar.profiling_info['invalid'] = True
                         return
 
                 if 'query' in self.props:
