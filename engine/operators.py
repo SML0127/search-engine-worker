@@ -535,7 +535,7 @@ class BFSIterator(BaseOperator):
 
                     if str(self.props['page_id']) not in res:
                         print_flushed('@@@@@@@@@@ page number in button != page number in url')
-                        raise
+                        raise BtnNumError 
                 gvar.graph_mgr.insert_node_property(
                     gvar.stack_nodes[-1], 'html', gvar.web_mgr.get_html())
 
@@ -550,6 +550,9 @@ class BFSIterator(BaseOperator):
 
             except Exception as e:
                 print_flushed(e.__class__.__name__)
+                if e.__class__.__name__ == 'BtnNumError':
+                    raise
+
                 err_cnt = err_cnt + 1
                 if err_cnt >= 10:
                     fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)

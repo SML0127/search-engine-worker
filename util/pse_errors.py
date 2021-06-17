@@ -7,6 +7,7 @@
 # TODO specify errors.
 
 
+
 class OperatorError(Exception):
     def __init__(self, error, op_id):
         self.error = error
@@ -123,5 +124,11 @@ class ParsedDataWrongTypeError(Exception):
         pass
     def __str__(self):
         return str("ParsedDataWrongTypeError") +"\n"
+
+class BtnNumError(Exception):
+    def __init__(self):
+    def __str__(self):
+        return str("SummarPageBtnNumError") + "\n" 
+
 
         
