@@ -620,7 +620,7 @@ class WebManager():
         raise WebMgrErr(e)
 
 
-  def click_elements(self, xpath, check_xpath):
+  def click_elements(self, xpath, check_xpath=''):
     try:
       elements = self.get_elements_by_selenium_(xpath)
       num_elements = len(elements)
@@ -643,7 +643,7 @@ class WebManager():
         else:
           raise WebMgrErr(e)
 
-  def click_elements_strong(self, xpath, check_xpath):
+  def click_elements_strong(self, xpath, check_xpath=''):
     try:
       if check_xpath != '':
         check_elements = self.get_elements_by_selenium_(check_xpath)

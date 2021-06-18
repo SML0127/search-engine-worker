@@ -86,8 +86,10 @@ class BFSIterator(BaseOperator):
             check_chaptcha = gvar.web_mgr.get_elements_by_selenium_(
                 chaptcha_xpath)
             cnt = 0
-            max_cnt = 3
+            max_cnt = 4
             while(len(check_chaptcha) != 0):
+                cnt = cnt + 1
+                print_flushed('Captcha check cnt: ', cnt)
                 link = gvar.web_mgr.get_value_by_selenium(
                     '//form[@action="/errors/validateCaptcha"]//img', 'src')
                 print_flushed('Captcha image link = {}'.format(link))
@@ -99,12 +101,11 @@ class BFSIterator(BaseOperator):
                 gvar.web_mgr.click_elements('//button')
                 time.sleep(5)
                 gvar.web_mgr.load(url)
-                check_chaptcha = gvar.web_mgr.get_elements_by_selenium_(
-                    chaptcha_xpath)
-                cnt = cnt + 1
+                check_chaptcha = gvar.web_mgr.get_elements_by_selenium_(chaptcha_xpath)
                 if cnt >= max_cnt:
                     raise
         except:
+            print_flushed(str(traceback.format_exc()))
             raise
 
     def check_captcha_rakuten(self, gvar):
@@ -575,7 +576,7 @@ class BFSIterator(BaseOperator):
                     raise
 
                 err_cnt = err_cnt + 1
-                if err_cnt >= 10:
+                if err_cnt >= 5:
                     fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
                     gvar.web_mgr.store_page_source(fname)
                     print_flushed("error html:", fname)
