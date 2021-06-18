@@ -125,6 +125,14 @@ class ParsedDataWrongTypeError(Exception):
     def __str__(self):
         return str("ParsedDataWrongTypeError") +"\n"
 
+
+class NoneDetailPageError(Exception):
+    def __init__(self):
+        pass
+    def __str__(self):
+        return str("NoneDetailPageError") + "\n" 
+
+
 class BtnNumError(Exception):
     def __init__(self):
         pass

@@ -218,8 +218,10 @@ class BFSIterator(BaseOperator):
                     #   gvar.web_mgr.get_cur_driver_().request_interceptor = interceptor_de3
                 #elif 'amazon.com' in src_url:
                 elif 'amazon.com' in src_url:
+                    gvar.web_mgr.load(gvar.task_url)
                     self.check_captcha(gvar.task_url, gvar)
                 elif 'amazon.co.uk' in src_url:
+                    gvar.web_mgr.load(gvar.task_url)
                     self.check_captcha(gvar.task_url, gvar)
                 elif 'DISABLE-amazon.com' in src_url:
                     print_flushed('@@@@@@@@ Current chrome country = {}, input = {}'.format(
@@ -476,8 +478,9 @@ class BFSIterator(BaseOperator):
                             break;
 
                     print_flushed("@@@@@@@@@@ Check invalid page (jomashop)")
-                    invalid_page_xpath = "//div[@class='image-404'] | //div[@class='product-buttons']//span[contains(text(),'OUT OF STOCK')] | //div[contains(text(),'Sold Out')] | //span[contains(text(),'Ships In')] | //span[contains(text(),'Contact us for')] | //span[contains(text(),'Ships in')] "
-                    #invalid_page_xpath = "//div[@class='image-404'] | //*[text()='Unable to fetch data']"
+                    #invalid_page_xpath = "//div[@class='image-404'] | //div[@class='product-buttons']//span[contains(text(),'OUT OF STOCK')] | //div[contains(text(),'Sold Out')] | //span[contains(text(),'Ships In')] | //span[contains(text(),'Contact us for')] | //span[contains(text(),'Ships in')] "
+                    invalid_page_xpath = "//div[@class='product-buttons']//span[contains(text(),'OUT OF STOCK')] | //div[contains(text(),'Sold Out')] | //span[contains(text(),'Ships In')] | //span[contains(text(),'Contact us for')] | //span[contains(text(),'Ships in')] "
+                    invalid_page_xpath = "//div[@class='image-404'] | //*[text()='Unable to fetch data']"
                     is_invalid_page = gvar.web_mgr.get_elements_by_lxml_(
                         invalid_page_xpath)
                     if len(is_invalid_page) != 0:
@@ -558,6 +561,17 @@ class BFSIterator(BaseOperator):
             except Exception as e:
                 print_flushed(e.__class__.__name__)
                 if e.__class__.__name__ == 'BtnNumError':
+                    raise
+                elif e.__class__.__name__ == 'NoneDetailPageError':
+                    err_msg = '================================== URL ==================================\n'
+                    err_msg += ' ' + str(gvar.task_url) + '\n\n'
+                    err_msg += '================================ Opeartor ==================================\n'
+                    err_msg += 'Summary page pagination \n\n'
+                    err_msg += '================================ Reason ============================== \n'
+                    err_msg += 'There is no detail page\n\n'
+                    err_msg += '================================ STACK TRACE ============================== \n' + \
+                        str(traceback.format_exc())
+                    gvar.graph_mgr.log_err_msg_of_task(gvar.task_id, err_msg)
                     raise
 
                 err_cnt = err_cnt + 1
@@ -752,6 +766,7 @@ class ClickOperator(BaseOperator):
             print_flushed("Do Click")
             for column in self.props["queries"]:
                 query = column["query"]
+                check_query = column.get("check_query",'').strip()
                 if 'indices' in column:
                     query = self.set_query(
                         query, gvar.stack_indices, column['indices'])
@@ -763,12 +778,12 @@ class ClickOperator(BaseOperator):
                     repeat = eval(repeat)
                 if repeat:
                     gvar.web_mgr.click_elements_repeat(
-                        query, time_sleep, gvar.task_url)
+                        query, check_query, time_sleep, gvar.task_url)
                 else:
                     if essential:
-                        gvar.web_mgr.click_elements_strong(query)
+                        gvar.web_mgr.click_elements_strong(query, check_query)
                     else:
-                        gvar.web_mgr.click_elements(query)
+                        gvar.web_mgr.click_elements(query, check_query)
                 time.sleep(int(column.get('delay', 5)))
             op_time = time.time() - op_start
             gvar.profiling_info[op_id] = {'op_time': op_time}
@@ -898,7 +913,8 @@ class Expander(BaseOperator):
             else:
                 if self_url == 1:
                     result.append(gvar.web_mgr.get_current_url())
-
+        if len(result) == 0:
+            raise NoneDetailPageError
         gvar.results[op_id] = [(gvar.task_id, gvar.stack_nodes[-1], result)]
         op_time = time.time() - op_start
         gvar.profiling_info[op_id] = {
@@ -918,6 +934,8 @@ class Expander(BaseOperator):
             if e.__class__.__name__ in selenium_chrome_erros:
             #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
                 print_flushed('Chrome Error in ExpanderOperator')
+                raise e
+            elif e.__class__.__name__ =='NoneDetailPageError':
                 raise e
             else:
                 raise OperatorError(e, self.props['id'])
