@@ -65,7 +65,6 @@ six==1.14.0
 slimit==0.8.1
 sniffio==1.2.0
 soupsieve==1.9.5
-SpeechRecognition==3.8.1
 tinycss2==1.0.2
 toml==0.10.2
 url-normalize==1.4.3
