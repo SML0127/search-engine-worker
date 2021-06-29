@@ -32,8 +32,8 @@ class GraphManager():
       self.conn_info = settings['graph_db_conn_info']
       self.pg_conn = psycopg2.connect(self.conn_info)
       self.gp_conn = psycopg2.connect(self.conn_info)
-      self.pg_conn.autocommit = True
-      self.gp_conn.autocommit = True
+      #self.pg_conn.autocommit = True
+      #self.gp_conn.autocommit = True
       self.pg_cur = self.pg_conn.cursor()
       self.gp_cur = self.pg_cur
     except Exception as e:
@@ -1462,16 +1462,9 @@ class GraphManager():
 
   def delete_from_tpid_mapping_table(self, tpid):
     try:
-      query = "BEGIN;  Lock table tpid_mapping in ACCESS EXCLUSIVE MODE;"
-      self.gp_cur.execute(query)
-      self.gp_conn.commit()
 
-      query = "delete from tpid_mapping where tpid = {}".format(tpid)
+      query = "BEGIN;  Lock table tpid_mapping in EXCLUSIVE MODE; delete from tpid_mapping where tpid = {}; COMMIT;".format(tpid)
       print_flushed(query)
-      self.gp_cur.execute(query)
-      self.gp_conn.commit()
-
-      query = "COMMIT;"
       self.gp_cur.execute(query)
       self.gp_conn.commit()
 
@@ -1496,18 +1489,12 @@ class GraphManager():
       if int(result) == 0:
         self.insert_tpid_into_mapping_table(job_id, targetsite_url, mpid, tpid)
       else: 
-        query = "BEGIN;  Lock table tpid_mapping in ACCESS EXCLUSIVE MODE;"
-        self.gp_cur.execute(query)
-        self.gp_conn.commit()
 
-        query = "update tpid_mapping set tpid = {}, upload_time = now() where targetsite_url = '{}' and mpid = {}".format(tpid, targetsite_url, mpid)
+        query = "BEGIN;  Lock table tpid_mapping in EXCLUSIVE MODE; update tpid_mapping set tpid = {}, upload_time = now() where targetsite_url = '{}' and mpid = {}; COMMIT".format(tpid, targetsite_url, mpid)
         print_flushed(query)
         self.gp_cur.execute(query)
         self.gp_conn.commit()
 
-        query = "COMMIT;"
-        self.gp_cur.execute(query)
-        self.gp_conn.commit()
       return 
     except:
       self.gp_conn.rollback()
@@ -1538,16 +1525,8 @@ class GraphManager():
     try:
       targetsite_url = url_normalize(targetsite_url)
       while True:
-        query = "BEGIN;  Lock table tpid_mapping in ACCESS EXCLUSIVE MODE;"
-        self.gp_cur.execute(query)
-        self.gp_conn.commit()
-
-        query = "insert into tpid_mapping(job_id, mpid, targetsite_url, tpid) values({},{},'{}',{});".format(job_id, mpid, targetsite_url, tpid)
+        query = "BEGIN;  Lock table tpid_mapping in EXCLUSIVE MODE; insert into tpid_mapping(job_id, mpid, targetsite_url, tpid) values({},{},'{}',{}); COMMIT;".format(job_id, mpid, targetsite_url, tpid)
         print_flushed(query)
-        self.gp_cur.execute(query)
-        self.gp_conn.commit()
-
-        query = "COMMIT;"
         self.gp_cur.execute(query)
         self.gp_conn.commit()
 
@@ -2315,20 +2294,16 @@ class GraphManager():
 
   def get_client(self, mall_id, job_id):
     try:
-      query = "BEGIN;  Lock table cafe24_client_id in ACCESS EXCLUSIVE MODE;"
-      self.gp_cur.execute(query)
-      self.gp_conn.commit()
-      query = "update cafe24_client_id set use_now = 1, get_time = now(), job_id = {} where id in (select min(id) from cafe24_client_id where use_now = -1 and mall_id = '{}') returning client_id, client_secret;".format(job_id, mall_id)
+      query = "BEGIN;  Lock table cafe24_client_id in EXCLUSIVE MODE; update cafe24_client_id set use_now = 1, get_time = now(), job_id = {} where id in (select min(id) from cafe24_client_id where use_now = -1 and mall_id = '{}') returning client_id, client_secret;".format(job_id, mall_id)
       self.gp_cur.execute(query)
       result = self.gp_cur.fetchone()
       self.gp_conn.commit()
       print_flushed(result)
-      query = "COMMIT;"
-      self.gp_cur.execute(query)
       #query =  "update cafe24_client_id set use_now = 1 where id in (select min(id) from cafe24_client_id where use_now = -1 and mall_id = '{}') returning client_id, client_secret".format(mall_id)
 
-      #self.gp_cur.execute(query)
-      #self.gp_conn.commit()
+      query = 'COMMIT;'
+      self.gp_cur.execute(query)
+      self.gp_conn.commit()
       #result = self.gp_cur.fetchone()
       return result
     except Exception as e:

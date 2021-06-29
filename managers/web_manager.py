@@ -258,7 +258,7 @@ class WebManager():
       WebDriverWait(driver, 30).until(lambda d: d.execute_script('return document.readyState') == 'complete')
       driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
       cnt = 0
-      max_cnt = 10
+      max_cnt = 3
       while (self.get_html() == '<html><head></head><body></body></html>'):
         print_flushed("Reload page (empty htmls)")
         driver.get(url)
