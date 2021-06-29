@@ -632,6 +632,8 @@ class Cafe24Manager:
     def update_additional_images(self, product_no, links):
         if len(links) == 0:
             return None
+        if len(links) > 20:
+            links = links[0:20]
         cnt = 0
         max_try = 3
         while cnt < max_try:
@@ -1190,7 +1192,7 @@ class Cafe24Manager:
                             pass
 
 
-            if len(additional_image) > 0:
+            if len(additional_image) > 0
                 response = self.update_additional_images(tpid, additional_image)
                 if 'error' in response:
                     print_flushed("Product update was successful, but additional image update failed")
