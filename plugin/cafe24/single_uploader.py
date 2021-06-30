@@ -92,6 +92,7 @@ class Cafe24SingleUploader(Resource):
     log_mpid = -1
     log_mt_history_id = -1
     log_max_num_product = 0
+    err_cafe24_op = 'Init cafe24 configuration'
     log_mpids = []
     try:
       (args, mpids) = task
@@ -100,14 +101,17 @@ class Cafe24SingleUploader(Resource):
       log_mpids = ', '.join(map(str, mpids)) 
       self.cafe24manager = Cafe24Manager(args)
       print_flushed("-----------------------Request auth code----------------------")
+      err_cafe24_op = 'Get cafe24 auth code'
       self.cafe24manager.get_auth_code(log_mt_history_id)
       print_flushed("-----------------------Request token--------------------------")
+      err_cafe24_op = 'Get cafe24 token'
       self.cafe24manager.get_token()
       self.cafe24manager.list_brands()
       #targetsite_url = 'https://{}.cafe24.com/'.format(args['mall_id'])
 
       self.exporter = Exporter()
       self.exporter.init()
+      err_cafe24_op = 'Import transformation program'
       self.exporter.import_rules_from_code(args['code'])
 
       #print_flushed(exec_id, label)
@@ -323,7 +327,9 @@ class Cafe24SingleUploader(Resource):
       print_flushed("Close cafe24 manager (no except)")
     except:
       failed_node = log_max_num_product
+      err_cafe24_op = ''
       err_msg = "Fail to upload items \n"
+      err_msg += err_cafe24_op + " \n"
       err_msg += "My site product pids: " + log_mpids + " \n" 
       self.graph_manager.log_err_msg_of_upload(-1, err_msg, log_mt_history_id )
 
