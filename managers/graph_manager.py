@@ -266,7 +266,7 @@ class GraphManager():
       
       result = {}
       for i in range(0, len(col_names)):
-        if col_names[i] == 'p_name' or col_names[i] == 'price' or col_names[i] == 'list_price':
+        if col_names[i] == 'name' or col_names[i] == 'price' or col_names[i] == 'list_price':
            if is_hex_str(col_values[i]) == True:
              try:
                 result[col_names[i]] = bytes.fromhex(col_values[i]).decode()
@@ -1073,7 +1073,7 @@ class GraphManager():
         #  origin_product['price'] = origin_product['price'].encode('UTF-8').hex()
         #converted_product['description'] = converted_product['description'].encode('UTF-8').hex()
       #for key in sorted(origin_product.keys()):
-      #  if key not in ['mpid', 'url','p_name', 'name', 'price', 'stock', 'sku', 'list_price', 'origin', 'company', 'html', 'option_name', 'option_value', 'brand',  'item_no', 'front_image', 'pricing_information', 'option_value', 'shipping_fee', 'Error']:
+      #  if key not in ['mpid', 'url','name', 'name', 'price', 'stock', 'sku', 'list_price', 'origin', 'company', 'html', 'option_name', 'option_value', 'brand',  'item_no', 'front_image', 'pricing_information', 'option_value', 'shipping_fee', 'Error']:
       #    origin_product.pop(key)
       origin_product = json.dumps(origin_product).encode('UTF-8').hex()
       converted_product = json.dumps(converted_product).encode('UTF-8').hex()
