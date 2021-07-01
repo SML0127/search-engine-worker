@@ -1192,7 +1192,7 @@ class Cafe24Manager:
                             pass
 
 
-            if len(additional_image) > 0
+            if len(additional_image) > 0:
                 response = self.update_additional_images(tpid, additional_image)
                 if 'error' in response:
                     print_flushed("Product update was successful, but additional image update failed")
