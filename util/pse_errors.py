@@ -140,4 +140,12 @@ class BtnNumError(Exception):
         return str("SummarPageBtnNumError") + "\n" 
 
 
+class CheckXpathError(Exception):
+    def __init__(self):
+        pass
+    def __str__(self):
+        return str("CheckXpathError") + "\n" 
+
+
+
         

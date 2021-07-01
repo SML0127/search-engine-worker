@@ -193,16 +193,23 @@ class pseWorker(Worker):
             raise
         except Exception as e:
             err_name = e.__class__.__name__
-            err = {'type': 1, 'error': str(e), 'err_msg': gvar.err_msg, 'traceback': traceback.format_exc()}
-            self.lm.end_task(task_id, ErrorDict.get(err_name, -1), err)
-            print_flushed("-------Raised Exception in WORKER-------")
-            print_flushed("----------------------------------------")
-            print_flushed("--------------STACK TRACE---------------")
-            print_flushed(str(traceback.format_exc()))
-            print_flushed("----------------------------------------")
-            raise
+            if err_name == 'BtnNumError' or err_name == 'CheckXpathError':
+                err = {'type': 1, 'error': str(e), 'err_msg': gvar.err_msg, 'traceback': traceback.format_exc()}
+                self.lm.end_task(task_id, -998, err)
+                raise
+            else:
+                err = {'type': 1, 'error': str(e), 'err_msg': gvar.err_msg, 'traceback': traceback.format_exc()}
+                self.lm.end_task(task_id, ErrorDict.get(err_name, -1), err)
+                print_flushed("-------Raised Exception in WORKER-------")
+                print_flushed("----------------------------------------")
+                print_flushed("--------------STACK TRACE---------------")
+                print_flushed(str(traceback.format_exc()))
+                print_flushed("----------------------------------------")
+                raise
         if gvar.profiling_info.get('invalid', False) == True:
             self.lm.end_task(task_id, -999, {'profiling_info': gvar.profiling_info})
+        elif gvar.profiling_info.get('btn_num_error', False) == True or gvar.profiling_info.get('check_xpath_error', False) == True:
+            self.lm.end_task(task_id, -998, {'profiling_info': gvar.profiling_info})
         else:
             self.lm.end_task(task_id, 1, {'profiling_info': gvar.profiling_info})
         return rv

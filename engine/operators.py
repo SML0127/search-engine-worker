@@ -519,7 +519,8 @@ class BFSIterator(BaseOperator):
                     if len(is_invalid_input) == 0:
                         if 'is_detail' in self.props:
                             print_flushed("@@@@@@@@@@ Not Detail page, set as a failure")
-                            raise
+                            gvar.profiling_info['check_xpath_error'] = True
+                            raise CheckXpathError
                         else:
                             print_flushed("@@@@@@@@@@ Detail page, set as a invalid page")
                             node_id = gvar.graph_mgr.create_node(
@@ -528,7 +529,7 @@ class BFSIterator(BaseOperator):
                             gvar.stack_indices.append(0)
                             gvar.graph_mgr.insert_node_property(
                                 gvar.stack_nodes[-1], 'url', gvar.task_url)
-                            return
+                            return CheckXpathError
                 #######################################
 
                 node_id = gvar.graph_mgr.create_node(
@@ -546,6 +547,7 @@ class BFSIterator(BaseOperator):
 
                     if str(self.props['page_id']) not in res:
                         print_flushed('@@@@@@@@@@ page number in button != page number in url')
+                        gvar.profiling_info['btn_num_error'] = True
                         raise BtnNumError 
                 gvar.graph_mgr.insert_node_property(
                     gvar.stack_nodes[-1], 'html', gvar.web_mgr.get_html())
@@ -577,17 +579,30 @@ class BFSIterator(BaseOperator):
 
                 err_cnt = err_cnt + 1
                 if err_cnt >= 5:
-                    fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
-                    gvar.web_mgr.store_page_source(fname)
-                    print_flushed("error html:", fname)
-                    err_msg = '================================== URL ==================================\n'
-                    err_msg += ' ' + str(gvar.task_url) + '\n\n'
-                    err_msg += '================================ Opeartor ==================================\n'
-                    err_msg += err_op_name + ' \n\n'
-                    err_msg += '================================ STACK TRACE ============================== \n' + \
-                        str(traceback.format_exc())
-                    gvar.graph_mgr.log_err_msg_of_task(gvar.task_id, err_msg)
-                    raise OperatorError(e, self.props['id'])
+                    if e.__class__.__name__ == 'CheckXpathError':
+                        fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
+                        gvar.web_mgr.store_page_source(fname)
+                        print_flushed("error html:", fname)
+                        err_msg = '================================== URL ==================================\n'
+                        err_msg += ' ' + str(gvar.task_url) + '\n\n'
+                        err_msg += '================================ Opeartor ==================================\n'
+                        err_msg += err_op_name + ' \n\n'
+                        err_msg += '================================ STACK TRACE ============================== \n' + \
+                            str(traceback.format_exc())
+                        gvar.graph_mgr.log_err_msg_of_task(gvar.task_id, err_msg)
+                        raise
+                    else:
+                        fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
+                        gvar.web_mgr.store_page_source(fname)
+                        print_flushed("error html:", fname)
+                        err_msg = '================================== URL ==================================\n'
+                        err_msg += ' ' + str(gvar.task_url) + '\n\n'
+                        err_msg += '================================ Opeartor ==================================\n'
+                        err_msg += err_op_name + ' \n\n'
+                        err_msg += '================================ STACK TRACE ============================== \n' + \
+                            str(traceback.format_exc())
+                        gvar.graph_mgr.log_err_msg_of_task(gvar.task_id, err_msg)
+                        raise OperatorError(e, self.props['id'])
 
                 else:
                     gvar.web_mgr.restart(5)
