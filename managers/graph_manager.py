@@ -32,8 +32,8 @@ class GraphManager():
       self.conn_info = settings['graph_db_conn_info']
       self.pg_conn = psycopg2.connect(self.conn_info)
       self.gp_conn = psycopg2.connect(self.conn_info)
-      #self.pg_conn.autocommit = True
-      #self.gp_conn.autocommit = True
+      self.pg_conn.autocommit = True
+      self.gp_conn.autocommit = True
       self.pg_cur = self.pg_conn.cursor()
       self.gp_cur = self.pg_cur
     except Exception as e:
@@ -105,6 +105,8 @@ class GraphManager():
       self.pg_cur.execute(query, (str(task_id), str(parent_id), str(label)))
       result = self.pg_cur.fetchone()[0]
       self.pg_conn.commit()
+      query = 'COMMIT;'
+      self.pg_cur.execute(query)
       return result
     except Exception as e:
       self.pg_conn.rollback()
@@ -266,7 +268,7 @@ class GraphManager():
       
       result = {}
       for i in range(0, len(col_names)):
-        if col_names[i] == 'name' or col_names[i] == 'price' or col_names[i] == 'list_price':
+        if col_names[i] == 'name' or col_names[i] == 'price':
            if is_hex_str(col_values[i]) == True:
              try:
                 result[col_names[i]] = bytes.fromhex(col_values[i]).decode()
@@ -419,6 +421,8 @@ class GraphManager():
          rows = self.gp_cur.fetchall()
          mpid = rows[0][0]
          result['mpid'] = mpid
+         query = 'COMMIT;'
+         self.gp_cur.execute(query)
       else:
          result['mpid'] = rows[0][0]
 
@@ -626,58 +630,6 @@ class GraphManager():
 
 
 
-  #(id integer primary key generated always as identity, execution_id integer,  start_time timestamp, end_time timestamp, job_id integer);
-  def insert_sm_history(self, execution_id, start_date, job_id):
-    try:
-      query =  "insert into sm_history(job_id, execution_id, start_time) values({},{},'{}') returning id".format(job_id, execution_id, start_date)
-      self.gp_cur.execute(query)
-      rows = self.gp_cur.fetchone()
-      self.gp_conn.commit()
-      result = rows[0]
-      return result
-    except:
-      self.gp_conn.rollback()
-      print_flushed(str(traceback.format_exc()))
-      raise
-
-  def update_sm_history(self, end_date, input_id):
-    try:
-      query =  "update sm_history set end_time = '{}' where id = {}".format(end_date, input_id)
-      self.gp_cur.execute(query)
-      self.gp_conn.commit()
-      return 
-    except:
-      self.gp_conn.rollback()
-      print_flushed(str(traceback.format_exc()))
-      raise
-
-  #(id integer primary key generated always as identity, sm_history_id bigint, start_time timestamp, end_time timestamp, targetsite text, job_id integer);
-  def insert_mt_history(self, targetsite, start_time, job_id):
-    try:
-      query =  "insert into mt_history(job_id, targetsite, start_time) values({},'{}','{}') returning id".format(job_id, targetsite, start_time)
-      self.gp_cur.execute(query)
-      rows = self.gp_cur.fetchone()
-      self.gp_conn.commit()
-      result = rows[0]
-      return result
-    except:
-      self.gp_conn.rollback()
-      print_flushed(str(traceback.format_exc()))
-      raise
-
-  def update_mt_history(self, end_date, input_id):
-    try:
-      query =  "update mt_history set end_time = '{}' where id = {}".format(end_date, input_id)
-      self.gp_cur.execute(query)
-      self.gp_conn.commit()
-      return 
-    except:
-      self.gp_conn.rollback()
-      print_flushed(str(traceback.format_exc()))
-      raise
-
-
-
   def get_num_threads_in_job_configuration_onetime(self, job_id):
     try:
       query = 'select num_thread from targetsite_job_configuration where job_id = {}'.format(job_id)
@@ -844,55 +796,6 @@ class GraphManager():
       self.gp_conn.rollback()
       print_flushed(str(traceback.format_exc()))
       raise
- 
-  def add_worker(self, ip, port):
-    try:
-      query = "insert into registered_workers(ip, port) values('{}', {}) returning id".format(ip, port)
-      self.gp_cur.execute(query)
-      wid = self.gp_cur.fetchone()[0]
-      self.gp_conn.commit()
-      return wid 
-    except:
-      self.gp_conn.rollback()
-      print_flushed(str(traceback.format_exc()))
-      raise
- 
-  def delete_worker(self, worker_name):
-    try:
-      query = "delete from registered_workers where id = '{}'".format(worker_name.split('-')[1])
-      self.gp_cur.execute(query)
-      self.gp_conn.commit()
-      return 
-    except:
-      self.gp_conn.rollback()
-      print_flushed(str(traceback.format_exc()))
-      raise
-
- 
-  def get_workers(self):
-    try:
-      query =  "select id, ip, port from registered_workers"
-      self.gp_cur.execute(query)
-      result = self.gp_cur.fetchall()
-      return result
-    except:
-      self.gp_conn.rollback()
-      print_flushed(str(traceback.format_exc()))
-      raise
-
-
- 
-  def get_workers_ip_and_port(self, worker_name):
-    try:
-      query =  "select ip, port from registered_workers where id = '{}'".format(worker_name.split('-')[1])
-      self.gp_cur.execute(query)
-      result = self.gp_cur.fetchone()
-      return result
-    except:
-      self.gp_conn.rollback()
-      print_flushed(str(traceback.format_exc()))
-      raise
-
 
  
   def get_targetsite_id_using_job_id(self, job_id):
@@ -1073,8 +976,6 @@ class GraphManager():
         #  origin_product['price'] = origin_product['price'].encode('UTF-8').hex()
         #converted_product['description'] = converted_product['description'].encode('UTF-8').hex()
       #for key in sorted(origin_product.keys()):
-      #  if key not in ['mpid', 'url','name', 'name', 'price', 'stock', 'sku', 'list_price', 'origin', 'company', 'html', 'option_name', 'option_value', 'brand',  'item_no', 'front_image', 'pricing_information', 'option_value', 'shipping_fee', 'Error']:
-      #    origin_product.pop(key)
       origin_product = json.dumps(origin_product).encode('UTF-8').hex()
       converted_product = json.dumps(converted_product).encode('UTF-8').hex()
       query =  "insert into all_uploaded_product(job_id, execution_id, mpid, origin_product, converted_product, targetsite_url, cnum, status) values({}, {}, {}, '{}', '{}','{}',{}, {})".format(job_id, execution_id, mpid,  json.dumps(origin_product), json.dumps(converted_product), targetsite_url, cnum, status)
