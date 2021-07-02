@@ -268,7 +268,7 @@ class GraphManager():
       
       result = {}
       for i in range(0, len(col_names)):
-        if col_names[i] == 'name' or col_names[i] == 'price':
+        if col_names[i] == 'name' or col_names[i] == 'price' or col_names[i] == 'shipping_price':
            if is_hex_str(col_values[i]) == True:
              try:
                 result[col_names[i]] = bytes.fromhex(col_values[i]).decode()
