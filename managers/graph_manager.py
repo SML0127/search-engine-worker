@@ -16,7 +16,11 @@ from url_normalize import url_normalize
 from functools import partial
 print_flushed = partial(print, flush=True)
 
+
 def is_hex_str(s):
+  if s is None:
+    return False
+  else:
     return set(s).issubset(string.hexdigits)
 
 class GraphManager():
