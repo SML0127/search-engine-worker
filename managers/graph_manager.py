@@ -311,19 +311,21 @@ class GraphManager():
       for row in rows:
         op_n = bytes.fromhex(row[0]).decode()
         op_v = bytes.fromhex(row[1]).decode()
-        #op_v_stock = row[2]
+
+        # insert option name except matrix col / row name
         if op_n not in result['option_name']:
-          result['option_name'].append(op_n)
+          if (op_n != 'option_matrix_col_name' and op_n != 'option_matrix_row_name'):
+            result['option_name'].append(op_n)
+
+        # insert option value except matrix col / row name
         if (op_n != 'option_matrix_col_name' and op_n != 'option_matrix_row_name'):
           if result['option_value'].get(op_n,None) == None:
             result['option_value'][op_n] = []
           result['option_value'][op_n].append(op_v)
-      tmp_list = result['option_name']
-      if len(tmp_list) >=1:
-         if tmp_list[0] == 'option_maxtrix_value':
-            if tmp_list[1] == 'option_matrix_col_name' or tmp_list[1] == 'option_matrix_row_name': 
-               tmp_list.reverse()
-               result['option_name'] = tmp_list
+
+        if (op_n == 'option_matrix_col_name' or op_n == 'option_matrix_row_name'):
+          result[op_n] = op_v
+      
       return result
     except:
       self.gp_conn.rollback()
