@@ -79,15 +79,31 @@ class Cafe24Manager:
         url = 'https://{}.cafe24api.com/api/v2/oauth/authorize?response_type=code&client_id={}&state=test&redirect_uri={}&scope={}'.format(
             self.mall_id, self.client_id, self.redirect_uri, self.scope)
         print_flushed(url)
-
+        driver.delete_all_cookies()
         cnt = 0
-        max_try = 3
+        max_try = 5
         while cnt < max_try:
             cnt = cnt + 1
 
             print_flushed("=============== Try get auth code {} time ==============".format(cnt))
             try:
-                driver.get(url)
+                max_cnt = 10
+                while True:
+                    cnt = 0
+                    try:
+                        driver.get(url)
+                        break
+                    except Exception as e:
+                        if e.__class__.__name__ == 'WebDriverException':
+                            cnt = cnt + 1
+                            driver.delete_all_cookies()
+                            time.sleep(2)
+                            if cnt >= max_cnt:
+                                raise
+                            else:
+                                pass 
+                        else:
+                            raise
                 cur_url = driver.current_url
                 login_url = 'https://ec'
                 agreement_url = 'https://{}'.format(self.mall_id)

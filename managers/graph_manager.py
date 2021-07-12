@@ -1033,7 +1033,6 @@ class GraphManager():
         
         query = "select count(*) from failed_target_site_detail where mpid = {} and mt_history_id = {}".format(mpid, mt_history_id)
         self.gp_cur.execute(query)
-        self.gp_cur.execute(query)
         result = self.gp_cur.fetchone()[0]
         if int(result) == 0:
           query = "insert into failed_target_site_detail(mpid, err_msg, mt_history_id) values({},'{}',{})".format(mpid,err_msg, mt_history_id)

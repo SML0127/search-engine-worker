@@ -20,3 +20,9 @@ echo 'scp to 141.223.197.38'
 scp -P 20220 $file 141.223.197.38:~/PSE-engine/$file
 echo 'scp to 141.223.199.146'
 scp -P 20220 $file 141.223.199.146:~/PSE-engine/$file
+echo 'scp to 141.223.199.147'
+scp -P 20220 $file 141.223.199.147:~/PSE-engine/$file
+echo 'scp to 141.223.199.148'
+scp -P 20220 $file 141.223.199.148:~/PSE-engine/$file
+echo 'scp to 141.223.199.150'
+scp -P 20220 $file 141.223.199.150:~/PSE-engine/$file
