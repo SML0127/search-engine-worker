@@ -348,13 +348,21 @@ class Cafe24Manager:
                 "=============== Try download & upload detail image {} time ==============".format(cnt))
             try:
                 result = ""
-                try: 
-                  scraper = cfscrape.create_scraper()
-                  image = self.get_image_from_link(link, scraper)
-                except:
-                  print_flushed('Fail to download image from link: ', link)
-                  print_flushed(str(traceback.format_exc()))
-                  pass
+                inner_cnt = 0
+                max_inner_cnt = 5
+                while True:
+                    try:
+                      scraper = cfscrape.create_scraper()
+                      image = self.get_image_from_link(link, scraper)
+                      break;
+                    except:
+                      if inner_cnt >= max_inner_cnt:
+                          print_flushed('Fail to download image from link: ', link)
+                          print_flushed(str(traceback.format_exc()))
+                          break;
+                      else:
+                          inner_cnt = inner_cnt + 1
+                          pass
                 #print_flushed("upload_image_from_link: ", image)
                 return self.upload_image(image)
             except:
@@ -617,14 +625,23 @@ class Cafe24Manager:
         additional_image = []
         for link in links:
             result = ""
-            try: 
-              scraper = cfscrape.create_scraper()
-              result = self.get_image_from_link(link, scraper)
-              additional_image.append(result)
-            except:
-              print_flushed('Fail to download image from link: ', link)
-              print_flushed(str(traceback.format_exc()))
-              pass
+            inner_cnt = 0
+            max_inner_cnt = 5
+            while True:
+                try:
+                  scraper = cfscrape.create_scraper()
+                  result = self.get_image_from_link(link, scraper)
+                  additional_image.append(result)
+                  break;
+                except:
+                  if inner_cnt >= max_inner_cnt:
+                      print_flushed('Fail to download image from link: ', link)
+                      print_flushed(str(traceback.format_exc()))
+                      break;
+                  else:
+                      inner_cnt = inner_cnt + 1
+                      pass
+
 
         url = "https://{}.cafe24api.com/api/v2/admin/products/{}/additionalimages".format(
             self.mall_id, product_no)
@@ -659,14 +676,23 @@ class Cafe24Manager:
                 additional_image = []
                 for link in links:
                     result = ""
-                    try: 
-                      scraper = cfscrape.create_scraper()
-                      result = self.get_image_from_link(link, scraper)
-                      additional_image.append(result)
-                    except:
-                      print_flushed('Fail to download image from link: ', link)
-                      print_flushed(str(traceback.format_exc()))
-                      pass
+                    inner_cnt = 0
+                    max_inner_cnt = 5
+                    while True:
+                        try:
+                          scraper = cfscrape.create_scraper()
+                          result = self.get_image_from_link(link, scraper)
+                          additional_image.append(result)
+                          break;
+                        except:
+                          if inner_cnt >= max_inner_cnt:
+                              print_flushed('Fail to download image from link: ', link)
+                              print_flushed(str(traceback.format_exc()))
+                              break;
+                          else:
+                              inner_cnt = inner_cnt + 1
+                              pass
+
 
                 url = "https://{}.cafe24api.com/api/v2/admin/products/{}/additionalimages".format(
                     self.mall_id, product_no)
