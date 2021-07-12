@@ -57,7 +57,8 @@ class Exporter():
       pricing_information = graph_mgr.get_pricing_information_onetime(tsid)
       node_properties = graph_mgr.get_node_properties_from_mysite(job_id, mpid)
       delivery_company = pricing_information['delivery_company']
-      shipping_fee = graph_mgr.get_shipping_fee(delivery_company)
+      country = graph_mgr.get_job_country(job_id)
+      shipping_fee = graph_mgr.get_shipping_fee(delivery_company, country)
       node_properties['shipping_fee'] = shipping_fee
       node_properties['pricing_information'] = pricing_information
       node_properties['smpid'] = smpid
@@ -78,7 +79,8 @@ class Exporter():
     pricing_information = graph_mgr.get_pricing_information(job_id)
     node_properties = graph_mgr.get_node_properties_from_mysite(exec_id, mpid)
     delivery_company = pricing_information['delivery_company']
-    shpping_fee = graph_mgr.get_shipping_fee(delivery_company)
+    country = graph_mgr.get_job_country(job_id)
+    shipping_fee = graph_mgr.get_shipping_fee(delivery_company, country)
     node_properties['shipping_fee'] = shpping_fee
     node_properties['pricing_information'] = pricing_information
     node_properties['smpid'] = smpid

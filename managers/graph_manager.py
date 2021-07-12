@@ -468,6 +468,20 @@ class GraphManager():
 
 
 
+  def get_job_country(self, job_id):
+    try:
+      query =  'select country from jobs where id = {}'.format(job_id)
+      self.gp_cur.execute(query)
+      row = self.gp_cur.fetchone()
+      country = row[0][0:2]
+      return country
+    except:
+      self.gp_conn.rollback()
+      print_flushed(str(traceback.format_exc()))
+      raise
+
+
+
   def get_job_id_from_eid(self, exec_id):
     try:
       query =  'select job_id from execution where id = {}'.format(exec_id)
@@ -893,14 +907,14 @@ class GraphManager():
       raise
 
 
-  def get_shipping_fee(self, delivery_company):
+  def get_shipping_fee(self, delivery_company, country):
     try:
       delivery_company = delivery_company.encode('UTF-8').hex()
       query = "select id from delivery_companies where name like '{}'".format(delivery_company)
       self.gp_cur.execute(query)
       dcid = self.gp_cur.fetchone()[0]
       
-      query =  "select min_kg, max_kg, fee from shipping_fee where delivery_company_id = {}".format(dcid)
+      query =  "select min_kg, max_kg, fee from shipping_fee where delivery_company_id = {} and country = {}".format(dcid, country)
       self.gp_cur.execute(query)
       rows = self.gp_cur.fetchall()
       
