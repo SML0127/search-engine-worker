@@ -914,7 +914,7 @@ class GraphManager():
       self.gp_cur.execute(query)
       dcid = self.gp_cur.fetchone()[0]
       
-      query =  "select min_kg, max_kg, fee from shipping_fee where delivery_company_id = {} and country = {}".format(dcid, country)
+      query =  "select min_kg, max_kg, fee from shipping_fee where delivery_company_id = {} and country = '{}'".format(dcid, country)
       self.gp_cur.execute(query)
       rows = self.gp_cur.fetchall()
       
