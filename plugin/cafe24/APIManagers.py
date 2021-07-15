@@ -87,18 +87,18 @@ class Cafe24Manager:
 
             print_flushed("=============== Try get auth code {} time ==============".format(cnt))
             try:
-                max_cnt = 10
+                max_cnt2 = 10
                 while True:
-                    cnt = 0
+                    cnt2 = 0
                     try:
                         driver.get(url)
                         break
                     except Exception as e:
                         if e.__class__.__name__ == 'WebDriverException':
-                            cnt = cnt + 1
+                            cnt2 = cnt2 + 1
                             driver.delete_all_cookies()
                             time.sleep(2)
-                            if cnt >= max_cnt:
+                            if cnt2 >= max_cnt2:
                                 raise
                             else:
                                 pass 
@@ -195,6 +195,31 @@ class Cafe24Manager:
                     pass
                 else:
                     raise
+
+    def do_delete(self, url, headers):
+        cnt = 0
+        max_try = 3
+        while cnt < max_try:
+            print_flushed("=============== Try do delete {} time ==============".format(cnt))
+            try:
+                response = requests.request(
+                    "DELETE", url, headers=headers)
+                response = json.loads(response.text)
+                print_flushed(response)
+                while 'error' in response and response['error']['code'] == 429:
+                    response = requests.request(
+                        "DELETE", url, headers=headers)
+                    response = json.loads(response.text)
+                    print_flushed(response)
+                return response
+            except:
+                if cnt < max_try:
+                    cnt = cnt + 1
+                    pass
+                else:
+                    raise
+
+
 
     def do_put(self, url, data, headers):
         cnt = 0
@@ -378,7 +403,7 @@ class Cafe24Manager:
         if link[:12] == 'https://cdn2':
             r = scraper.get(link)
             u = r.content
-            #print(u)
+            #print_flushed(u)
             dimage = BytesIO()
             im = Image.open(BytesIO(u)).convert("RGB").save(dimage, "JPEG")
             u = dimage.getvalue()
@@ -487,6 +512,8 @@ class Cafe24Manager:
             'Accept-Encoding': "gzip, deflate",
             'Connection': "keep-alive",
         }
+        if 'option_matrix' in args: 
+            del args['option_matrix']
         data = {
             'shop_no': 1,
             'request': args
@@ -502,6 +529,8 @@ class Cafe24Manager:
             'Accept-Encoding': "gzip, deflate",
             'Connection': "keep-alive",
         }
+        if 'option_matrix' in args: 
+            del args['option_matrix']
         data = {
             'shop_no': 1,
             'request': args
@@ -732,7 +761,7 @@ class Cafe24Manager:
             'shop_no': 1,
             'request': {
                 "has_option": "T",
-                "option_type": "F",
+                "option_type": "T",
                 "option_list_type": "S",
                 "options": option,
                 "option_display_type": "P",
@@ -755,7 +784,7 @@ class Cafe24Manager:
             'shop_no': 1,
             'request': {
                 "has_option": "T",
-                "option_type": "F",
+                "option_type": "T",
                 "option_list_type": "S",
                 "options": [{'option_name': 'size'}],
                 "option_display_type": "P",
@@ -801,6 +830,19 @@ class Cafe24Manager:
         }
 
         response = self.do_put(url, json.dumps(data), headers)
+        return response
+
+    def delete_variant(self, product_no, variant_code):
+        url = "https://{}.cafe24api.com/api/v2/admin/products/{}/variants/{}".format(
+            self.mall_id, product_no, variant_code)
+        headers = {
+            'Authorization': "Bearer {}".format(self.token),
+            'Content-Type': "application/json",
+            'Accept-Encoding': "gzip, deflate",
+            'Connection': "keep-alive",
+        }
+        response = self.do_delete(url, headers)
+        print_flushed(response)
         return response
 
     def update_variant(self, product_no, variant_code, quantity):
@@ -972,7 +1014,9 @@ class Cafe24Manager:
                del product['matrix_col_name']
 
             tmp_time = time.time()
-            product_result = self.create_product(product)
+            upload_product = product
+            print_flushed(upload_product)
+            product_result = self.create_product(upload_product)
             profiling_info['create_product'] = profiling_info.get(
                 'create_product', 0) + time.time() - tmp_time
 
@@ -997,6 +1041,7 @@ class Cafe24Manager:
                 print_flushed(matrix_row_name)
                 print_flushed(matrix_col_name)
                 print_flushed('-------------------------------------------------------------------------')
+                print_flushed(self.list_variants(tpid)['variants'])
                 for cafe24_variant in self.list_variants(tpid)['variants']:
                     cafe24_code = cafe24_variant['variant_code']
                     cafe24_options = cafe24_variant['options']
@@ -1006,45 +1051,48 @@ class Cafe24Manager:
                     row_value = ""
                     col_value = ""
                     # one variant [{name:color, value:blue}, {name:size, value:small}]
-                    for cafe24_option in cafe24_options:
-                        # {name:color, value:blue}
-                        #print_flushed(cafe24_option)
-                        if matrix_row_name == '':
-                            for option in options[cafe24_option['name']][0]:
-                                if option['value'] == cafe24_option['value']:
-                                    if stock > option['stock']:
-                                        stock = option['stock']  
-                                    additional_amount = additional_amount + option['additional_amount']  
-                        else:
-                            # cafe24_option[{},{}]
-                            for option in options[cafe24_option['name']][0]:
-                                if cafe24_option['name'] == matrix_row_name:
-                                    row_value = cafe24_option['value']
-                                elif cafe24_option['name'] == matrix_col_name:
-                                    col_value = cafe24_option['value']
-                                else:
+                    if cafe24_options is None:
+                        print_flushed('cafe24_options is None')
+                    if cafe24_options is not None:
+                        for cafe24_option in cafe24_options:
+                            # {name:color, value:blue}
+                            #print_flushed(cafe24_option)
+                            if matrix_row_name == '':
+                                for option in options[cafe24_option['name']][0]:
                                     if option['value'] == cafe24_option['value']:
                                         if stock > option['stock']:
                                             stock = option['stock']  
                                         additional_amount = additional_amount + option['additional_amount']  
-                                if row_value != "" and col_value != "":
-                                    #print_flushed(row_value, col_value)
-                                    #print_flushed(option_matrix)
-                                    if stock > option_matrix[row_value, col_value]['stock']:
-                                        stock = option_matrix[row_value, col_value]['stock']  
-                                    additional_amount = additional_amount + option_matrix[row_value, col_value]['additional_amount']  
-                                    row_value = ""
-                                    col_value = ""
-                    response = self.update_variant_additional_price(tpid, cafe24_code, stock, additional_amount)
-                    if 'error' in response:
-                        print_flushed("Product creation was successful, but option variant update failed")
-                        err_msg = "Product creation was successful, but option variant update failed\n\n"
-                        err_msg += '================================ Error Message ================================ \n'
-                        err_msg += response['error']['message'] + '\n\n'
-                        try:
-                            self.graph_manager.log_err_msg_of_upload(product['mpid'], err_msg, log_mt_history_id )
-                        except:
-                            pass
+                            else:
+                                # cafe24_option[{},{}]
+                                for option in options[cafe24_option['name']][0]:
+                                    if cafe24_option['name'] == matrix_row_name:
+                                        row_value = cafe24_option['value']
+                                    elif cafe24_option['name'] == matrix_col_name:
+                                        col_value = cafe24_option['value']
+                                    else:
+                                        if option['value'] == cafe24_option['value']:
+                                            if stock > option['stock']:
+                                                stock = option['stock']  
+                                            additional_amount = additional_amount + option['additional_amount']  
+                                    if row_value != "" and col_value != "":
+                                        #print_flushed(row_value, col_value)
+                                        #print_flushed(option_matrix)
+                                        if stock > option_matrix[row_value, col_value]['stock']:
+                                            stock = option_matrix[row_value, col_value]['stock']  
+                                        additional_amount = additional_amount + option_matrix[row_value, col_value]['additional_amount']  
+                                        row_value = ""
+                                        col_value = ""
+                        response = self.update_variant_additional_price(tpid, cafe24_code, stock, additional_amount)
+                        if 'error' in response:
+                            print_flushed("Product creation was successful, but option variant update failed")
+                            err_msg = "Product creation was successful, but option variant update failed\n\n"
+                            err_msg += '================================ Error Message ================================ \n'
+                            err_msg += response['error']['message'] + '\n\n'
+                            try:
+                                self.graph_manager.log_err_msg_of_upload(product['mpid'], err_msg, log_mt_history_id )
+                            except:
+                                pass
 
 
             # elif len(variants) == 0:
@@ -1068,6 +1116,9 @@ class Cafe24Manager:
                 'successful_node', 0) + 1
         except:
             print_flushed(str(traceback.format_exc()))
+            print_flushed('-------------------------------------------------------------------------------------------')
+            print_flushed(product)
+            print_flushed('-------------------------------------------------------------------------------------------')
             profiling_info['failed_node'] = profiling_info.get(
                 'failed_node', 0) + 1
             raise
@@ -1115,7 +1166,9 @@ class Cafe24Manager:
                 del product['additional_image']
 
             tmp_time = time.time()
+            option_matrix = product.get('option_matrix','')
             product_result = self.update_product(product, tpid)
+            product['option_matrix'] = option_matrix
             profiling_info['update_product'] = profiling_info.get(
                 'update_product', 0) + time.time() - tmp_time
             if 'product' not in product_result:
@@ -1132,6 +1185,7 @@ class Cafe24Manager:
             num_variant = 0
             print_flushed(num_combination)
             options = {}
+            create_option_array = []
             if has_option == 'T' and len(variants) > 0:
                 option_names = product['option_names']
                 del product['option_names']
@@ -1140,15 +1194,19 @@ class Cafe24Manager:
                     for key, value in variant.items():
                         if key in option_names:
                             values = options.get(key, [])
+                            create_option_values = []
                             if value not in values:
                                 #print_flushed(value)
+                                values2 = []
                                 for op_v in value:
                                     op_v['value'] = op_v['value'].replace('"','').replace("'","").replace(',', ' ').replace(';', ' ').replace('#', '').replace('$', '').replace('%', '').replace('\\', '')
+                                    create_option_values.append({'option_text':op_v['value']})
                                 values.append(value)
                                 num_variant = num_variant + 1
                             #print_flushed('-----------------------')
                             #print_flushed(values)
                             options[key] = values 
+                            create_option_array.append({'option_name': key, 'option_value' : create_option_values})
                         num_combination = num_combination * num_variant 
                         print_flushed(num_combination)
                 result = []
@@ -1160,6 +1218,7 @@ class Cafe24Manager:
                         #result.append({'name': option_name, 'value': values[0]})
                         result.append({'name': option_name, 'value': option_value})
                     product['options'] = result
+
                 else:
                     print_flushed("Do not upload product option")
                     print_flushed("# of option combination: {}  (>= 1000)".format(num_combination))
@@ -1170,6 +1229,7 @@ class Cafe24Manager:
                         pass
                     has_option = 'F'
 
+            print_flushed('--------------------------------------------------------')
             option_matrix = product.get('option_matrix','')
             matrix_row_name = product.get('matrix_row_name','')
             matrix_col_name = product.get('matrix_col_name','')
@@ -1185,6 +1245,11 @@ class Cafe24Manager:
                 print_flushed(matrix_row_name)
                 print_flushed(matrix_col_name)
                 print_flushed('-------------------------------------------------------------------------')
+                uploaded_variants = self.list_variants(tpid)['variants']
+                if uploaded_variants[0]['options'] is None:
+                    print_flushed('cafe24_options is None')
+                    #print_flushed(self.delete_variant(tpid,uploaded_variants[0]['variant_code']))
+                    print_flushed(self.create_option(tpid, create_option_array))
                 for cafe24_variant in self.list_variants(tpid)['variants']:
                     cafe24_code = cafe24_variant['variant_code']
                     cafe24_options = cafe24_variant['options']
@@ -1193,45 +1258,48 @@ class Cafe24Manager:
                     row_value = ""
                     col_value = ""
                     # one variant [{name:color, value:blue}, {name:size, value:small}]
-                    for cafe24_option in cafe24_options:
-                        # {name:color, value:blue}
-                        #print_flushed(cafe24_option)
-                        if matrix_row_name == '':
-                            for option in options[cafe24_option['name']][0]:
-                                if option['value'] == cafe24_option['value']:
-                                    if stock > option['stock']:
-                                        stock = option['stock']  
-                                    additional_amount = additional_amount + option['additional_amount']  
-                        else:
-                            # cafe24_option[{},{}]
-                            for option in options[cafe24_option['name']][0]:
-                                if cafe24_option['name'] == matrix_row_name:
-                                    row_value = cafe24_option['value']
-                                elif cafe24_option['name'] == matrix_col_name:
-                                    col_value = cafe24_option['value']
-                                else:
+                    if cafe24_options is None:
+                        print_flushed('cafe24_options is None')
+                    if cafe24_options is not None:                    
+                        for cafe24_option in cafe24_options:
+                            # {name:color, value:blue}
+                            #print_flushed(cafe24_option)
+                            if matrix_row_name == '':
+                                for option in options[cafe24_option['name']][0]:
                                     if option['value'] == cafe24_option['value']:
                                         if stock > option['stock']:
                                             stock = option['stock']  
                                         additional_amount = additional_amount + option['additional_amount']  
-                                if row_value != "" and col_value != "":
-                                    #print_flushed(row_value, col_value)
-                                    #print_flushed(option_matrix)
-                                    if stock > option_matrix[row_value, col_value]['stock']:
-                                        stock = option_matrix[row_value, col_value]['stock']  
-                                    additional_amount = additional_amount + option_matrix[row_value, col_value]['additional_amount']  
-                                    row_value = ""
-                                    col_value = ""
-                    response = self.update_variant_additional_price(tpid, cafe24_code, stock, additional_amount)
-                    if 'error' in response:
-                        print_flushed("Product creation was successful, but option variant update failed")
-                        err_msg = "Product creation was successful, but option variant update failed\n\n"
-                        err_msg += '================================ Error Message ================================ \n'
-                        err_msg += response['error']['message'] + '\n\n'
-                        try:
-                            self.graph_manager.log_err_msg_of_upload(product['mpid'], err_msg, log_mt_history_id )
-                        except:
-                            pass
+                            else:
+                                # cafe24_option[{},{}]
+                                for option in options[cafe24_option['name']][0]:
+                                    if cafe24_option['name'] == matrix_row_name:
+                                        row_value = cafe24_option['value']
+                                    elif cafe24_option['name'] == matrix_col_name:
+                                        col_value = cafe24_option['value']
+                                    else:
+                                        if option['value'] == cafe24_option['value']:
+                                            if stock > option['stock']:
+                                                stock = option['stock']  
+                                            additional_amount = additional_amount + option['additional_amount']  
+                                    if row_value != "" and col_value != "":
+                                        #print_flushed(row_value, col_value)
+                                        print_flushed(option_matrix)
+                                        if stock > option_matrix[row_value, col_value]['stock']:
+                                            stock = option_matrix[row_value, col_value]['stock']  
+                                        additional_amount = additional_amount + option_matrix[row_value, col_value]['additional_amount']  
+                                        row_value = ""
+                                        col_value = ""
+                        response = self.update_variant_additional_price(tpid, cafe24_code, stock, additional_amount)
+                        if 'error' in response:
+                            print_flushed("Product creation was successful, but option variant update failed")
+                            err_msg = "Product creation was successful, but option variant update failed\n\n"
+                            err_msg += '================================ Error Message ================================ \n'
+                            err_msg += response['error']['message'] + '\n\n'
+                            try:
+                                self.graph_manager.log_err_msg_of_upload(product['mpid'], err_msg, log_mt_history_id )
+                            except:
+                                pass
 
 
             if len(additional_image) > 0:
@@ -1251,6 +1319,9 @@ class Cafe24Manager:
                 'successful_node', 0) + 1
         except:
             print_flushed(str(traceback.format_exc()))
+            print_flushed('-------------------------------------------------------------------------------------------')
+            print_flushed(product)
+            print_flushed('-------------------------------------------------------------------------------------------')
             profiling_info['failed_node'] = profiling_info.get(
                 'failed_node', 0) + 1
            
