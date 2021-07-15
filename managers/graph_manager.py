@@ -1042,7 +1042,7 @@ class GraphManager():
   #failed_target_site_detail (id integer primary key generated always as identity, sm_history_id integer, mpid bigint, err_msg text);
   def log_err_msg_of_upload(self, mpid, err_msg, mt_history_id):
     try:
-      err_msg = err_msg.replace("'",'"')
+      err_msg = err_msg.encode('UTF-8').hex()
       if mpid == -1:
         
         query = "select count(*) from failed_target_site_detail where mpid = {} and mt_history_id = {}".format(mpid, mt_history_id)
