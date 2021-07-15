@@ -327,7 +327,6 @@ class Cafe24SingleUploader(Resource):
       print_flushed("Close cafe24 manager (no except)")
     except:
       failed_node = log_max_num_product
-      err_cafe24_op = ''
       err_msg = "Fail to upload items \n"
       err_msg += err_cafe24_op + " \n"
       err_msg += "My site product pids: " + log_mpids + " \n" 
