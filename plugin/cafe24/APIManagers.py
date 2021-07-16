@@ -127,7 +127,7 @@ class Cafe24Manager:
                 #URL:  https://eclogin.cafe24.com/Shop/?mode=ipblock
                 if (cur_url == 'https://eclogin.cafe24.com/Shop/?mode=ipblock'):
                     print_flushed("IP block: ", cur_url)
-                    cnt = 99999
+                    cnt = 100
                     self.graph_manager.log_err_msg_of_upload(-1, "IP Block\n", log_mt_history_id )
                     raise 
 

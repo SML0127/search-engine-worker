@@ -580,7 +580,7 @@ class WebManager():
   def click_elements_repeat(self, xpath, check_xpath, time_sleep, url):
     try:
       cnt = 0
-      max_retry = 99999
+      max_retry = 100
       while True:
         try:
           self.get_cur_driver_().execute_script("window.scrollTo(0, document.body.scrollHeight)")
