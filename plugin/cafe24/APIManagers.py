@@ -919,6 +919,31 @@ class Cafe24Manager:
         response = self.do_post(url, json.dumps(data), headers)
         return response
 
+
+    def remove_white_space_from_option_matrix(self, input_matrix):
+        output_matrix = input_matrix
+        try:
+            for key in list(input_matrix.keys()):
+                if type(key) == tuple:
+                    tmp_key = []
+                    for val in list(key):
+                        tmp_key.append(val.strip())
+                    new_key = tuple(tmp_key)
+                    value = input_matrix[key]
+                    del input_matrix[key]
+                    input_matrix[new_key] = value
+            
+                else:
+                    value = input_matrix[key]
+                    del input_matrix[key]
+                    input_matrix[key.strip()] = value
+            output_matrix_del = input_matrix
+            return output_matrix_del
+   
+        except:
+            print_flushed(str(traceback.format_exc()))
+            return output_matrix
+
     def upload_new_product(self, product, profiling_info, job_id, log_mt_history_id):
         try:
             product['display'] = "T"
@@ -979,7 +1004,7 @@ class Cafe24Manager:
                                 print_flushed(value)
                                 for op_v in value:
                                     print_flushed(op_v)
-                                    op_v['value'] = op_v['value'].replace('"','').replace("'","").replace(',', ' ').replace(';', ' ').replace('#', '').replace('$', '').replace('%', '').replace('\\', '')
+                                    op_v['value'] = op_v['value'].replace('"','').replace("'","").replace(',', ' ').replace(';', ' ').replace('#', '').replace('$', '').replace('%', '').replace('\\', '').strip()
                                 values.append(value)
                                 num_variant = len(value)
                             #print_flushed('-----------------------')
@@ -1016,7 +1041,11 @@ class Cafe24Manager:
             tmp_time = time.time()
             upload_product = product
             print_flushed(upload_product)
+
+            option_matrix = product.get('option_matrix','')
             product_result = self.create_product(upload_product)
+            product['option_matrix'] = option_matrix
+
             profiling_info['create_product'] = profiling_info.get(
                 'create_product', 0) + time.time() - tmp_time
 
@@ -1038,6 +1067,7 @@ class Cafe24Manager:
             if product['has_option'] == 'T' and len(variants) > 0:
                 print_flushed(options)
                 print_flushed(option_matrix)
+                self.remove_white_space_from_option_matrix(option_matrix)
                 print_flushed(matrix_row_name)
                 print_flushed(matrix_col_name)
                 print_flushed('-------------------------------------------------------------------------')
@@ -1078,9 +1108,9 @@ class Cafe24Manager:
                                     if row_value != "" and col_value != "":
                                         #print_flushed(row_value, col_value)
                                         #print_flushed(option_matrix)
-                                        if stock > option_matrix[row_value, col_value]['stock']:
-                                            stock = option_matrix[row_value, col_value]['stock']  
-                                        additional_amount = additional_amount + option_matrix[row_value, col_value]['additional_amount']  
+                                        if stock > option_matrix[row_value, col_value].get('stock', 0):
+                                            stock = option_matrix[row_value, col_value].get('stock', 0)  
+                                        additional_amount = additional_amount + option_matrix[row_value, col_value].get('additional_amount', 0)
                                         row_value = ""
                                         col_value = ""
                         response = self.update_variant_additional_price(tpid, cafe24_code, stock, additional_amount)
@@ -1199,7 +1229,7 @@ class Cafe24Manager:
                                 #print_flushed(value)
                                 values2 = []
                                 for op_v in value:
-                                    op_v['value'] = op_v['value'].replace('"','').replace("'","").replace(',', ' ').replace(';', ' ').replace('#', '').replace('$', '').replace('%', '').replace('\\', '')
+                                    op_v['value'] = op_v['value'].replace('"','').replace("'","").replace(',', ' ').replace(';', ' ').replace('#', '').replace('$', '').replace('%', '').replace('\\', '').strip()
                                     create_option_values.append({'option_text':op_v['value']})
                                 values.append(value)
                                 num_variant = num_variant + 1
@@ -1242,6 +1272,7 @@ class Cafe24Manager:
             if has_option == 'T' and len(variants) > 0:
                 print_flushed(options)
                 print_flushed(option_matrix)
+                self.remove_white_space_from_option_matrix(option_matrix)
                 print_flushed(matrix_row_name)
                 print_flushed(matrix_col_name)
                 print_flushed('-------------------------------------------------------------------------')
@@ -1285,9 +1316,9 @@ class Cafe24Manager:
                                     if row_value != "" and col_value != "":
                                         #print_flushed(row_value, col_value)
                                         print_flushed(option_matrix)
-                                        if stock > option_matrix[row_value, col_value]['stock']:
-                                            stock = option_matrix[row_value, col_value]['stock']  
-                                        additional_amount = additional_amount + option_matrix[row_value, col_value]['additional_amount']  
+                                        if stock > option_matrix[row_value, col_value].get('stock', 0):
+                                            stock = option_matrix[row_value, col_value].get('stock', 0)
+                                        additional_amount = additional_amount + option_matrix[row_value, col_value].get('additional_amount', 0)
                                         row_value = ""
                                         col_value = ""
                         response = self.update_variant_additional_price(tpid, cafe24_code, stock, additional_amount)
