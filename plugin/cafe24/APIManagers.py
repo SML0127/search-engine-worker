@@ -72,8 +72,20 @@ class Cafe24Manager:
         option.add_argument('--disable-gpu')
         option.add_argument('--no-sandbox')
         option.add_argument('--disable-dev-shm-usage')
+        option.add_argument('disable-blink-features=AutomationControlled')
         option.add_argument('--user-agent={}'.format(
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36"))
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107"))
+        prefs = {"profile.managed_default_content_settings.images":2,
+                 "profile.default_content_setting_values.notifications":2,
+                 "profile.managed_default_content_settings.stylesheets":2,
+                 "profile.managed_default_content_settings.cookies":2,
+                 "profile.managed_default_content_settings.javascript":1,
+                 "profile.managed_default_content_settings.plugins":1,
+                 "profile.managed_default_content_settings.popups":2,
+                 "profile.managed_default_content_settings.geolocation":2,
+                 "profile.managed_default_content_settings.media_stream":2,
+        }
+        option.add_experimental_option("prefs", prefs)
         driver = webdriver.Chrome(
             './web_drivers/chromedriver', chrome_options=option)
         url = 'https://{}.cafe24api.com/api/v2/oauth/authorize?response_type=code&client_id={}&state=test&redirect_uri={}&scope={}'.format(

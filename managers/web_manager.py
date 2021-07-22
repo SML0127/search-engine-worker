@@ -66,7 +66,6 @@ class WebManager():
       
       option.add_argument('--headless')
       option.add_argument('--window-size=1920x1080')
-      option.add_argument('window-size=1920x1080')
       option.add_argument('--disable-gpu')
       option.add_argument('--start-maximized')
       option.add_argument('--no-proxy-server')
@@ -74,8 +73,18 @@ class WebManager():
       option.add_argument('--blink-settings=imagesEnabled=false')
       option.add_argument('--lang=en_US')
       option.add_argument('--disable-dev-shm-usage')
-      option.add_argument('disable-dev-shm-usage')
-      prefs = {"profile.managed_default_content_settings.images": 2}
+      option.add_argument('--disable-blink-features=AutomationControlled')
+      #prefs = {"profile.managed_default_content_settings.images": 2}
+      prefs = {"profile.managed_default_content_settings.images":2,
+               "profile.default_content_setting_values.notifications":2,
+               "profile.managed_default_content_settings.stylesheets":2,
+               "profile.managed_default_content_settings.cookies":2,
+               "profile.managed_default_content_settings.javascript":1,
+               "profile.managed_default_content_settings.plugins":1,
+               "profile.managed_default_content_settings.popups":2,
+               "profile.managed_default_content_settings.geolocation":2,
+               "profile.managed_default_content_settings.media_stream":2,
+      }
       option.add_experimental_option("prefs", prefs)
 
       driver_path = self.settings.get('chromedriver_path', './web_drivers/chromedriver')
@@ -125,7 +134,6 @@ class WebManager():
       #option = webdriver.ChromeOptions()
       option.add_argument('--headless')
       option.add_argument('--window-size=1920x1080')
-      option.add_argument('window-size=1920x1080')
       option.add_argument('--disable-gpu')
       option.add_argument('--start-maximized')
       option.add_argument('--no-proxy-server')
@@ -133,8 +141,18 @@ class WebManager():
       option.add_argument('--blink-settings=imagesEnabled=false')
       option.add_argument('--lang=en_US')
       option.add_argument('--disable-dev-shm-usage')
-      option.add_argument('disable-dev-shm-usage')
-      prefs = {"profile.managed_default_content_settings.images": 2}
+      option.add_argument('--disable-blink-features=AutomationControlled')
+      #prefs = {"profile.managed_default_content_settings.images": 2}
+      prefs = {"profile.managed_default_content_settings.images":2,
+               "profile.default_content_setting_values.notifications":2,
+               "profile.managed_default_content_settings.stylesheets":2,
+               "profile.managed_default_content_settings.cookies":2,
+               "profile.managed_default_content_settings.javascript":1,
+               "profile.managed_default_content_settings.plugins":1,
+               "profile.managed_default_content_settings.popups":2,
+               "profile.managed_default_content_settings.geolocation":2,
+               "profile.managed_default_content_settings.media_stream":2,
+      }
       option.add_experimental_option("prefs", prefs)
 
       #print_flushed(self.settings)
@@ -977,19 +995,24 @@ class WebManager():
 
 
 if __name__ == '__main__':
-  url = "https://www.amazon.com/gp/glow/get-address-selections.html?deviceType=desktop&pageType=Gateway&storeContext=NoStoreName"
-  headers = {'User-Agent':'PostmanRuntime/7.19.0'}
-  response = requests.request("POST", url, headers=headers)
-  print_flushed(response.text.split('CSRF_TOKEN : "')[1].split('", IDs')[0])
-  token = response.text.split('CSRF_TOKEN : "')[1].split('", IDs')[0]
+  #url = "https://www.amazon.com/gp/glow/get-address-selections.html?deviceType=desktop&pageType=Gateway&storeContext=NoStoreName"
+  #headers = {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107'}
+  #response = requests.request("POST", url, headers=headers)
+  #print_flushed(response)
+  #print_flushed(response.text)
+  #print_flushed(response.text.split('CSRF_TOKEN : "')[1].split('", IDs')[0])
+  #token = response.text.split('CSRF_TOKEN : "')[1].split('", IDs')[0]
 
   web_manager = WebManager()
-  web_manager.init({"chromedriver_user_agent":"PostmanRuntime/7.19.0", 'token': token})
+  #web_manager.init({"chromedriver_user_agent":"PostmanRuntime/7.19.0", 'token': token})
+  web_manager.init({"chromedriver_user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107"})
+  print_flushed('after init')
   #web_manager.load('https://www.amazon.com/gp/glow/get-address-selections.html?deviceType=desktop&pageType=Gateway&storeContext=NoStoreName')
   #print_flushed(web_manager.get_html().split('CSRF_TOKEN : "')[1].split('", IDs')[0])
-  web_manager.get_cur_driver_().delete_all_cookies()
-  web_manager.load('http://www.amazon.com/gp/delivery/ajax/address-change.html?locationType=LOCATION_INPUT&zipCode=94024&storeContext=office-products&deviceType=web&pageType=Detail&actionSource=glow&almBrandId=undefined')
-  print_flushed(web_manager.get_html())
+  #web_manager.get_cur_driver_().delete_all_cookies()
+  #web_manager.load('http://www.amazon.com/gp/delivery/ajax/address-change.html?locationType=LOCATION_INPUT&zipCode=94024&storeContext=office-products&deviceType=web&pageType=Detail&actionSource=glow&almBrandId=undefined')
+  web_manager.load('https://www.ashford.com/brand/tissot.html?product_list_limit=80')
+  print_flushed('after load')
   web_manager.close()
 #
 #  try:
