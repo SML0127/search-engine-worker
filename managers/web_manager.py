@@ -65,7 +65,6 @@ class WebManager():
       #option = webdriver.ChromeOptions()
       
       option.add_argument('--headless')
-      option.add_argument('--window-size=1920x1080')
       option.add_argument('--disable-gpu')
       option.add_argument('--start-maximized')
       option.add_argument('--no-proxy-server')
@@ -74,13 +73,16 @@ class WebManager():
       option.add_argument('--lang=en_US')
       option.add_argument('--disable-dev-shm-usage')
       option.add_argument('--disable-blink-features=AutomationControlled')
+      option.add_argument('--disable-infobars')
+      option.add_argument('--disable-automation')
+      option.add_argument('--disable-extensions')
       #prefs = {"profile.managed_default_content_settings.images": 2}
       prefs = {"profile.managed_default_content_settings.images":2,
                "profile.default_content_setting_values.notifications":2,
                "profile.managed_default_content_settings.stylesheets":2,
                "profile.managed_default_content_settings.cookies":2,
-               "profile.managed_default_content_settings.javascript":1,
-               "profile.managed_default_content_settings.plugins":1,
+               "profile.managed_default_content_settings.javascript":2,
+               "profile.managed_default_content_settings.plugins":2,
                "profile.managed_default_content_settings.popups":2,
                "profile.managed_default_content_settings.geolocation":2,
                "profile.managed_default_content_settings.media_stream":2,
@@ -106,7 +108,8 @@ class WebManager():
         
         #driver = webdriver.Chrome(driver_path, chrome_options = option)
         driver = webdriver.Chrome(driver_path, options = option)
-        driver.set_page_load_timeout(60)
+        driver.implicitly_wait(5)
+        driver.set_page_load_timeout(120)
         driver.get('about:blank')
         driver.execute_script("Object.defineProperty(navigator, 'plugins', {get: function() {return[1, 2, 3, 4, 5];},});")
         self.drivers.append(driver)
@@ -133,7 +136,6 @@ class WebManager():
       option = Options()
       #option = webdriver.ChromeOptions()
       option.add_argument('--headless')
-      option.add_argument('--window-size=1920x1080')
       option.add_argument('--disable-gpu')
       option.add_argument('--start-maximized')
       option.add_argument('--no-proxy-server')
@@ -142,18 +144,23 @@ class WebManager():
       option.add_argument('--lang=en_US')
       option.add_argument('--disable-dev-shm-usage')
       option.add_argument('--disable-blink-features=AutomationControlled')
+      option.add_argument('--disable-infobars')
+      option.add_argument('--disable-automation')
+      option.add_argument('--disable-extensions')
       #prefs = {"profile.managed_default_content_settings.images": 2}
       prefs = {"profile.managed_default_content_settings.images":2,
                "profile.default_content_setting_values.notifications":2,
                "profile.managed_default_content_settings.stylesheets":2,
                "profile.managed_default_content_settings.cookies":2,
-               "profile.managed_default_content_settings.javascript":1,
-               "profile.managed_default_content_settings.plugins":1,
+               "profile.managed_default_content_settings.javascript":2,
+               "profile.managed_default_content_settings.plugins":2,
                "profile.managed_default_content_settings.popups":2,
                "profile.managed_default_content_settings.geolocation":2,
                "profile.managed_default_content_settings.media_stream":2,
       }
       option.add_experimental_option("prefs", prefs)
+
+
 
       #print_flushed(self.settings)
       driver_path = self.settings.get('chromedriver_path', './web_drivers/chromedriver')
@@ -174,7 +181,8 @@ class WebManager():
         option.add_argument('--user-agent={}'.format(user_agent))
         driver = webdriver.Chrome(driver_path, options = option)
         #driver = webdriver.Chrome(driver_path, chrome_options = option)
-        driver.set_page_load_timeout(60)
+        driver.implicitly_wait(5)
+        driver.set_page_load_timeout(120)
         driver.get('about:blank')
         driver.execute_script("Object.defineProperty(navigator, 'plugins', {get: function() {return[1, 2, 3, 4, 5];},});")
         self.drivers.append(driver)
@@ -256,10 +264,8 @@ class WebManager():
     try:
       driver = self.get_cur_driver_()
       driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
-      time.sleep(3)
       page_source = driver.page_source 
       self.lxml_tree = html.fromstring(page_source)
-      time.sleep(2)
     except Exception as e:
       if e.__class__.__name__ in selenium_chrome_erros:
       #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
@@ -273,14 +279,14 @@ class WebManager():
       self.rotate_driver_()
       driver = self.get_cur_driver_()
       driver.get(url)
-      WebDriverWait(driver, 30).until(lambda d: d.execute_script('return document.readyState') == 'complete')
+      WebDriverWait(driver, 60).until(lambda d: d.execute_script('return document.readyState') == 'complete')
       driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
       cnt = 0
       max_cnt = 3
       while (self.get_html() == '<html><head></head><body></body></html>'):
-        print_flushed("Reload page (empty htmls)")
+        print_flushed("Reload page (blank page)")
         driver.get(url)
-        WebDriverWait(driver, 30).until(lambda d: d.execute_script('return document.readyState') == 'complete')
+        WebDriverWait(driver, 60).until(lambda d: d.execute_script('return document.readyState') == 'complete')
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
         cnt = cnt + 1
         if cnt >= max_cnt:
@@ -498,7 +504,7 @@ class WebManager():
       
       inputElement = driver.find_element_by_class_name('fm-submit')
       inputElement.click()
-      time.sleep(20)
+      time.sleep(5)
       print_flushed(driver.current_url)
     except Exception as e:
       if e.__class__.__name__ in selenium_chrome_erros:
@@ -598,7 +604,7 @@ class WebManager():
   def click_elements_repeat(self, xpath, check_xpath, time_sleep, url):
     try:
       cnt = 0
-      max_retry = 100
+      max_retry = 0
       while True:
         try:
           self.get_cur_driver_().execute_script("window.scrollTo(0, document.body.scrollHeight)")
@@ -615,9 +621,11 @@ class WebManager():
             break
           while True:
             try:
-              element = WebDriverWait(self.get_cur_driver_(), 60).until(EC.element_to_be_clickable((By.XPATH, xpath)))  
-              self.get_cur_driver_().execute_script("window.scrollTo(0, document.body.scrollHeight)")
-              time.sleep(3)
+              element = WebDriverWait(self.get_cur_driver_(), 10).until(EC.element_to_be_clickable((By.XPATH, xpath)))  
+              location = element.location
+              print("window.scrollTo(0, {})".format(int(location['y'])))
+              self.get_cur_driver_().execute_script("window.scrollTo(0, {})".format(int(location['y']) ))
+              time.sleep(1) 
               element.click()
               break
             except Exception as e:
@@ -881,7 +889,7 @@ class WebManager():
         request.method = 'POST'
       self.get_cur_driver_().request_interceptor = interceptor 
       self.load(url)
-      time.sleep(1) 
+      
       print_flushed(self.get_html())
       token = self.get_html().split('CSRF_TOKEN : "')[1].split('", IDs')[0]
       print_flushed("@@@@@@@@@@ Get ctrf token {} ".format(token))
@@ -893,7 +901,7 @@ class WebManager():
 
       print_flushed("@@@@@@@@@@ Change zipcode address-change.html API")
       self.load(url)
-      time.sleep(1)
+     
       is_valid = '"isValidAddress":1' in self.get_html()
       print_flushed("@@@@@@@ is return valid address? {}".format(is_valid))
 
@@ -920,7 +928,7 @@ class WebManager():
         request.method = 'POST'
       self.get_cur_driver_().request_interceptor = interceptor 
       self.load(url)
-      time.sleep(1) 
+      
       print_flushed(self.get_html())
       token = self.get_html().split('CSRF_TOKEN : "')[1].split('", IDs')[0]
       print_flushed("@@@@@@@@@@ Get ctrf token {} ".format(token))
@@ -932,7 +940,7 @@ class WebManager():
 
       print_flushed("@@@@@@@@@@ Change zipcode address-change.html API")
       self.load(url)
-      time.sleep(1)
+     
       is_valid = '"isValidAddress":1' in self.get_html()
       print_flushed("@@@@@@@ is return valid address? {}".format(is_valid))
 
@@ -959,7 +967,7 @@ class WebManager():
         request.method = 'POST'
       self.get_cur_driver_().request_interceptor = interceptor 
       self.load(url)
-      time.sleep(1) 
+      
       print_flushed(self.get_html())
       token = self.get_html().split('CSRF_TOKEN : "')[1].split('", IDs')[0]
       print_flushed("@@@@@@@@@@ Get ctrf token {} ".format(token))
@@ -971,7 +979,7 @@ class WebManager():
 
       print_flushed("@@@@@@@@@@ Change zipcode address-change.html API")
       self.load(url)
-      time.sleep(1)
+     
       is_valid = '"isValidAddress":1' in self.get_html()
       print_flushed("@@@@@@@ is return valid address? {}".format(is_valid))
 
@@ -1011,7 +1019,15 @@ if __name__ == '__main__':
   #print_flushed(web_manager.get_html().split('CSRF_TOKEN : "')[1].split('", IDs')[0])
   #web_manager.get_cur_driver_().delete_all_cookies()
   #web_manager.load('http://www.amazon.com/gp/delivery/ajax/address-change.html?locationType=LOCATION_INPUT&zipCode=94024&storeContext=office-products&deviceType=web&pageType=Detail&actionSource=glow&almBrandId=undefined')
-  web_manager.load('https://www.ashford.com/brand/tissot.html?product_list_limit=80')
+  #web_manager.load('https://www.amazon.com/Homyl-Smartwatch-Pedometer-Support-Activity/dp/B08375X16G/ref=sr_1_8271?dchild=1&qid=1627211700&refinements=p_n_condition-type%3A6461716011%2Cp_36%3A5000-130000&rnid=386442011&s=wearable-tech&sr=1-8271')
+  web_manager.load('https://www.jomashop.com/watches-for-men.html?price=%7B%22from%22%3A100%2C%22to%22%3A1460%7D&manufacturer=Philip+Stein%7CPicasso+And+Co%7CRado%7CRaymond+Weil%7CRebel%7CReign%7CRene+Mouris%7CRevue+Thommen%7CRoberto+Bianci%7CSalvatore+Ferragamo%7CSeapro%7CSeiko%7CSevenfriday%7CShield%7CSimplify%7CSkagen%7CStarfive%7CSteinhausen%7CStrumento+Marino%7CStuhrling+Original%7CSuunto%7CSwatch%7CSwiss+Legend%7CSwiss+Military')
+  #web_manager.load('https://www.jomashop.com/watches-for-women.html?manufacturer=A.+Lange+%26+Sohne%7CA_Line%7CAdee+Kaye%7CAkribos+Xxiv')
+  #print_flushed(web_manager.get_html())
+  #web_manager.build_lxml_tree()
+  print_flushed('----------------------------')
+  web_manager.click_elements_repeat("//div[@class='load-more-button']", "//div[@class='productItemBlock']",5 ,'https://www.jomashop.com/watches-for-men.html?price=%7B%22from%22%3A100%2C%22to%22%3A1460%7D&manufacturer=Philip+Stein%7CPicasso+And+Co%7CRado%7CRaymond+Weil%7CRebel%7CReign%7CRene+Mouris%7CRevue+Thommen%7CRoberto+Bianci%7CSalvatore+Ferragamo%7CSeapro%7CSeiko%7CSevenfriday%7CShield%7CSimplify%7CSkagen%7CStarfive%7CSteinhausen%7CStrumento+Marino%7CStuhrling+Original%7CSuunto%7CSwatch%7CSwiss+Legend%7CSwiss+Military')
+  print_flushed('----------------------------')
+  #print_flushed(web_manager.get_value_by_lxml("//*[@id='prodDetails']/h2", 'alltext'))
   print_flushed('after load')
   web_manager.close()
 #

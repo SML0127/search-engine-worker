@@ -72,15 +72,18 @@ class Cafe24Manager:
         option.add_argument('--disable-gpu')
         option.add_argument('--no-sandbox')
         option.add_argument('--disable-dev-shm-usage')
-        option.add_argument('disable-blink-features=AutomationControlled')
+        option.add_argument('--disable-blink-features=AutomationControlled')
+        option.add_argument('--disable-infobars')
+        option.add_argument('--disable-automation')
+        option.add_argument('--disable-extensions')
         option.add_argument('--user-agent={}'.format(
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107"))
         prefs = {"profile.managed_default_content_settings.images":2,
                  "profile.default_content_setting_values.notifications":2,
                  "profile.managed_default_content_settings.stylesheets":2,
                  "profile.managed_default_content_settings.cookies":2,
-                 "profile.managed_default_content_settings.javascript":1,
-                 "profile.managed_default_content_settings.plugins":1,
+                 "profile.managed_default_content_settings.javascript":2,
+                 "profile.managed_default_content_settings.plugins":2,
                  "profile.managed_default_content_settings.popups":2,
                  "profile.managed_default_content_settings.geolocation":2,
                  "profile.managed_default_content_settings.media_stream":2,
@@ -88,6 +91,7 @@ class Cafe24Manager:
         option.add_experimental_option("prefs", prefs)
         driver = webdriver.Chrome(
             './web_drivers/chromedriver', chrome_options=option)
+        driver.implicitly_wait(5)
         url = 'https://{}.cafe24api.com/api/v2/oauth/authorize?response_type=code&client_id={}&state=test&redirect_uri={}&scope={}'.format(
             self.mall_id, self.client_id, self.redirect_uri, self.scope)
         print_flushed(url)

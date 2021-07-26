@@ -99,7 +99,7 @@ class BFSIterator(BaseOperator):
                 gvar.web_mgr.send_keys_to_elements(
                     '//input[@id="captchacharacters"]', solution)
                 gvar.web_mgr.click_elements('//button')
-                time.sleep(5)
+                time.sleep(3)
                 gvar.web_mgr.load(url)
                 check_chaptcha = gvar.web_mgr.get_elements_by_selenium_(chaptcha_xpath)
                 if cnt >= max_cnt:
