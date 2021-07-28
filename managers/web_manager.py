@@ -66,6 +66,7 @@ class WebManager():
       
       option.add_argument('--headless')
       option.add_argument('--disable-gpu')
+      option.add_argument('--window-size=1920,1080')
       option.add_argument('--start-maximized')
       option.add_argument('--no-proxy-server')
       option.add_argument('--no-sandbox')
@@ -137,6 +138,7 @@ class WebManager():
       #option = webdriver.ChromeOptions()
       option.add_argument('--headless')
       option.add_argument('--disable-gpu')
+      option.add_argument('--window-size=1920,1080')
       option.add_argument('--start-maximized')
       option.add_argument('--no-proxy-server')
       option.add_argument('--no-sandbox')
@@ -150,7 +152,7 @@ class WebManager():
       #prefs = {"profile.managed_default_content_settings.images": 2}
       prefs = {"profile.managed_default_content_settings.images":2,
                "profile.default_content_setting_values.notifications":2,
-               "profile.managed_default_content_settings.stylesheets":2,
+               "profile.managed_default_content_settings.stylesheets":1,
                "profile.managed_default_content_settings.cookies":2,
                "profile.managed_default_content_settings.javascript":2,
                "profile.managed_default_content_settings.plugins":2,
@@ -604,11 +606,9 @@ class WebManager():
   def click_elements_repeat(self, xpath, check_xpath, time_sleep, url):
     try:
       cnt = 0
-      max_retry = 0
+      max_retry = 30 
       while True:
         try:
-          self.get_cur_driver_().execute_script("window.scrollTo(0, document.body.scrollHeight)")
-          time.sleep(3)
           if check_xpath != '':
             check_elements = self.get_elements_by_selenium_(check_xpath)
             num_check_elements = len(check_elements)
@@ -625,7 +625,7 @@ class WebManager():
               location = element.location
               print("window.scrollTo(0, {})".format(int(location['y'])))
               self.get_cur_driver_().execute_script("window.scrollTo(0, {})".format(int(location['y']) ))
-              time.sleep(1) 
+              time.sleep(2) 
               element.click()
               break
             except Exception as e:
@@ -637,6 +637,7 @@ class WebManager():
             self.restart(5)
             self.load(url)
             cnt = cnt + 1
+            print_flushed(str(traceback.format_exc()))
           else:
             raise e
     except Exception as e:
