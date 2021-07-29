@@ -9,9 +9,10 @@
 
 
 class OperatorError(Exception):
-    def __init__(self, error, op_id):
+    def __init__(self, error, op_id, xpath = ''):
         self.error = error
         self.op_id = op_id
+        self.xpath = xpath
     def __str__(self):
         return str("OperatorError") + "\n" + str(self.error)
 
@@ -127,7 +128,8 @@ class ParsedDataWrongTypeError(Exception):
 
 
 class NoneDetailPageError(Exception):
-    def __init__(self):
+    def __init__(self, xpath = ''):
+        self.xpath = xpath
         pass
     def __str__(self):
         return str("NoneDetailPageError") + "\n" 

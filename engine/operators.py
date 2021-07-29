@@ -517,7 +517,7 @@ class BFSIterator(BaseOperator):
                     is_invalid_input = gvar.web_mgr.get_elements_by_lxml_(
                         self.props['query'])
                     if len(is_invalid_input) == 0:
-                        if 'is_detail' in self.props:
+                        if 'is_detail' not in self.props:
                             print_flushed("@@@@@@@@@@ Not Detail page, set as a failure")
                             gvar.profiling_info['check_xpath_error'] = True
                             raise CheckXpathError
@@ -529,7 +529,7 @@ class BFSIterator(BaseOperator):
                             gvar.stack_indices.append(0)
                             gvar.graph_mgr.insert_node_property(
                                 gvar.stack_nodes[-1], 'url', gvar.task_url)
-                            return CheckXpathError
+                            raise CheckXpathError
                 #######################################
 
                 node_id = gvar.graph_mgr.create_node(
@@ -564,27 +564,36 @@ class BFSIterator(BaseOperator):
             except Exception as e:
                 print_flushed(e.__class__.__name__)
                 if e.__class__.__name__ == 'BtnNumError':
+                    fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
+                    gvar.web_mgr.store_page_source(fname)
+                    print_flushed("error html:", fname)
+                    err_msg = '================================ MESSAGE ============================== \n'
+                    err_msg += 'In BFSIterator (summary page pagination), button number in URL and element are different.\nPlease check web page and xpath rule\n\nURL: {}\nXpath rule: {}\n\n'.format(str(gvar.task_url), str(self.props['btn_query']).replace("'",'"'))
+                    err_msg += '================================ Opeartor ==================================\n'
+                    err_msg += err_op_name + ' \n\n'
+                    err_msg += '================================ STACK TRACE ============================== \n' + \
+                        str(traceback.format_exc())
+                    gvar.graph_mgr.log_err_msg_of_task(gvar.task_id, err_msg)
+                    raise
                     raise
                 elif e.__class__.__name__ == 'NoneDetailPageError':
-                    err_msg = '================================== URL ==================================\n'
-                    err_msg += ' ' + str(gvar.task_url) + '\n\n'
+                    err_msg = '================================ MESSAGE ============================== \n'
+                    err_msg += 'In summary page pagination, there is no detail page in this URL: {} \n Please check web page and xpath rule {} \n\n'.format(str(gvar.task_url), str(e.xpath).replace("'",'"'))
                     err_msg += '================================ Opeartor ==================================\n'
-                    err_msg += 'Summary page pagination \n\n'
-                    err_msg += '================================ Reason ============================== \n'
-                    err_msg += 'There is no detail page\n\n'
+                    err_msg += 'Expander \n\n'
                     err_msg += '================================ STACK TRACE ============================== \n' + \
                         str(traceback.format_exc())
                     gvar.graph_mgr.log_err_msg_of_task(gvar.task_id, err_msg)
                     raise
 
                 err_cnt = err_cnt + 1
-                if err_cnt >= 5:
+                if err_cnt >= 1:
                     if e.__class__.__name__ == 'CheckXpathError':
                         fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
                         gvar.web_mgr.store_page_source(fname)
                         print_flushed("error html:", fname)
-                        err_msg = '================================== URL ==================================\n'
-                        err_msg += ' ' + str(gvar.task_url) + '\n\n'
+                        err_msg = '================================ MESSAGE ============================== \n'
+                        err_msg += 'In BFSIterator, there is no element with input xpath rule.\nPlease check web page and xpath rule\n\nURL: {}\nXpath rule: {}\n\n'.format(str(gvar.task_url), str(self.props['query']).replace("'",'"'))
                         err_msg += '================================ Opeartor ==================================\n'
                         err_msg += err_op_name + ' \n\n'
                         err_msg += '================================ STACK TRACE ============================== \n' + \
@@ -595,14 +604,26 @@ class BFSIterator(BaseOperator):
                         fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
                         gvar.web_mgr.store_page_source(fname)
                         print_flushed("error html:", fname)
-                        err_msg = '================================== URL ==================================\n'
-                        err_msg += ' ' + str(gvar.task_url) + '\n\n'
+                        err_msg = '================================ MESSAGE ============================== \n'
+                        err_msg += 'In {}, there is no element with input xpath rule.\nPlease check web page and xpath rule\n\nURL: {}\nXpath rule: {}\n\n'.format(err_op_name, str(gvar.task_url), str(e.xpath).replace("'",'"'))
                         err_msg += '================================ Opeartor ==================================\n'
                         err_msg += err_op_name + ' \n\n'
                         err_msg += '================================ STACK TRACE ============================== \n' + \
                             str(traceback.format_exc())
                         gvar.graph_mgr.log_err_msg_of_task(gvar.task_id, err_msg)
                         raise OperatorError(e, self.props['id'])
+                    #else:
+                    #    fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
+                    #    gvar.web_mgr.store_page_source(fname)
+                    #    print_flushed("error html:", fname)
+                    #    err_msg = '================================== URL ==================================\n'
+                    #    err_msg += ' ' + str(gvar.task_url) + '\n\n'
+                    #    err_msg += '================================ Opeartor ==================================\n'
+                    #    err_msg += err_op_name + ' \n\n'
+                    #    err_msg += '================================ STACK TRACE ============================== \n' + \
+                    #        str(traceback.format_exc())
+                    #    gvar.graph_mgr.log_err_msg_of_task(gvar.task_id, err_msg)
+                    #    raise OperatorError(e, self.props['id'])
 
                 else:
                     gvar.web_mgr.restart(5)
@@ -653,7 +674,7 @@ class OpenNode(BaseOperator):
         except Exception as e:
             if type(e) is OperatorError:
                 raise e
-            raise OperatorError(e, self.props['id'])
+            raise OperatorError(e, self.props['id'], self.props['query'])
 
 
 class SendPhoneKeyOperator(BaseOperator):
@@ -672,7 +693,7 @@ class SendPhoneKeyOperator(BaseOperator):
             gvar.profiling_info[op_id] = {'op_time': op_time}
             return
         except Exception as e:
-            raise OperatorError(e, self.props['id'])
+            raise OperatorError(e, self.props['id'], self.props['query'])
             return
         return
 
@@ -731,7 +752,7 @@ class HoverOperator(BaseOperator):
                 raise e
             else:
                 fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
-                raise OperatorError(e, self.props['id'])
+                raise OperatorError(e, self.props['id'], self.props['query'])
 
         return
 
@@ -759,22 +780,25 @@ class LoginOperator(BaseOperator):
 
 class SendKeysOperator(BaseOperator):
     def run(self, gvar):
+        log_query = ''
         try:
             op_id = self.props['id']
             op_start = time.time()
             print_flushed("Do Input (SendKeys)")
             for column in self.props["queries"]:
                 query = column["query"]
+                log_query = query
                 gvar.web_mgr.send_keys_to_elements(query, column['value'])
             op_time = time.time() - op_start
             gvar.profiling_info[op_id] = {'op_time': op_time}
         except Exception as e:
-            raise OperatorError(e, self.props['id'])
+            raise OperatorError(e, self.props['id'], log_query)
 
 
 class ClickOperator(BaseOperator):
 
     def run(self, gvar):
+        log_query = ''
         try:
             time_sleep = int(self.props.get('delay', 0))
             op_id = self.props['id']
@@ -782,6 +806,7 @@ class ClickOperator(BaseOperator):
             print_flushed("Do Click")
             for column in self.props["queries"]:
                 query = column["query"]
+                log_query = query
                 check_query = column.get("check_query",'').strip()
                 if 'indices' in column:
                     query = self.set_query(
@@ -811,7 +836,7 @@ class ClickOperator(BaseOperator):
                 raise e
             else:
                 fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
-                raise OperatorError(e, self.props['id'])
+                raise OperatorError(e, self.props['id'], log_query)
 
         return
 
@@ -819,12 +844,14 @@ class ClickOperator(BaseOperator):
 class MoveCursorOperator(BaseOperator):
 
     def run(self, gvar):
+        log_query = ''
         try:
             op_id = self.props['id']
             op_start = time.time()
             print_flushed("Do MoveCursor")
             for column in self.props["queries"]:
                 query = column["query"]
+                log_query = query
                 if 'indices' in column:
                     query = self.set_query(
                         query, gvar.stack_indices, column['indices'])
@@ -844,7 +871,7 @@ class MoveCursorOperator(BaseOperator):
                 raise e
             else:
                 fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
-                raise OperatorError(e, self.props['id'])
+                raise OperatorError(e, self.props['id'], log_query)
 
 
 class Expander(BaseOperator):
@@ -930,7 +957,7 @@ class Expander(BaseOperator):
                 if self_url == 1:
                     result.append(gvar.web_mgr.get_current_url())
         if len(result) == 0:
-            raise NoneDetailPageError
+            raise NoneDetailPageError(self.props['query'])
         gvar.results[op_id] = [(gvar.task_id, gvar.stack_nodes[-1], result)]
         op_time = time.time() - op_start
         gvar.profiling_info[op_id] = {
@@ -967,6 +994,7 @@ class ValuesScrapper(BaseOperator):
         pairs = self.props['queries']
         xpaths_time = ''
         build_time = ''
+        log_query = ''
         try:
 
             build_time = time.time()
@@ -977,6 +1005,7 @@ class ValuesScrapper(BaseOperator):
             for pair in pairs:
                 key = pair['key']
                 xpath = pair['query']
+                log_query = xpath
                 attr = pair['attr']
                 print_flushed(pair)
 
@@ -1026,7 +1055,7 @@ class ValuesScrapper(BaseOperator):
                 print_flushed('Chrome Error in ValuesScrapper')
                 raise e
             else:
-                raise OperatorError(e, self.props['id'])
+                raise OperatorError(e, self.props['id'], log_query)
         
         try:
             db_time = time.time()
@@ -1059,6 +1088,7 @@ class ListsScrapper(BaseOperator):
         queries = self.props['queries']
         xpaths_time = ''
         build_time = ''
+        log_query = ''
         try:
 
             build_time = time.time()
@@ -1069,6 +1099,7 @@ class ListsScrapper(BaseOperator):
             for query in queries:
                 key = query['key']
                 xpath = query['query']
+                log_query = xpath
                 if 'indices' in query:
                     xpath = self.set_query(
                         xpath, gvar.stack_indices, query['indices'])
@@ -1089,7 +1120,7 @@ class ListsScrapper(BaseOperator):
                 print_flushed('Chrome Error in ListsScrapper')
                 raise e
             else:
-                raise OperatorError(e, self.props['id'])
+                raise OperatorError(e, self.props['id'], log_query)
         try: 
             db_time = time.time()
             for key, value in result.items():
@@ -1121,6 +1152,7 @@ class DictsScrapper(BaseOperator):
         queries = self.props['queries']
         xpaths_time = ''
         build_time = ''
+        log_query = ''
         try:
 
             build_time = time.time()
@@ -1134,6 +1166,7 @@ class DictsScrapper(BaseOperator):
             for query in queries:
                 key = query['key']
                 rows_query = query['rows_query']
+                log_query = rows_query
                 if 'rows_indices' in query:
                     rows_query = self.set_query(
                         rows_query, gvar.stack_indices, query['rows_indices'].strip())
@@ -1169,7 +1202,7 @@ class DictsScrapper(BaseOperator):
                 print_flushed('Chrome Error in DictionariesScrapper')
                 raise e
             else:
-                raise OperatorError(e, self.props['id'])
+                raise OperatorError(e, self.props['id'], log_query)
         
         try:
             db_time = time.time()
@@ -1202,10 +1235,12 @@ class OptionListScrapper(BaseOperator):
         xpaths_time = ''
         build_time = ''
         result = {}
+        log_query = ''
         try:
             option_name_query = self.props['option_name_query']
             option_dropdown_query = self.props['option_dropdown_query']
             option_value_query = self.props['option_value_query']
+            log_query = option_name_query
 
             build_time = time.time()
             gvar.web_mgr.build_lxml_tree()
@@ -1231,7 +1266,7 @@ class OptionListScrapper(BaseOperator):
                 print_flushed('Chrome Error in OptionListScrapper')
                 raise e
             else:
-                raise OperatorError(e, self.props['id'])
+                raise OperatorError(e, self.props['id'], log_query)
 
         try:
             db_time = time.time()
@@ -1264,11 +1299,13 @@ class OptionMatrixScrapper(BaseOperator):
         xpaths_time = ''
         build_time = ''
         result = {}
+        log_query = ''
         try:
             option_name_query = self.props['option_name_query']
             option_x_query = self.props['option_x_value_query']
             option_y_query = self.props['option_y_value_query']
             option_combination_value_query = self.props['option_matrix_row_wise_value_query']
+            log_query = option_name_query
 
             build_time = time.time()
             gvar.web_mgr.build_lxml_tree()
@@ -1303,7 +1340,7 @@ class OptionMatrixScrapper(BaseOperator):
                 print_flushed('Chrome Error in OptionMatrixScrapper')
                 raise e
             else:
-                raise OperatorError(e, self.props['id'])
+                raise OperatorError(e, self.props['id'], log_query)
 
         try:
             db_time = time.time()

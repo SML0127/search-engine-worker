@@ -625,8 +625,16 @@ class WebManager():
               location = element.location
               print("window.scrollTo(0, {})".format(int(location['y'])))
               self.get_cur_driver_().execute_script("window.scrollTo(0, {})".format(int(location['y']) ))
-              time.sleep(2) 
-              element.click()
+              time.sleep(2)
+              try:
+                element.click()
+              except Exception as e:
+                print_flushed("Click error: ", e.__class__.__name__)
+                if e.__class__.__name__ == 'ElementClickInterceptedException':
+                  break;
+                else:
+                  print_flushed(str(traceback.format_exc()))
+                  raise
               break
             except Exception as e:
               raise
