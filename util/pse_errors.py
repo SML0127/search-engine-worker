@@ -9,10 +9,11 @@
 
 
 class OperatorError(Exception):
-    def __init__(self, error, op_id, xpath = ''):
+    def __init__(self, error, op_id, xpath = '', key = ''):
         self.error = error
         self.op_id = op_id
         self.xpath = xpath
+        self.key = key
     def __str__(self):
         return str("OperatorError") + "\n" + str(self.error)
 
