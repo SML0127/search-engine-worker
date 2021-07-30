@@ -831,7 +831,8 @@ class WebManager():
         res_tmp = []
         for velement in velements:
           val = self.get_attribute_by_lxml_(velement, vattr)
-          res_tmp.append(val)
+          if val is not None:
+            res_tmp.append(val)
         result.append(res_tmp)
       return result
     except Exception as e:
@@ -1019,25 +1020,45 @@ if __name__ == '__main__':
   #print_flushed(response.text)
   #print_flushed(response.text.split('CSRF_TOKEN : "')[1].split('", IDs')[0])
   #token = response.text.split('CSRF_TOKEN : "')[1].split('", IDs')[0]
+  try:
+    web_manager = WebManager()
+    #web_manager.init({"chromedriver_user_agent":"PostmanRuntime/7.19.0", 'token': token})
+    web_manager.init({"chromedriver_user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107"})
+    print_flushed('after init')
+    #web_manager.load('https://www.amazon.com/gp/glow/get-address-selections.html?deviceType=desktop&pageType=Gateway&storeContext=NoStoreName')
+    #print_flushed(web_manager.get_html().split('CSRF_TOKEN : "')[1].split('", IDs')[0])
+    #web_manager.get_cur_driver_().delete_all_cookies()
+    #web_manager.load('http://www.amazon.com/gp/delivery/ajax/address-change.html?locationType=LOCATION_INPUT&zipCode=94024&storeContext=office-products&deviceType=web&pageType=Detail&actionSource=glow&almBrandId=undefined')
+    #web_manager.load('https://www.amazon.com/Homyl-Smartwatch-Pedometer-Support-Activity/dp/B08375X16G/ref=sr_1_8271?dchild=1&qid=1627211700&refinements=p_n_condition-type%3A6461716011%2Cp_36%3A5000-130000&rnid=386442011&s=wearable-tech&sr=1-8271')
+    web_manager.load('https://outlet.arcteryx.com/us/en/shop/mens/zeta-sl-jacket-(us)')
+    #web_manager.load('https://www.jomashop.com/watches-for-women.html?manufacturer=A.+Lange+%26+Sohne%7CA_Line%7CAdee+Kaye%7CAkribos+Xxiv')
+    #print_flushed(web_manager.get_html())
+    #web_manager.build_lxml_tree()
+    print_flushed('----------------------------')
+    option_name_query = "//*[@class='OptionLabel__OptionSpan-ef5zek-1 dvTlFU qa--option-label-colour']"#self.props['option_name_query']
+    option_dropdown_query = "//*[@id='colour-thumbnails']"#self.props['option_dropdown_query']
+    option_value_query = "//button/img"#self.props['option_value_query']
+    option_attr = "title"#self.props.get('option_attr', 'alltext')
+    web_manager.build_lxml_tree()
 
-  web_manager = WebManager()
-  #web_manager.init({"chromedriver_user_agent":"PostmanRuntime/7.19.0", 'token': token})
-  web_manager.init({"chromedriver_user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107"})
-  print_flushed('after init')
-  #web_manager.load('https://www.amazon.com/gp/glow/get-address-selections.html?deviceType=desktop&pageType=Gateway&storeContext=NoStoreName')
-  #print_flushed(web_manager.get_html().split('CSRF_TOKEN : "')[1].split('", IDs')[0])
-  #web_manager.get_cur_driver_().delete_all_cookies()
-  #web_manager.load('http://www.amazon.com/gp/delivery/ajax/address-change.html?locationType=LOCATION_INPUT&zipCode=94024&storeContext=office-products&deviceType=web&pageType=Detail&actionSource=glow&almBrandId=undefined')
-  #web_manager.load('https://www.amazon.com/Homyl-Smartwatch-Pedometer-Support-Activity/dp/B08375X16G/ref=sr_1_8271?dchild=1&qid=1627211700&refinements=p_n_condition-type%3A6461716011%2Cp_36%3A5000-130000&rnid=386442011&s=wearable-tech&sr=1-8271')
-  web_manager.load('https://www.jomashop.com/watches-for-men.html?price=%7B%22from%22%3A100%2C%22to%22%3A1460%7D&manufacturer=Philip+Stein%7CPicasso+And+Co%7CRado%7CRaymond+Weil%7CRebel%7CReign%7CRene+Mouris%7CRevue+Thommen%7CRoberto+Bianci%7CSalvatore+Ferragamo%7CSeapro%7CSeiko%7CSevenfriday%7CShield%7CSimplify%7CSkagen%7CStarfive%7CSteinhausen%7CStrumento+Marino%7CStuhrling+Original%7CSuunto%7CSwatch%7CSwiss+Legend%7CSwiss+Military')
-  #web_manager.load('https://www.jomashop.com/watches-for-women.html?manufacturer=A.+Lange+%26+Sohne%7CA_Line%7CAdee+Kaye%7CAkribos+Xxiv')
-  #print_flushed(web_manager.get_html())
-  #web_manager.build_lxml_tree()
-  print_flushed('----------------------------')
-  web_manager.click_elements_repeat("//div[@class='load-more-button']", "//div[@class='productItemBlock']",5 ,'https://www.jomashop.com/watches-for-men.html?price=%7B%22from%22%3A100%2C%22to%22%3A1460%7D&manufacturer=Philip+Stein%7CPicasso+And+Co%7CRado%7CRaymond+Weil%7CRebel%7CReign%7CRene+Mouris%7CRevue+Thommen%7CRoberto+Bianci%7CSalvatore+Ferragamo%7CSeapro%7CSeiko%7CSevenfriday%7CShield%7CSimplify%7CSkagen%7CStarfive%7CSteinhausen%7CStrumento+Marino%7CStuhrling+Original%7CSuunto%7CSwatch%7CSwiss+Legend%7CSwiss+Military')
-  print_flushed('----------------------------')
-  #print_flushed(web_manager.get_value_by_lxml("//*[@id='prodDetails']/h2", 'alltext'))
-  print_flushed('after load')
+    option_names = web_manager.get_values_by_lxml(
+        option_name_query, 'alltext')
+    option_values = web_manager.get_option_values_by_lxml(
+        option_dropdown_query, option_value_query, option_attr)
+    result = {}
+    for idx, option_name in enumerate(option_names):
+        try:
+            result[option_name] = option_values[idx]
+        except:
+            pass
+    print_flushed(result)
+
+    #web_manager.click_elements_repeat("//div[@class='load-more-button']", "//div[@class='productItemBlock']",5 ,'https://www.jomashop.com/watches-for-men.html?price=%7B%22from%22%3A100%2C%22to%22%3A1460%7D&manufacturer=Philip+Stein%7CPicasso+And+Co%7CRado%7CRaymond+Weil%7CRebel%7CReign%7CRene+Mouris%7CRevue+Thommen%7CRoberto+Bianci%7CSalvatore+Ferragamo%7CSeapro%7CSeiko%7CSevenfriday%7CShield%7CSimplify%7CSkagen%7CStarfive%7CSteinhausen%7CStrumento+Marino%7CStuhrling+Original%7CSuunto%7CSwatch%7CSwiss+Legend%7CSwiss+Military')
+    print_flushed('----------------------------')
+    #print_flushed(web_manager.get_value_by_lxml("//*[@id='prodDetails']/h2", 'alltext'))
+    print_flushed('after load')
+  except:
+    print_flushed(str(traceback.format_exc()))
   web_manager.close()
 #
 #  try:
