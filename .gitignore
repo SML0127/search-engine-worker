@@ -9,6 +9,11 @@ node_modules/
 dist/
 crawling_*
 
+pse-test*
+pse-tester*
+pse-tester.py
+
+
 share*
 dump*
 .dump*

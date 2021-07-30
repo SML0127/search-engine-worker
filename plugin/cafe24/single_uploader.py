@@ -330,6 +330,7 @@ class Cafe24SingleUploader(Resource):
       err_msg = "Fail to upload items \n"
       err_msg += err_cafe24_op + " \n"
       err_msg += "My site product pids: " + log_mpids + " \n" 
+      err_msg += '================================ STACK TRACE ============================== \n' + str(traceback.format_exc())
       self.graph_manager.log_err_msg_of_upload(-1, err_msg, log_mt_history_id )
 
       profiling_info['total_time'] = time.time() - total_time
