@@ -1,5 +1,6 @@
 import string
 import time
+import subprocess
 import traceback
 import random
 
@@ -13,6 +14,17 @@ from urllib.parse import urlparse
 
 from functools import partial
 print_flushed = partial(print, flush=True)
+
+
+
+def post_notification_to_slack(msg):
+    try:
+        subprocess.Popen("curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"" + str(msg).replace('"',"'") + "\"}' https://hooks.slack.com/services/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", shell=True)
+    except:
+        print(str(traceback.format_exc()))
+        pass
+
+
 
 class GlovalVariable():
 
@@ -567,18 +579,23 @@ class BFSIterator(BaseOperator):
                     fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
                     gvar.web_mgr.store_page_source(fname)
                     print_flushed("error html:", fname)
+                    err_msg = '================================ CRAWLING NOTIFICATION ============================== \n'
+                    err_msg += 'In summary page pagination, button number in URL and element are different.\nPlease check web page and xpath rule\n\nURL: {}\nXpath rule: {}\n\n'.format(str(gvar.task_url), str(self.props['btn_query']).replace("'",'"'))
+                    post_notification_to_slack(err_msg)
                     err_msg = '================================ MESSAGE ============================== \n'
-                    err_msg += 'In BFSIterator (summary page pagination), button number in URL and element are different.\nPlease check web page and xpath rule\n\nURL: {}\nXpath rule: {}\n\n'.format(str(gvar.task_url), str(self.props['btn_query']).replace("'",'"'))
+                    err_msg += 'In summary page pagination, button number in URL and element are different.\nPlease check web page and xpath rule\n\nURL: {}\nXpath rule: {}\n\n'.format(str(gvar.task_url), str(self.props['btn_query']).replace("'",'"'))
                     err_msg += '================================ Opeartor ==================================\n'
                     err_msg += err_op_name + ' \n\n'
                     err_msg += '================================ STACK TRACE ============================== \n' + \
                         str(traceback.format_exc())
                     gvar.graph_mgr.log_err_msg_of_task(gvar.task_id, err_msg)
                     raise
-                    raise
                 elif e.__class__.__name__ == 'NoneDetailPageError':
+                    err_msg = '================================ CRAWLING NOTIFICATION ============================== \n'
+                    err_msg += 'In summary page pagination, there is no detail page in web page.\n Please check web page and xpath rule \n\nURL: {}\nXPath rule: {}\n\n'.format(str(gvar.task_url), str(e.xpath).replace("'",'"'))
+                    post_notification_to_slack(err_msg)
                     err_msg = '================================ MESSAGE ============================== \n'
-                    err_msg += 'In summary page pagination, there is no detail page in this URL: {} \n Please check web page and xpath rule {} \n\n'.format(str(gvar.task_url), str(e.xpath).replace("'",'"'))
+                    err_msg += 'In summary page pagination, there is no detail page in web page.\n Please check web page and xpath rule \n\nURL: {}\nXPath rule: {}\n\n'.format(str(gvar.task_url), str(e.xpath).replace("'",'"'))
                     err_msg += '================================ Opeartor ==================================\n'
                     err_msg += 'Expander \n\n'
                     err_msg += '================================ STACK TRACE ============================== \n' + \
@@ -587,13 +604,16 @@ class BFSIterator(BaseOperator):
                     raise
 
                 err_cnt = err_cnt + 1
-                if err_cnt >= 1:
+                if err_cnt >= 5:
                     if e.__class__.__name__ == 'CheckXpathError':
                         fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
                         gvar.web_mgr.store_page_source(fname)
                         print_flushed("error html:", fname)
+                        err_msg = '================================ CRAWLING NOTIFICATION ============================== \n'
+                        err_msg += 'There is no element with input xpath rule for checking web page is loaded successfully.\nPlease check web page and xpath rule\n\nURL: {}\nXPath rule: {}\n\n'.format(str(gvar.task_url), str(self.props['query']).replace("'",'"'))
+                        post_notification_to_slack(err_msg)
                         err_msg = '================================ MESSAGE ============================== \n'
-                        err_msg += 'In BFSIterator, there is no element with input xpath rule.\nPlease check web page and xpath rule\n\nURL: {}\nXpath rule: {}\n\n'.format(str(gvar.task_url), str(self.props['query']).replace("'",'"'))
+                        err_msg += 'There is no element with input xpath rule for checking web page is loaded successfully.\nPlease check web page and xpath rule\n\nURL: {}\nXPath rule: {}\n\n'.format(str(gvar.task_url), str(self.props['query']).replace("'",'"'))
                         err_msg += '================================ Opeartor ==================================\n'
                         err_msg += err_op_name + ' \n\n'
                         err_msg += '================================ STACK TRACE ============================== \n' + \
@@ -604,8 +624,11 @@ class BFSIterator(BaseOperator):
                         fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
                         gvar.web_mgr.store_page_source(fname)
                         print_flushed("error html:", fname)
+                        err_msg = '================================ CRAWLING NOTIFICATION ============================== \n'
+                        err_msg += 'There is no element with input xpath rule of Key: {}.\nPlease check web page and xpath rule\n\nURL: {}\nKey: {}\nXPath rule: {}\n\n'.format(err_op_name, str(e.key), str(gvar.task_url), str(e.key), str(e.xpath).replace("'",'"'))
+                        post_notification_to_slack(err_msg)
                         err_msg = '================================ MESSAGE ============================== \n'
-                        err_msg += 'In {}, there is no element with input xpath rule.\nPlease check web page and xpath rule\n\nURL: {}\nXpath rule: {}\n\n'.format(err_op_name, str(gvar.task_url), str(e.xpath).replace("'",'"'))
+                        err_msg += 'There is no element with input xpath rule of Key: {}.\nPlease check web page and xpath rule\n\nURL: {}\nKey: {}\nXPath rule: {}\n\n'.format(err_op_name, str(e.key), str(gvar.task_url), str(e.key), str(e.xpath).replace("'",'"'))
                         err_msg += '================================ Opeartor ==================================\n'
                         err_msg += err_op_name + ' \n\n'
                         err_msg += '================================ STACK TRACE ============================== \n' + \
@@ -995,6 +1018,7 @@ class ValuesScrapper(BaseOperator):
         xpaths_time = ''
         build_time = ''
         log_query = ''
+        log_key = ''
         try:
 
             build_time = time.time()
@@ -1028,24 +1052,30 @@ class ValuesScrapper(BaseOperator):
                     else:
                         if attr == 'outerHTML':
                             if essential:
+                                log_key = key
                                 result[key] = gvar.web_mgr.get_subtree_with_style_strong(
                                     xpath)
                             else:
+                                log_key = ''
                                 result[key] = gvar.web_mgr.get_subtree_with_style(
                                     xpath)
                             continue
                         if attr == 'innerHTML':
                             if essential:
+                                log_key = key
                                 result[key] = gvar.web_mgr.get_subtree_no_parent_with_style_strong(
                                     xpath)
                             else:
+                                log_key = ''
                                 result[key] = gvar.web_mgr.get_subtree_no_parent_with_style(
                                     xpath)
                             continue
                         if essential:
+                            log_key = key
                             result[key] = gvar.web_mgr.get_value_by_lxml_strong(
                                 xpath, attr)
                         else:
+                            log_key = ''
                             result[key] = gvar.web_mgr.get_value_by_lxml(
                                 xpath, attr)
             xpaths_time = time.time() - xpaths_time
@@ -1055,7 +1085,7 @@ class ValuesScrapper(BaseOperator):
                 print_flushed('Chrome Error in ValuesScrapper')
                 raise e
             else:
-                raise OperatorError(e, self.props['id'], log_query)
+                raise OperatorError(e, self.props['id'], log_query, log_key)
         
         try:
             db_time = time.time()
@@ -1089,6 +1119,7 @@ class ListsScrapper(BaseOperator):
         xpaths_time = ''
         build_time = ''
         log_query = ''
+        log_key = ''
         try:
 
             build_time = time.time()
@@ -1108,9 +1139,11 @@ class ListsScrapper(BaseOperator):
                 if type(essential) != type(True):
                     essential = eval(essential)
                 if essential:
+                    log_key = key
                     result[key] = gvar.web_mgr.get_values_by_lxml_strong(
                         xpath, attr)
                 else:
+                    log_key = ''
                     result[key] = gvar.web_mgr.get_values_by_lxml(xpath, attr)
 
             xpaths_time = time.time() - xpaths_time
@@ -1120,7 +1153,7 @@ class ListsScrapper(BaseOperator):
                 print_flushed('Chrome Error in ListsScrapper')
                 raise e
             else:
-                raise OperatorError(e, self.props['id'], log_query)
+                raise OperatorError(e, self.props['id'], log_query, log_key)
         try: 
             db_time = time.time()
             for key, value in result.items():
@@ -1153,6 +1186,7 @@ class DictsScrapper(BaseOperator):
         xpaths_time = ''
         build_time = ''
         log_query = ''
+        log_key = ''
         try:
 
             build_time = time.time()
@@ -1186,9 +1220,11 @@ class DictsScrapper(BaseOperator):
                     essential = eval(essential)
 
                 if essential:
+                    log_key = key
                     result[key] = gvar.web_mgr.get_key_values_by_lxml_strong(
                         rows_query, key_query, key_attr, value_query, value_attr)
                 else:
+                    log_key = ''
                     result[key] = gvar.web_mgr.get_key_values_by_lxml(
                         rows_query, key_query, key_attr, value_query, value_attr)
                 title_query = query['title_query']
@@ -1202,7 +1238,7 @@ class DictsScrapper(BaseOperator):
                 print_flushed('Chrome Error in DictionariesScrapper')
                 raise e
             else:
-                raise OperatorError(e, self.props['id'], log_query)
+                raise OperatorError(e, self.props['id'], log_query, log_key)
         
         try:
             db_time = time.time()
@@ -1240,18 +1276,21 @@ class OptionListScrapper(BaseOperator):
             option_name_query = self.props['option_name_query']
             option_dropdown_query = self.props['option_dropdown_query']
             option_value_query = self.props['option_value_query']
+            option_attr = self.props.get('option_attr', 'alltext')
+            if option_attr == '':
+                option_attr = 'alltext'
             log_query = option_name_query
 
             build_time = time.time()
             gvar.web_mgr.build_lxml_tree()
             build_time = time.time() - build_time
-
+            
             xpaths_time = time.time()
 
             option_names = gvar.web_mgr.get_values_by_lxml(
                 option_name_query, 'alltext')
             option_values = gvar.web_mgr.get_option_values_by_lxml(
-                option_dropdown_query, option_value_query, 'alltext')
+                option_dropdown_query, option_value_query, option_attr)
 
             for idx, option_name in enumerate(option_names):
                 try:
@@ -1266,7 +1305,7 @@ class OptionListScrapper(BaseOperator):
                 print_flushed('Chrome Error in OptionListScrapper')
                 raise e
             else:
-                raise OperatorError(e, self.props['id'], log_query)
+                raise OperatorError(e, self.props['id'], log_query, 'option list')
 
         try:
             db_time = time.time()
@@ -1340,7 +1379,7 @@ class OptionMatrixScrapper(BaseOperator):
                 print_flushed('Chrome Error in OptionMatrixScrapper')
                 raise e
             else:
-                raise OperatorError(e, self.props['id'], log_query)
+                raise OperatorError(e, self.props['id'], log_query, 'option matrix')
 
         try:
             db_time = time.time()
@@ -1410,11 +1449,11 @@ if __name__ == '__main__':
 
     gvar.graph_mgr = GraphManager()
     gvar.graph_mgr.connect(
-        "host=141.223.197.36 port=5434 user=smlee password=smlee dbname=pse")
+        "host=141.223.197.35 port=54320 user=pse password=pse dbname=pse")
     gvar.web_mgr = WebManager()
     gvar.task_id = 0
     gvar.exec_id = 0
-    gvar.task_url = "https://www.amazon.com/Sensodyne-Pronamel-Whitening-Strengthening-Toothpaste/dp/B0762LYFKP?pf_rd_p=9dbbfba7-e756-51ca-b790-09e9b92beee1&pf_rd_r=EG4J8ZAJZNB9B3HBQ9G1&pd_rd_wg=W8hx6&ref_=pd_gw_ri&pd_rd_w=kynj4&pd_rd_r=6365323e-7c16-4273-a2c5-5d85b04565f5"
+    gvar.task_url = "https://outlet.arcteryx.com/us/en/shop/mens/zeta-sl-jacket-(us)"
     gvar.task_zipcode_url = "https://www.amazon.com/gp/delivery/ajax/address-change.html?locationType=LOCATION_INPUT&zipCode=94024&storeContext=offce-products&deviceType=web&pageType=detail&actionSource=glow"
     bfs_iterator = BFSIterator()
     bfs_iterator.props = {'id': 1, 'query': "//span[@id='productTitle']"}
