@@ -19,7 +19,7 @@ print_flushed = partial(print, flush=True)
 
 def post_notification_to_slack(msg):
     try:
-        subprocess.Popen("curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"" + str(msg).replace('"',"'") + "\"}' https://hooks.slack.com/services/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", shell=True)
+        subprocess.Popen("curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"" + str(msg).replace('"',"'") + "\"}' https://hooks.slack.com/services/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", shell=True)
     except:
         print(str(traceback.format_exc()))
         pass
@@ -505,7 +505,7 @@ class BFSIterator(BaseOperator):
                         gvar.graph_mgr.insert_node_property(gvar.stack_nodes[-1], 'url', gvar.task_url)
                         #gvar.profiling_info[op_id] = {'invalid': True}
                         gvar.profiling_info['invalid'] = True
-                        return
+                        raise InvalidPageError
 
                 elif 'zalando' in src_url:
                     print_flushed("@@@@@@@@@@ Check invalid page (zalando)")
@@ -521,7 +521,7 @@ class BFSIterator(BaseOperator):
                         gvar.graph_mgr.insert_node_property(gvar.stack_nodes[-1], 'url', gvar.task_url)
                         #gvar.profiling_info[op_id] = {'invalid': True}
                         gvar.profiling_info['invalid'] = True
-                        return
+                        raise InvalidPageError
 
                 if 'query' in self.props:
                     print_flushed(
@@ -551,7 +551,7 @@ class BFSIterator(BaseOperator):
                 gvar.graph_mgr.insert_node_property(
                     gvar.stack_nodes[-1], 'url', gvar.task_url)
 
-                if 'btn_query' in self.props and int(self.props['page_id']) != 1:
+                if self.props.get('btn_query', '') != '' and int(self.props['page_id']) != 1:
                     res = gvar.web_mgr.get_value_by_lxml_strong(
                         self.props['btn_query'], 'alltext')
                     print_flushed('@@@@@@@@@@ btn cur :', res)
@@ -591,6 +591,9 @@ class BFSIterator(BaseOperator):
                     gvar.graph_mgr.log_err_msg_of_task(gvar.task_id, err_msg)
                     raise
                 elif e.__class__.__name__ == 'NoneDetailPageError':
+                    fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
+                    gvar.web_mgr.store_page_source(fname)
+                    print_flushed("error html:", fname)
                     err_msg = '================================ CRAWLING NOTIFICATION ============================== \n'
                     err_msg += 'In summary page pagination, there is no detail page in web page.\n Please check web page and xpath rule \n\nURL: {}\nXPath rule: {}\n\n'.format(str(gvar.task_url), str(e.xpath).replace("'",'"'))
                     post_notification_to_slack(err_msg)
@@ -602,6 +605,22 @@ class BFSIterator(BaseOperator):
                         str(traceback.format_exc())
                     gvar.graph_mgr.log_err_msg_of_task(gvar.task_id, err_msg)
                     raise
+                elif e.__class__.__name__ == 'InvalidPageError':
+                    fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
+                    gvar.web_mgr.store_page_source(fname)
+                    print_flushed("error html:", fname)
+                    err_msg = '================================ CRAWLING NOTIFICATION ============================== \n'
+                    err_msg += 'In summary page pagination, there is invalid web page.\n Please check web page and xpath rule \n\nURL: {}}\n\n'.format(str(gvar.task_url))
+                    post_notification_to_slack(err_msg)
+                    err_msg = '================================ MESSAGE ============================== \n'
+                    err_msg += 'In summary page pagination, there is invalid web page.\n Please check web page and xpath rule \n\nURL: {}}\n\n'.format(str(gvar.task_url))
+                    err_msg += '================================ Opeartor ==================================\n'
+                    err_msg += 'BFSIterator \n\n'
+                    err_msg += '================================ STACK TRACE ============================== \n' + \
+                        str(traceback.format_exc())
+                    gvar.graph_mgr.log_err_msg_of_task(gvar.task_id, err_msg)
+                    raise
+
 
                 err_cnt = err_cnt + 1
                 if err_cnt >= 5:
@@ -620,15 +639,30 @@ class BFSIterator(BaseOperator):
                             str(traceback.format_exc())
                         gvar.graph_mgr.log_err_msg_of_task(gvar.task_id, err_msg)
                         raise
+                    elif e.__class__.__name__ == 'WebMgrErr':
+                        fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
+                        gvar.web_mgr.store_page_source(fname)
+                        print_flushed("error html:", fname)
+                        err_msg = '================================ CRAWLING NOTIFICATION ============================== \n'
+                        err_msg += 'There is chromedriver error.\n\nURL: {}\n\n'.format(str(gvar.task_url))
+                        post_notification_to_slack(err_msg)
+                        err_msg = '================================ MESSAGE ============================== \n'
+                        err_msg += 'There is chromedriver error.\n\nURL: {}\n\n'.format(str(gvar.task_url))
+                        err_msg += '================================ Opeartor ==================================\n'
+                        err_msg += err_op_name + ' \n\n'
+                        err_msg += '================================ STACK TRACE ============================== \n' + \
+                            str(traceback.format_exc())
+                        gvar.graph_mgr.log_err_msg_of_task(gvar.task_id, err_msg)
+                        raise
                     else:
                         fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
                         gvar.web_mgr.store_page_source(fname)
                         print_flushed("error html:", fname)
                         err_msg = '================================ CRAWLING NOTIFICATION ============================== \n'
-                        err_msg += 'There is no element with input xpath rule of Key: {}.\nPlease check web page and xpath rule\n\nURL: {}\nKey: {}\nXPath rule: {}\n\n'.format(err_op_name, str(e.key), str(gvar.task_url), str(e.key), str(e.xpath).replace("'",'"'))
+                        err_msg += 'There is no element with input xpath rule of Key: {}.\nPlease check web page and xpath rule\n\nURL: {}\nKey: {}\nXPath rule: {}\n\n'.format(str(e.key), str(gvar.task_url), str(e.key), str(e.xpath).replace("'",'"'))
                         post_notification_to_slack(err_msg)
                         err_msg = '================================ MESSAGE ============================== \n'
-                        err_msg += 'There is no element with input xpath rule of Key: {}.\nPlease check web page and xpath rule\n\nURL: {}\nKey: {}\nXPath rule: {}\n\n'.format(err_op_name, str(e.key), str(gvar.task_url), str(e.key), str(e.xpath).replace("'",'"'))
+                        err_msg += 'There is no element with input xpath rule of Key: {}.\nPlease check web page and xpath rule\n\nURL: {}\nKey: {}\nXPath rule: {}\n\n'.format(str(e.key), str(gvar.task_url), str(e.key), str(e.xpath).replace("'",'"'))
                         err_msg += '================================ Opeartor ==================================\n'
                         err_msg += err_op_name + ' \n\n'
                         err_msg += '================================ STACK TRACE ============================== \n' + \

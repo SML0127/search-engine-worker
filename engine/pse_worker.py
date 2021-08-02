@@ -197,6 +197,10 @@ class pseWorker(Worker):
                 err = {'type': 1, 'error': str(e), 'err_msg': gvar.err_msg, 'traceback': traceback.format_exc()}
                 self.lm.end_task(task_id, -998, err)
                 raise
+            elif err_name == 'InvalidPageError':
+                err = {'type': 1, 'error': str(e), 'err_msg': gvar.err_msg, 'traceback': traceback.format_exc()}
+                self.lm.end_task(task_id, -998, err)
+                raise
             else:
                 err = {'type': 1, 'error': str(e), 'err_msg': gvar.err_msg, 'traceback': traceback.format_exc()}
                 self.lm.end_task(task_id, ErrorDict.get(err_name, -1), err)

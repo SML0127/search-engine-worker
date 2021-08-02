@@ -149,6 +149,10 @@ class CheckXpathError(Exception):
     def __str__(self):
         return str("CheckXpathError") + "\n" 
 
-
+class InvalidPageError(Exception):
+    def __init__(self):
+        pass
+    def __str__(self):
+        return str("InvalidPageError") + "\n" 
 
         

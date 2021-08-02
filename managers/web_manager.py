@@ -152,7 +152,7 @@ class WebManager():
       #prefs = {"profile.managed_default_content_settings.images": 2}
       prefs = {"profile.managed_default_content_settings.images":2,
                "profile.default_content_setting_values.notifications":2,
-               "profile.managed_default_content_settings.stylesheets":1,
+               "profile.managed_default_content_settings.stylesheets":2,
                "profile.managed_default_content_settings.cookies":2,
                "profile.managed_default_content_settings.javascript":2,
                "profile.managed_default_content_settings.plugins":2,
@@ -623,19 +623,28 @@ class WebManager():
             try:
               element = WebDriverWait(self.get_cur_driver_(), 10).until(EC.element_to_be_clickable((By.XPATH, xpath)))  
               location = element.location
-              print("window.scrollTo(0, {})".format(int(location['y'])))
-              self.get_cur_driver_().execute_script("window.scrollTo(0, {})".format(int(location['y']) ))
-              time.sleep(2)
+              height = self.get_cur_driver_().get_window_size()['height']
+              if int(location['y']) < height:
+                print("window.scrollTo(0, {})".format(int(location['y'])))
+                self.get_cur_driver_().execute_script("window.scrollTo(0, {})".format(int(location['y']) ))
+              else: 
+                print("window.scrollTo(0, {})".format(int(location['y'] - height/5)))
+                self.get_cur_driver_().execute_script("window.scrollTo(0, {})".format(int(location['y'] - height/5) ))
+              #print("window.scrollTo(0, {})".format(int(location['y'])))
+              #self.get_cur_driver_().execute_script("window.scrollTo(0, {})".format(int(location['y']) ))
+              time.sleep(4)
               try:
                 element.click()
+                break
               except Exception as e:
                 print_flushed("Click error: ", e.__class__.__name__)
                 if e.__class__.__name__ == 'ElementClickInterceptedException':
                   break;
+                elif e.__class__.__name__ == 'StaleElementReferenceException':
+                  pass
                 else:
                   print_flushed(str(traceback.format_exc()))
                   raise
-              break
             except Exception as e:
               raise
           time.sleep(time_sleep)
@@ -666,10 +675,20 @@ class WebManager():
           raise
 
       if num_elements == 0: return
-      element = WebDriverWait(self.get_cur_driver_(), 2).until(EC.element_to_be_clickable((By.XPATH, xpath)))
+      element = WebDriverWait(self.get_cur_driver_(), 10).until(EC.element_to_be_clickable((By.XPATH, xpath)))  
+      location = element.location
+      height = self.get_cur_driver_().get_window_size()['height']
+      if int(location['y']) < height:
+        print("window.scrollTo(0, {})".format(int(location['y'])))
+        self.get_cur_driver_().execute_script("window.scrollTo(0, {})".format(int(location['y']) ))
+      else: 
+        print("window.scrollTo(0, {})".format(int(location['y'] - height/5)))
+        self.get_cur_driver_().execute_script("window.scrollTo(0, {})".format(int(location['y'] - height/5)))
+      time.sleep(3)
       element.click()
 
     except Exception as e:
+      print_flushed(str(traceback.format_exc()))
       elements = self.get_elements_by_selenium_(xpath)
       num_elements = len(elements)
       if num_elements == 0:
@@ -827,9 +846,12 @@ class WebManager():
       result = []
       for element in elements:
         velements = element.xpath(vxpath)
+        #print(etree.tostring(element))
+        #print(velements)
         if len(velements) == 0: continue
         res_tmp = []
         for velement in velements:
+          #print(etree.tostring(velement))
           val = self.get_attribute_by_lxml_(velement, vattr)
           if val is not None:
             res_tmp.append(val)
@@ -1028,32 +1050,40 @@ if __name__ == '__main__':
     #web_manager.load('https://www.amazon.com/gp/glow/get-address-selections.html?deviceType=desktop&pageType=Gateway&storeContext=NoStoreName')
     #print_flushed(web_manager.get_html().split('CSRF_TOKEN : "')[1].split('", IDs')[0])
     #web_manager.get_cur_driver_().delete_all_cookies()
-    #web_manager.load('http://www.amazon.com/gp/delivery/ajax/address-change.html?locationType=LOCATION_INPUT&zipCode=94024&storeContext=office-products&deviceType=web&pageType=Detail&actionSource=glow&almBrandId=undefined')
-    #web_manager.load('https://www.amazon.com/Homyl-Smartwatch-Pedometer-Support-Activity/dp/B08375X16G/ref=sr_1_8271?dchild=1&qid=1627211700&refinements=p_n_condition-type%3A6461716011%2Cp_36%3A5000-130000&rnid=386442011&s=wearable-tech&sr=1-8271')
-    web_manager.load('https://outlet.arcteryx.com/us/en/shop/mens/zeta-sl-jacket-(us)')
-    #web_manager.load('https://www.jomashop.com/watches-for-women.html?manufacturer=A.+Lange+%26+Sohne%7CA_Line%7CAdee+Kaye%7CAkribos+Xxiv')
+    #web_manager.load('https://www.jomashop.com/watches-for-women.html?price=%7B%22from%22%3A100%2C%22to%22%3A1460%7D&manufacturer=Accutron%7CAdee+Kaye%7CAkribos+Xxiv%7CAlpina%7CAnne+Klein%7CAppetime%7CApple%7CArmani+Exchange%7CBall%7CBallast%7CBaume+Et+Mercier%7CBedat%7CBell+And+Ross%7CBertha%7CBertolucci%7CBoucheron%7CBreitling%7CBruno+Magli%7CBulova%7CBurberry%7CBurgi%7CBvlgari%7CCalibre%7CCalvin+Klein%7CCarl+F.+Bucherer%7CCartier%7CCertina%7CCharmex%7CCharriol%7CChristian+Van+Sant%7CCitizen%7CCj+Lasso%7CCoach%7CConcord%7CCorum%7CCrayo%7CD1+Milano%7CDaniel+Wellington%7CDavidoff%7CDeep+Blue%7CDior%7CDkny%7CEarth%7CEbel%7CEdox%7CEmporio+Armani%7CEmpress%7CEnicar%7CErnest+Borel%7CEterna%7CFendi%7CFerragamo%7CFerre+Milano%7CFossil%7CFurla%7CGevril%7CGlashutte%7CGucci%7CGv2+By+Gevril%7CHaurex+Italy%7CHublot%7CJacob+%26+Co.%7CJbw%7CJivago%7CJohan+Eric%7CJoshua+And+Sons%7CJunghans%7CJust+Cavalli%7CKate+Spade%7CLongines')
+    #web_manager.load('https://outlet.arcteryx.com/us/en/shop/mens/beta-lt-jacket-(2019)')
+    #web_manager.load('https://outlet.arcteryx.com/us/en/shop/mens/beta-sl-hybrid-jacket')
+    web_manager.load('https://outlet.arcteryx.com/us/en/shop/mens/alpha-sv-jacket-(2016)')
     #print_flushed(web_manager.get_html())
     #web_manager.build_lxml_tree()
     print_flushed('----------------------------')
-    option_name_query = "//*[@class='OptionLabel__OptionSpan-ef5zek-1 dvTlFU qa--option-label-colour']"#self.props['option_name_query']
-    option_dropdown_query = "//*[@id='colour-thumbnails']"#self.props['option_dropdown_query']
-    option_value_query = "//button/img"#self.props['option_value_query']
-    option_attr = "title"#self.props.get('option_attr', 'alltext')
-    web_manager.build_lxml_tree()
 
-    option_names = web_manager.get_values_by_lxml(
-        option_name_query, 'alltext')
-    option_values = web_manager.get_option_values_by_lxml(
-        option_dropdown_query, option_value_query, option_attr)
-    result = {}
-    for idx, option_name in enumerate(option_names):
-        try:
-            result[option_name] = option_values[idx]
-        except:
-            pass
-    print_flushed(result)
+     #list option test
+    #option_name_query = "//*[@class='OptionLabel__OptionSpan-ef5zek-1 dvTlFU qa--option-label-size']" 
+    #option_dropdown_query = "//*[@data-testid='size-list']"#self.props['option_dropdown_query']
+    ##option_value_query = "//*[@class='Size__SizeListItem-sliccf-2 uJLTY']/button"#self.props['option_value_query']
+    #option_value_query = "//*[@class='Size__SizeListItem-sliccf-2 uJLTY']/button[@class='Size__SizeListValue-sliccf-3 kOtQwH    ']" 
+    #option_attr = "alltext"#self.props.get('option_attr', 'alltext')
+    web_manager.click_elements("//*[@id='features']//button")
+    web_manager.click_elements("//*[@id='materials']//button")
+    #web_manager.build_lxml_tree()
+    #print(web_manager.get_html())
+    #web_manager.get_values_by_lxml("//*[@id='features']//*[@class='featureWrapper']", 'innerHTML')
+    #web_manager.get_values_by_lxml("//*[@id='materials']//*[@class='featureWrapper']", 'innerHTML')
+    #option_names = web_manager.get_values_by_lxml(
+    #    option_name_query, 'alltext')
+    #option_values = web_manager.get_option_values_by_lxml(
+    #    option_dropdown_query, option_value_query, option_attr)
+    #result = {}
+    #for idx, option_name in enumerate(option_names):
+    #    try:
+    #        result[option_name] = option_values[idx]
+    #    except:
+    #        pass
+    #print_flushed(result)
 
-    #web_manager.click_elements_repeat("//div[@class='load-more-button']", "//div[@class='productItemBlock']",5 ,'https://www.jomashop.com/watches-for-men.html?price=%7B%22from%22%3A100%2C%22to%22%3A1460%7D&manufacturer=Philip+Stein%7CPicasso+And+Co%7CRado%7CRaymond+Weil%7CRebel%7CReign%7CRene+Mouris%7CRevue+Thommen%7CRoberto+Bianci%7CSalvatore+Ferragamo%7CSeapro%7CSeiko%7CSevenfriday%7CShield%7CSimplify%7CSkagen%7CStarfive%7CSteinhausen%7CStrumento+Marino%7CStuhrling+Original%7CSuunto%7CSwatch%7CSwiss+Legend%7CSwiss+Military')
+    #web_manager.click_elements_repeat("//div[@class='load-more-button']", "//li[@class='productItem']",5 ,'https://www.jomashop.com/watches-for-women.html?price=%7B%22from%22%3A100%2C%22to%22%3A1460%7D&manufacturer=Accutron%7CAdee+Kaye%7CAkribos+Xxiv%7CAlpina%7CAnne+Klein%7CAppetime%7CApple%7CArmani+Exchange%7CBall%7CBallast%7CBaume+Et+Mercier%7CBedat%7CBell+And+Ross%7CBertha%7CBertolucci%7CBoucheron%7CBreitling%7CBruno+Magli%7CBulova%7CBurberry%7CBurgi%7CBvlgari%7CCalibre%7CCalvin+Klein%7CCarl+F.+Bucherer%7CCartier%7CCertina%7CCharmex%7CCharriol%7CChristian+Van+Sant%7CCitizen%7CCj+Lasso%7CCoach%7CConcord%7CCorum%7CCrayo%7CD1+Milano%7CDaniel+Wellington%7CDavidoff%7CDeep+Blue%7CDior%7CDkny%7CEarth%7CEbel%7CEdox%7CEmporio+Armani%7CEmpress%7CEnicar%7CErnest+Borel%7CEterna%7CFendi%7CFerragamo%7CFerre+Milano%7CFossil%7CFurla%7CGevril%7CGlashutte%7CGucci%7CGv2+By+Gevril%7CHaurex+Italy%7CHublot%7CJacob+%26+Co.%7CJbw%7CJivago%7CJohan+Eric%7CJoshua+And+Sons%7CJunghans%7CJust+Cavalli%7CKate+Spade%7CLongines')
+    #print(web_manager.get_values_by_selenium("//div[@class='productItemBlock']", "data-product-scroll-target"))
     print_flushed('----------------------------')
     #print_flushed(web_manager.get_value_by_lxml("//*[@id='prodDetails']/h2", 'alltext'))
     print_flushed('after load')
