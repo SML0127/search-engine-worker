@@ -643,7 +643,7 @@ class BFSIterator(BaseOperator):
                             str(traceback.format_exc())
                         gvar.graph_mgr.log_err_msg_of_task(gvar.task_id, err_msg)
                         raise
-                    elif e.__class__.__name__ == 'WebMgrErr':
+                    elif e.__class__.__name__ == 'WebMgrErr' or e.__class__.__name__ == 'TimeoutException':
                         fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
                         gvar.web_mgr.store_page_source(fname)
                         print_flushed("error html:", fname)
