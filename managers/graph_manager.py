@@ -1233,6 +1233,16 @@ class GraphManager():
       print_flushed(str(traceback.format_exc()))
       raise e
 
+  def get_slack_url(self):
+    try:
+      query =  "select url from slack_url limit 1;"
+      self.gp_cur.execute(query)
+      result = self.gp_cur.fetchone()[0]
+      return result
+    except Exception as e:
+      self.gp_conn.rollback()
+      print_flushed(str(traceback.format_exc()))
+      raise e
 
   def get_zipcode(self, src_url, zipcode):
     try:

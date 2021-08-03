@@ -17,9 +17,9 @@ print_flushed = partial(print, flush=True)
 
 
 
-def post_notification_to_slack(msg):
+def post_notification_to_slack(msg, url):
     try:
-        subprocess.Popen("curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"" + str(msg).replace('"',"'") + "\"}' https://hooks.slack.com/services/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", shell=True)
+        subprocess.Popen("curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"" + str(msg).replace('"',"'") + "\"}' " + url + "&> /dev/null", shell=True)
     except:
         print(str(traceback.format_exc()))
         pass
@@ -581,7 +581,8 @@ class BFSIterator(BaseOperator):
                     print_flushed("error html:", fname)
                     err_msg = '================================ CRAWLING NOTIFICATION ============================== \n'
                     err_msg += 'In summary page pagination, button number in URL and element are different.\nPlease check web page and xpath rule\n\nURL: {}\nXpath rule: {}\n\n'.format(str(gvar.task_url), str(self.props['btn_query']).replace("'",'"'))
-                    post_notification_to_slack(err_msg)
+                    url = gvar.graph_mgr.get_slack_url()
+                    post_notification_to_slack(err_msg, url)
                     err_msg = '================================ MESSAGE ============================== \n'
                     err_msg += 'In summary page pagination, button number in URL and element are different.\nPlease check web page and xpath rule\n\nURL: {}\nXpath rule: {}\n\n'.format(str(gvar.task_url), str(self.props['btn_query']).replace("'",'"'))
                     err_msg += '================================ Opeartor ==================================\n'
@@ -596,7 +597,8 @@ class BFSIterator(BaseOperator):
                     print_flushed("error html:", fname)
                     err_msg = '================================ CRAWLING NOTIFICATION ============================== \n'
                     err_msg += 'In summary page pagination, there is no detail page in web page.\n Please check web page and xpath rule \n\nURL: {}\nXPath rule: {}\n\n'.format(str(gvar.task_url), str(e.xpath).replace("'",'"'))
-                    post_notification_to_slack(err_msg)
+                    url = gvar.graph_mgr.get_slack_url()
+                    post_notification_to_slack(err_msg, url)
                     err_msg = '================================ MESSAGE ============================== \n'
                     err_msg += 'In summary page pagination, there is no detail page in web page.\n Please check web page and xpath rule \n\nURL: {}\nXPath rule: {}\n\n'.format(str(gvar.task_url), str(e.xpath).replace("'",'"'))
                     err_msg += '================================ Opeartor ==================================\n'
@@ -611,7 +613,8 @@ class BFSIterator(BaseOperator):
                     print_flushed("error html:", fname)
                     err_msg = '================================ CRAWLING NOTIFICATION ============================== \n'
                     err_msg += 'In summary page pagination, there is invalid web page.\n Please check web page and xpath rule \n\nURL: {}}\n\n'.format(str(gvar.task_url))
-                    post_notification_to_slack(err_msg)
+                    url = gvar.graph_mgr.get_slack_url()
+                    post_notification_to_slack(err_msg, url)
                     err_msg = '================================ MESSAGE ============================== \n'
                     err_msg += 'In summary page pagination, there is invalid web page.\n Please check web page and xpath rule \n\nURL: {}}\n\n'.format(str(gvar.task_url))
                     err_msg += '================================ Opeartor ==================================\n'
@@ -630,7 +633,8 @@ class BFSIterator(BaseOperator):
                         print_flushed("error html:", fname)
                         err_msg = '================================ CRAWLING NOTIFICATION ============================== \n'
                         err_msg += 'There is no element with input xpath rule for checking web page is loaded successfully.\nPlease check web page and xpath rule\n\nURL: {}\nXPath rule: {}\n\n'.format(str(gvar.task_url), str(self.props['query']).replace("'",'"'))
-                        post_notification_to_slack(err_msg)
+                        url = gvar.graph_mgr.get_slack_url()
+                        post_notification_to_slack(err_msg, url)
                         err_msg = '================================ MESSAGE ============================== \n'
                         err_msg += 'There is no element with input xpath rule for checking web page is loaded successfully.\nPlease check web page and xpath rule\n\nURL: {}\nXPath rule: {}\n\n'.format(str(gvar.task_url), str(self.props['query']).replace("'",'"'))
                         err_msg += '================================ Opeartor ==================================\n'
@@ -645,7 +649,8 @@ class BFSIterator(BaseOperator):
                         print_flushed("error html:", fname)
                         err_msg = '================================ CRAWLING NOTIFICATION ============================== \n'
                         err_msg += 'There is chromedriver error.\n\nURL: {}\n\n'.format(str(gvar.task_url))
-                        post_notification_to_slack(err_msg)
+                        url = gvar.graph_mgr.get_slack_url()
+                        post_notification_to_slack(err_msg, url)
                         err_msg = '================================ MESSAGE ============================== \n'
                         err_msg += 'There is chromedriver error.\n\nURL: {}\n\n'.format(str(gvar.task_url))
                         err_msg += '================================ Opeartor ==================================\n'
@@ -660,7 +665,8 @@ class BFSIterator(BaseOperator):
                         print_flushed("error html:", fname)
                         err_msg = '================================ CRAWLING NOTIFICATION ============================== \n'
                         err_msg += 'There is no element with input xpath rule of Key: {}.\nPlease check web page and xpath rule\n\nURL: {}\nKey: {}\nXPath rule: {}\n\n'.format(str(e.key), str(gvar.task_url), str(e.key), str(e.xpath).replace("'",'"'))
-                        post_notification_to_slack(err_msg)
+                        url = gvar.graph_mgr.get_slack_url()
+                        post_notification_to_slack(err_msg, url)
                         err_msg = '================================ MESSAGE ============================== \n'
                         err_msg += 'There is no element with input xpath rule of Key: {}.\nPlease check web page and xpath rule\n\nURL: {}\nKey: {}\nXPath rule: {}\n\n'.format(str(e.key), str(gvar.task_url), str(e.key), str(e.xpath).replace("'",'"'))
                         err_msg += '================================ Opeartor ==================================\n'
