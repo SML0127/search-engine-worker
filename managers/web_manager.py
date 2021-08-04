@@ -839,7 +839,7 @@ class WebManager():
         raise WebMgrErr(e)
 
 
-  def get_option_values_by_lxml(self, xpath, vxpath, vattr):
+  def get_option_values_by_lxml(self, xpath, vxpath, vattr, essential):
     try:
       elements = self.get_elements_by_lxml_(xpath)
       if len(elements) == 0: return []
@@ -852,9 +852,14 @@ class WebManager():
         res_tmp = []
         for velement in velements:
           #print(etree.tostring(velement))
-          val = self.get_attribute_by_lxml_(velement, vattr)
-          if val is not None:
-            res_tmp.append(val)
+          if essential == True:
+            val = self.get_attribute_by_lxml_strong_(velement, vattr)
+            if val is not None:
+              res_tmp.append(val)
+          else:
+            val = self.get_attribute_by_lxml_(velement, vattr)
+            if val is not None:
+              res_tmp.append(val)
         result.append(res_tmp)
       return result
     except Exception as e:

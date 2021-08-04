@@ -1317,9 +1317,13 @@ class OptionListScrapper(BaseOperator):
             option_dropdown_query = self.props['option_dropdown_query']
             option_value_query = self.props['option_value_query']
             option_attr = self.props.get('option_attr', 'alltext')
+            option_essential = self.props.get('option_essential', 'False')
             if option_attr == '':
                 option_attr = 'alltext'
             log_query = option_name_query
+          
+            if type(option_essential) != type(True):
+                option_essential = eval(option_essential)
 
             build_time = time.time()
             gvar.web_mgr.build_lxml_tree()
@@ -1330,7 +1334,7 @@ class OptionListScrapper(BaseOperator):
             option_names = gvar.web_mgr.get_values_by_lxml(
                 option_name_query, 'alltext')
             option_values = gvar.web_mgr.get_option_values_by_lxml(
-                option_dropdown_query, option_value_query, option_attr)
+                option_dropdown_query, option_value_query, option_attr, option_essential)
 
             for idx, option_name in enumerate(option_names):
                 try:
