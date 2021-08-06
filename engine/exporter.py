@@ -36,7 +36,7 @@ class Exporter():
       pricing_information['min_margin'] = selected_pricing_information['min_margin']
       pricing_information['shipping_cost'] = selected_pricing_information['shpping_cost']
       pricing_information['min_price'] = selected_pricing_information['min_price']
-      node_properties = graph_mgr.get_node_properties_from_mysite(exec_id, mpid)
+      node_properties = graph_mgr.get_node_properties_from_mysite(job_id, mpid)
       node_properties['pricing_information'] = pricing_information
       node_properties['smpid'] = smpid
       node_properties['cnum'] = cnum

@@ -266,6 +266,9 @@ class WebManager():
     try:
       driver = self.get_cur_driver_()
       driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
+      time.sleep(3)
+      driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
+      time.sleep(3)
       page_source = driver.page_source 
       self.lxml_tree = html.fromstring(page_source)
     except Exception as e:

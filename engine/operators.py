@@ -19,7 +19,7 @@ print_flushed = partial(print, flush=True)
 
 def post_notification_to_slack(msg, url):
     try:
-        subprocess.Popen("curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"" + str(msg).replace('"',"'") + "\"}' " + url + "&> /dev/null", shell=True)
+        subprocess.Popen("curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"" + str(msg).replace('"',"'") + "\"}' " + url + " &> /dev/null", shell=True)
     except:
         print(str(traceback.format_exc()))
         pass

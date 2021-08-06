@@ -103,13 +103,16 @@ class GraphManager():
 
   def create_node(self, task_id, parent_id, label):
     try:
-      query = 'insert into node(task_id, parent_id, label) '
-      query += 'values(%s, %s, %s)'
-      query += 'returning id;'
-      self.pg_cur.execute(query, (str(task_id), str(parent_id), str(label)))
-      result = self.pg_cur.fetchone()[0]
+      query = 'BEGIN;Lock table node in EXCLUSIVE MODE; insert into node(task_id, parent_id, label) '
+      query += 'values({}, {}, {}); COMMIT;'.format(task_id, parent_id, label)
+      self.pg_cur.execute(query)
       self.pg_conn.commit()
-      query = 'COMMIT;'
+      print(query)
+      query = 'select id from node where task_id = {}'.format(task_id)
+      self.pg_cur.execute(query)
+      self.pg_conn.commit()
+      print(query)
+      result = self.pg_cur.fetchone()[0]
       self.pg_cur.execute(query)
       return result
     except Exception as e:
@@ -182,8 +185,8 @@ class GraphManager():
 
   def insert_node_property(self, nodeId, key, value):
     try:
-      query =  'INSERT INTO node_property (node_id, key, value) '
-      query += 'VALUES (%s, %s, %s)'
+      query =  'BEGIN;Lock table node_property in EXCLUSIVE MODE; INSERT INTO node_property (node_id, key, value) '
+      query += 'VALUES (%s, %s, %s);COMMIT;'
       value = json.dumps(value)
       self.gp_cur.execute(query, (str(nodeId), str(key), str(value)))
       self.gp_conn.commit()
@@ -192,60 +195,15 @@ class GraphManager():
         self.gp_cur.execute(query_mpid)
         rows = self.gp_cur.fetchall()
         if len(rows) == 0:
-           query_insert = "insert into url_to_mpid(url) values('{}')".format(value)
+           query_insert = "insert into url_to_mpid(url) values('{}');COMMIT".format(value)
            self.gp_cur.execute(query_insert)
            self.gp_conn.commit()
 
-
     except:
       self.gp_conn.rollback()
       print_flushed(str(traceback.format_exc()))
       raise
 
-
-
-  def get_mpid_from_mysite_without_up_to_date(self, exec_id):
-    try:
-      query = 'select job_id from execution where id = {}'.format(exec_id)
-      self.gp_cur.execute(query)
-      job_id = self.gp_cur.fetchone()[0]
-      self.gp_conn.commit()
-
-      query = "select mpid from job_source_view where job_id = {} and status != 4 and status != 0".format(job_id)
-      #query = "select mpid from job_source_view where job_id = {} and status =3".format(job_id)
-      self.gp_cur.execute(query)
-      tmp = self.gp_cur.fetchall()
-      self.gp_conn.commit()
-      result = []
-      for i in tmp:
-        result.append(i[0])
-      return result
-    except:
-      self.gp_conn.rollback()
-      print_flushed(str(traceback.format_exc()))
-      raise
- 
- 
-
-  def get_mpid_from_mysite(self, exec_id):
-    try:
-      query = 'select job_id from execution where id = {}'.format(exec_id)
-      self.gp_cur.execute(query)
-      job_id = self.gp_cur.fetchone()[0]
-      self.gp_conn.commit()
-
-      query = "select mpid from job_source_view where job_id = {} and status != 4".format(job_id)
-      self.gp_cur.execute(query)
-      tmp = self.gp_cur.fetchall()
-      self.gp_conn.commit()
-      result = []
-      for i in tmp:
-        result.append(i[0])
-      return result
-    except:
-      self.gp_conn.rollback()
-      print_flushed(str(traceback.format_exc()))
-      raise
  
   def get_node_properties_from_mysite(self, job_id, mpid):
     try:
@@ -265,14 +223,14 @@ class GraphManager():
         values += str(name) + ', '
       values = values[0:-2]
       
-      query = 'select '+values+' from job_source_view where mpid = {} and job_id = {}'.format(mpid, job_id)
+      query = 'select '+values+' from job_source_view where mpid = {}'.format(mpid)
       self.gp_cur.execute(query)
       col_values = self.gp_cur.fetchall()
       col_values = col_values[0]
       
       result = {}
       for i in range(0, len(col_names)):
-        if col_names[i] == 'name' or col_names[i] == 'price' or col_names[i] == 'shipping_price':
+        if col_names[i] in ['name', 'price', 'shipping_price', 'description', 'description1', 'description2', 'description_rendered', 'description1_rendered', 'description2_rendered'] :
            if is_hex_str(col_values[i]) == True:
              try:
                 result[col_names[i]] = bytes.fromhex(col_values[i]).decode()
@@ -285,7 +243,7 @@ class GraphManager():
            result[col_names[i]] = col_values[i]
       
 
-      query = 'select image_url from job_thumbnail_source_view where mpid = {} and job_id = {}'.format(mpid, job_id)
+      query = 'select image_url from job_thumbnail_source_view where mpid = {}'.format(mpid)
       self.gp_cur.execute(query)
       rows = self.gp_cur.fetchall()
       result['images'] = []
@@ -293,7 +251,7 @@ class GraphManager():
         result['images'].append(row[0])
       
 
-      query = 'select key, value from job_description_source_view where mpid = {} and job_id = {}'.format(mpid, job_id)
+      query = 'select key, value from job_description_source_view where mpid = {}'.format(mpid)
       self.gp_cur.execute(query)
       rows = self.pg_cur.fetchall()
  
@@ -302,7 +260,7 @@ class GraphManager():
           result[row[0]] = bytes.fromhex(row[1]).decode()
 
 
-      query = "select option_name, option_value, stock from job_option_source_view where mpid = {} and job_id = {}".format(mpid, job_id)
+      query = "select option_name, option_value, stock from job_option_source_view where mpid = {}".format(mpid)
       self.gp_cur.execute(query)
       rows = self.gp_cur.fetchall()
       self.gp_conn.commit()
@@ -393,7 +351,7 @@ class GraphManager():
 
   def check_status_of_product(self, job_id, mpid):
     try:
-      query = "select status from job_source_view where mpid = {} and job_id = {};".format(mpid, job_id)
+      query = "select status from job_source_view where mpid = {};".format(mpid)
       self.gp_cur.execute(query)
       row = self.gp_cur.fetchone()
       result = row[0]
@@ -559,7 +517,7 @@ class GraphManager():
         self.insert_tpid_into_mapping_table(job_id, targetsite_url, mpid, tpid)
       else: 
 
-        query = "BEGIN;  Lock table tpid_mapping in EXCLUSIVE MODE; update tpid_mapping set tpid = {}, upload_time = now() where targetsite_url = '{}' and mpid = {}; COMMIT".format(tpid, targetsite_url, mpid)
+        query = "BEGIN; Lock table tpid_mapping in EXCLUSIVE MODE; update tpid_mapping set tpid = {}, upload_time = now(), job_id = {} where targetsite_url = '{}' and mpid = {}; COMMIT".format(tpid, job_id, targetsite_url, mpid)
         print_flushed(query)
         self.gp_cur.execute(query)
         self.gp_conn.commit()
@@ -594,7 +552,7 @@ class GraphManager():
     try:
       targetsite_url = url_normalize(targetsite_url)
       while True:
-        query = "BEGIN;  Lock table tpid_mapping in EXCLUSIVE MODE; insert into tpid_mapping(job_id, mpid, targetsite_url, tpid) values({},{},'{}',{}); COMMIT;".format(job_id, mpid, targetsite_url, tpid)
+        query = "BEGIN; Lock table tpid_mapping in EXCLUSIVE MODE; insert into tpid_mapping(job_id, mpid, targetsite_url, tpid) values({},{},'{}',{}); COMMIT;".format(job_id, mpid, targetsite_url, tpid)
         print_flushed(query)
         self.gp_cur.execute(query)
         self.gp_conn.commit()
