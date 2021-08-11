@@ -107,11 +107,9 @@ class GraphManager():
       query += 'values({}, {}, {}); COMMIT;'.format(task_id, parent_id, label)
       self.pg_cur.execute(query)
       self.pg_conn.commit()
-      print(query)
       query = 'select id from node where task_id = {}'.format(task_id)
       self.pg_cur.execute(query)
       self.pg_conn.commit()
-      print(query)
       result = self.pg_cur.fetchone()[0]
       self.pg_cur.execute(query)
       return result
@@ -954,6 +952,12 @@ class GraphManager():
         #  origin_product['price'] = origin_product['price'].encode('UTF-8').hex()
         #converted_product['description'] = converted_product['description'].encode('UTF-8').hex()
       #for key in sorted(origin_product.keys()):
+      for key in origin_product.keys():
+        if isinstance(origin_product[key], datetime.date) == True:
+          del origin_product[key]
+      for key in converted_product.keys():
+        if isinstance(converted_product[key], datetime.date) == True:
+          del converted_product[key]
       origin_product = json.dumps(origin_product).encode('UTF-8').hex()
       converted_product = json.dumps(converted_product).encode('UTF-8').hex()
       query =  "insert into all_uploaded_product(job_id, execution_id, mpid, origin_product, converted_product, targetsite_url, cnum, status) values({}, {}, {}, '{}', '{}','{}',{}, {})".format(job_id, execution_id, mpid,  json.dumps(origin_product), json.dumps(converted_product), targetsite_url, cnum, status)
@@ -988,7 +992,7 @@ class GraphManager():
   def log_err_msg_of_task(self, task_id, err_msg):
     try:
       err_msg = err_msg.replace("'",'"')
-      query = "insert into failed_task_detail(task_id, err_msg) values({},'{}')".format(task_id,err_msg)
+      query = "insert into failed_task_detail(task_id, err_msg) values({},'{}');COMMIT;".format(task_id,err_msg)
       self.gp_cur.execute(query)
       self.gp_conn.commit()
       return 
