@@ -66,7 +66,7 @@ class WebManager():
       
       option.add_argument('--headless')
       option.add_argument('--disable-gpu')
-      option.add_argument('--window-size=1920,1080')
+      option.add_argument('--window-size=2048,1536')
       option.add_argument('--start-maximized')
       option.add_argument('--no-proxy-server')
       option.add_argument('--no-sandbox')
@@ -75,8 +75,8 @@ class WebManager():
       option.add_argument('--disable-dev-shm-usage')
       option.add_argument('--disable-blink-features=AutomationControlled')
       option.add_argument('--disable-infobars')
-      option.add_argument('--disable-automation')
-      option.add_argument('--disable-extensions')
+      #option.add_argument('--disable-automation')
+      #option.add_argument('--disable-extensions')
       #prefs = {"profile.managed_default_content_settings.images": 2}
       prefs = {"profile.managed_default_content_settings.images":2,
                "profile.default_content_setting_values.notifications":2,
@@ -84,7 +84,7 @@ class WebManager():
                "profile.managed_default_content_settings.cookies":2,
                "profile.managed_default_content_settings.javascript":2,
                "profile.managed_default_content_settings.plugins":2,
-               "profile.managed_default_content_settings.popups":2,
+               "profile.managed_default_content_settings.popups":1,
                "profile.managed_default_content_settings.geolocation":2,
                "profile.managed_default_content_settings.media_stream":2,
       }
@@ -138,7 +138,7 @@ class WebManager():
       #option = webdriver.ChromeOptions()
       option.add_argument('--headless')
       option.add_argument('--disable-gpu')
-      option.add_argument('--window-size=1920,1080')
+      option.add_argument('--window-size=2048,1536')
       option.add_argument('--start-maximized')
       option.add_argument('--no-proxy-server')
       option.add_argument('--no-sandbox')
@@ -147,8 +147,8 @@ class WebManager():
       option.add_argument('--disable-dev-shm-usage')
       option.add_argument('--disable-blink-features=AutomationControlled')
       option.add_argument('--disable-infobars')
-      option.add_argument('--disable-automation')
-      option.add_argument('--disable-extensions')
+      #option.add_argument('--disable-automation')
+      #option.add_argument('--disable-extensions')
       #prefs = {"profile.managed_default_content_settings.images": 2}
       prefs = {"profile.managed_default_content_settings.images":2,
                "profile.default_content_setting_values.notifications":2,
@@ -156,7 +156,7 @@ class WebManager():
                "profile.managed_default_content_settings.cookies":2,
                "profile.managed_default_content_settings.javascript":2,
                "profile.managed_default_content_settings.plugins":2,
-               "profile.managed_default_content_settings.popups":2,
+               "profile.managed_default_content_settings.popups":1,
                "profile.managed_default_content_settings.geolocation":2,
                "profile.managed_default_content_settings.media_stream":2,
       }

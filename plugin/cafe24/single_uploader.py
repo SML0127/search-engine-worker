@@ -94,10 +94,13 @@ class Cafe24SingleUploader(Resource):
     log_max_num_product = 0
     err_cafe24_op = 'Init cafe24 configuration'
     log_mpids = []
+    log_mpids_array = []
+    targetsite_url = ""
     try:
       (args, mpids) = task
       log_mt_history_id = args['mt_history_id']
       log_max_num_product = len(mpids)
+      log_mpids_array = mpids
       log_mpids = ', '.join(map(str, mpids)) 
       self.cafe24manager = Cafe24Manager(args)
       print_flushed("-----------------------Request auth code----------------------")
@@ -140,12 +143,11 @@ class Cafe24SingleUploader(Resource):
             cnum  = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
             #smlee
             try:
-              self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid, original_product_information, product, targetsite_url, cnum, status) 
+              self.graph_manager.logging_all_uploaded_product(log_mt_history_id, job_id, args['execution_id'], mpid, original_product_information, product, targetsite_url, cnum, status) 
             except:
-              self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid,{'Error':'Logging error'},{'Error':'Logging error'}, targetsite_url, cnum, status) 
+              self.graph_manager.logging_all_uploaded_product(log_mt_history_id, job_id, args['execution_id'], mpid,{'Error':'Logging error'},{'Error':'Logging error'}, targetsite_url, cnum, status) 
               pass 
 
-            successful_node += 1
           except Exception as e:
             failed_node += 1
             err_msg = '================================ Operator ================================ \n'
@@ -158,6 +160,9 @@ class Cafe24SingleUploader(Resource):
             err_msg += str(e) + '\n\n'
             err_msg += '================================ STACK TRACE ============================== \n' + str(traceback.format_exc())
             self.graph_manager.log_err_msg_of_upload(log_mpid, err_msg, log_mt_history_id )
+          finally:
+            self.graph_manager.log_expected_num_target_success(log_mt_history_id, 1, args['targetsite_encode'])
+          successful_node += 1
 
       elif 'onetime' in args:
         for mpid in mpids:
@@ -183,9 +188,9 @@ class Cafe24SingleUploader(Resource):
                 cnum = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
                 #smlee
                 try:
-                  self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid, original_product_information, product, targetsite_url, cnum, status) 
+                  self.graph_manager.logging_all_uploaded_product(log_mt_history_id, job_id, args['execution_id'], mpid, original_product_information, product, targetsite_url, cnum, status) 
                 except:
-                  self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid,{'Error':'Logging error'},{'Error':'Logging error'}, targetsite_url, cnum, status) 
+                  self.graph_manager.logging_all_uploaded_product(log_mt_history_id, job_id, args['execution_id'], mpid,{'Error':'Logging error'},{'Error':'Logging error'}, targetsite_url, cnum, status) 
                   pass 
 
               elif is_uploaded == True:
@@ -201,17 +206,17 @@ class Cafe24SingleUploader(Resource):
                   cnum = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
                   #smlee
                   try:
-                    self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid, original_product_information, product, targetsite_url, cnum, status) 
+                    self.graph_manager.logging_all_uploaded_product(log_mt_history_id, job_id, args['execution_id'], mpid, original_product_information, product, targetsite_url, cnum, status) 
                   except:
-                    self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid,{'Error':'Logging error'},{'Error':'Logging error'}, targetsite_url, cnum, status) 
+                    self.graph_manager.logging_all_uploaded_product(log_mt_history_id, job_id, args['execution_id'], mpid,{'Error':'Logging error'},{'Error':'Logging error'}, targetsite_url, cnum, status) 
                     pass 
                 elif status == 0:
                   try:
                     cnum = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
-                    self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid, {'status':'0', 'name':'Up-to-date (Do not update)'}, {'status':'3', 'name':'Up-to-date (Do not update)'}, targetsite_url, cnum, status) 
+                    self.graph_manager.logging_all_uploaded_product(log_mt_history_id, job_id, args['execution_id'], mpid, {'status':'0', 'name':'Up-to-date (Do not update)'}, {'status':'3', 'name':'Up-to-date (Do not update)'}, targetsite_url, cnum, status) 
                   except:
                     cnum = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
-                    self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid,{'Error':'Logging error'},{'Error':'Logging error'}, targetsite_url, cnum, status) 
+                    self.graph_manager.logging_all_uploaded_product(log_mt_history_id, job_id, args['execution_id'], mpid,{'Error':'Logging error'},{'Error':'Logging error'}, targetsite_url, cnum, status) 
                     pass 
 
                 elif status == 3:
@@ -223,9 +228,9 @@ class Cafe24SingleUploader(Resource):
                   cnum  = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
                   #smlee
                   try:
-                    self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid, {'status':'3', 'name':'Deleted', 'stock': 0}, {'status':'3', 'name':'Deleted', 'stock': 0}, targetsite_url, cnum, status) 
+                    self.graph_manager.logging_all_uploaded_product(log_mt_history_id, job_id, args['execution_id'], mpid, {'status':'3', 'name':'Deleted', 'stock': 0}, {'status':'3', 'name':'Deleted', 'stock': 0}, targetsite_url, cnum, status) 
                   except:
-                    self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid,{'Error':'Logging error'},{'Error':'Logging error'}, targetsite_url, cnum, status) 
+                    self.graph_manager.logging_all_uploaded_product(log_mt_history_id, job_id, args['execution_id'], mpid,{'Error':'Logging error'},{'Error':'Logging error'}, targetsite_url, cnum, status) 
                     pass 
 
               self.cafe24manager.refresh()
@@ -240,6 +245,8 @@ class Cafe24SingleUploader(Resource):
             err_msg += 'URL: ' + targetsite_url + '\n\n'
             err_msg += '================================ STACK TRACE ============================== \n' + str(traceback.format_exc())
             self.graph_manager.log_err_msg_of_upload(log_mpid, err_msg, log_mt_history_id )
+          finally:
+            self.graph_manager.log_expected_num_target_success(log_mt_history_id, 1, args['targetsite_encode'])
             
       else:
         for mpid in mpids:
@@ -263,9 +270,9 @@ class Cafe24SingleUploader(Resource):
                 cnum  = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
                 #smlee
                 try:
-                  self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid, original_product_information, product, targetsite_url, cnum, status) 
+                  self.graph_manager.logging_all_uploaded_product(log_mt_history_id, job_id, args['execution_id'], mpid, original_product_information, product, targetsite_url, cnum, status) 
                 except:
-                  self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid,{'Error':'Logging error'},{'Error':'Logging error'}, targetsite_url, cnum, status) 
+                  self.graph_manager.logging_all_uploaded_product(log_mt_history_id, job_id, args['execution_id'], mpid,{'Error':'Logging error'},{'Error':'Logging error'}, targetsite_url, cnum, status) 
                   pass
  
               elif is_uploaded == True:
@@ -280,17 +287,17 @@ class Cafe24SingleUploader(Resource):
                   cnum  = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
                   #smlee
                   try:
-                    self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid, original_product_information, product, targetsite_url, cnum, status) 
+                    self.graph_manager.logging_all_uploaded_product(log_mt_history_id, job_id, args['execution_id'], mpid, original_product_information, product, targetsite_url, cnum, status) 
                   except:
-                    self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid,{'Error':'Logging error'},{'Error':'Logging error'}, targetsite_url, cnum, status) 
+                    self.graph_manager.logging_all_uploaded_product(log_mt_history_id, job_id, args['execution_id'], mpid,{'Error':'Logging error'},{'Error':'Logging error'}, targetsite_url, cnum, status) 
                     pass
                 elif status == 0:
                   try:
                     cnum = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
-                    self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid, {'status':'0', 'name':'Up-to-date (Do not update)'}, {'status':'3', 'name':'Up-to-date (Do not update)'}, targetsite_url, cnum, status) 
+                    self.graph_manager.logging_all_uploaded_product(log_mt_history_id, job_id, args['execution_id'], mpid, {'status':'0', 'name':'Up-to-date (Do not update)'}, {'status':'3', 'name':'Up-to-date (Do not update)'}, targetsite_url, cnum, status) 
                   except:
                     cnum = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
-                    self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid,{'Error':'Logging error'},{'Error':'Logging error'}, targetsite_url, cnum, status) 
+                    self.graph_manager.logging_all_uploaded_product(log_mt_history_id, job_id, args['execution_id'], mpid,{'Error':'Logging error'},{'Error':'Logging error'}, targetsite_url, cnum, status) 
                     pass
  
                 elif status == 3:
@@ -302,9 +309,9 @@ class Cafe24SingleUploader(Resource):
                   cnum = self.graph_manager.get_cnum_from_targetsite_job_configuration_using_tsid(tsid)
                   #smlee
                   try:
-                    self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid, {'status':'3', 'name':'Deleted', 'stock': 0}, {'status':'3', 'name':'Deleted', 'stock': 0}, targetsite_url, cnum, status) 
+                    self.graph_manager.logging_all_uploaded_product(log_mt_history_id, job_id, args['execution_id'], mpid, {'status':'3', 'name':'Deleted', 'stock': 0}, {'status':'3', 'name':'Deleted', 'stock': 0}, targetsite_url, cnum, status) 
                   except:
-                    self.graph_manager.logging_all_uploaded_product(job_id, args['execution_id'], mpid,{'Error':'Logging error'},{'Error':'Logging error'}, targetsite_url, cnum, status) 
+                    self.graph_manager.logging_all_uploaded_product(log_mt_history_id, job_id, args['execution_id'], mpid,{'Error':'Logging error'},{'Error':'Logging error'}, targetsite_url, cnum, status) 
                     pass 
 
               self.cafe24manager.refresh()
@@ -322,6 +329,9 @@ class Cafe24SingleUploader(Resource):
             err_msg += str(e) + '\n\n'
             err_msg += '================================ STACK TRACE ============================== \n' + str(traceback.format_exc())
             self.graph_manager.log_err_msg_of_upload(log_mpid, err_msg, log_mt_history_id )
+          finally:
+            self.graph_manager.log_expected_num_target_success(log_mt_history_id, 1, args['targetsite_encode'])
+
       self.cafe24manager.close()
       self.exporter.close()
       print_flushed("Close cafe24 manager (no except)")
@@ -332,11 +342,22 @@ class Cafe24SingleUploader(Resource):
       err_msg += "My site product pids: " + log_mpids + " \n" 
       err_msg += '================================ STACK TRACE ============================== \n' + str(traceback.format_exc())
       self.graph_manager.log_err_msg_of_upload(-1, err_msg, log_mt_history_id )
-
+      
       profiling_info['total_time'] = time.time() - total_time
       profiling_info['successful_node'] = 0
       profiling_info['failed_node'] = failed_node
       print_flushed('s/f', successful_node, '/', failed_node)
+      print_flushed(traceback.format_exc())
+      for mpid in log_mpids_array:
+        try:
+          self.graph_manager.logging_all_uploaded_product(log_mt_history_id, job_id, args['execution_id'], mpid,{'Error':'Set-up error (before upload)'},{'Error':'Set-up error (before upload)'}, targetsite_url, -1, -1) 
+          err_msg = "Set-up error (e.g. get authorization, get token ...) \n"
+          err_msg += "자체 상품 ID: " + mpid + " \n" 
+          err_msg += '================================ STACK TRACE ============================== \n' + str(traceback.format_exc())
+          self.graph_manager.log_err_msg_of_upload(mpid, err_msg, log_mt_history_id )
+        except:
+          print_flushed(traceback.format_exc())
+      self.graph_manager.log_expected_num_target_success(log_mt_history_id, failed_node, args['targetsite_encode'])
       
       try:
          self.cafe24manager.close()
@@ -349,7 +370,6 @@ class Cafe24SingleUploader(Resource):
          print_flushed("Error in close exporter")
          print_flushed(traceback.format_exc())
       print_flushed("Close cafe24 manager (in except)")
-      print_flushed(traceback.format_exc())
       return profiling_info
     print_flushed('s/f', successful_node, '/', failed_node)
     profiling_info['total_time'] = time.time() - total_time

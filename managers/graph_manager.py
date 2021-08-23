@@ -281,7 +281,6 @@ class GraphManager():
 
         if (op_n == 'option_matrix_col_name' or op_n == 'option_matrix_row_name'):
           result[op_n] = op_v
-      
       return result
     except:
       self.gp_conn.rollback()
@@ -936,7 +935,7 @@ class GraphManager():
       print_flushed(str(traceback.format_exc()))
       raise
 
-  def logging_all_uploaded_product(self, job_id, execution_id, mpid, origin_product, converted_product, targetsite_url, cnum, status):
+  def logging_all_uploaded_product(self, mt_history_id, job_id, execution_id, mpid, origin_product, converted_product, targetsite_url, cnum, status):
     try:
       targetsite_url = url_normalize(targetsite_url)
       if origin_product.get('Error', '') == '':
@@ -952,25 +951,34 @@ class GraphManager():
         #  origin_product['price'] = origin_product['price'].encode('UTF-8').hex()
         #converted_product['description'] = converted_product['description'].encode('UTF-8').hex()
       #for key in sorted(origin_product.keys()):
+      delete_key1 = []
+      delete_key2 = []
       for key in origin_product.keys():
-        if isinstance(origin_product[key], datetime.date) == True:
-          del origin_product[key]
+        if isinstance(origin_product[key], datetime) == True:
+          delete_key1.append(key)
       for key in converted_product.keys():
-        if isinstance(converted_product[key], datetime.date) == True:
-          del converted_product[key]
+        if isinstance(converted_product[key], datetime) == True:
+          delete_key2.append(key)
+
+      for key in delete_key1:
+         del origin_product[key]
+
+      for key in delete_key2:
+         del converted_product[key]
+
       origin_product = json.dumps(origin_product).encode('UTF-8').hex()
       converted_product = json.dumps(converted_product).encode('UTF-8').hex()
-      query =  "insert into all_uploaded_product(job_id, execution_id, mpid, origin_product, converted_product, targetsite_url, cnum, status) values({}, {}, {}, '{}', '{}','{}',{}, {})".format(job_id, execution_id, mpid,  json.dumps(origin_product), json.dumps(converted_product), targetsite_url, cnum, status)
+      query =  "insert into all_uploaded_product(job_id, execution_id, mpid, origin_product, converted_product, targetsite_url, cnum, status, mt_history_id) values({}, {}, {}, '{}', '{}','{}',{}, {}, {})".format(job_id, execution_id, mpid,  json.dumps(origin_product), json.dumps(converted_product), targetsite_url, cnum, status, mt_history_id)
       self.gp_cur.execute(query)
       self.gp_conn.commit()
       return 
     except:
       self.gp_conn.rollback()
-      print_flushed('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
-      print_flushed(origin_product)
-      print_flushed('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
-      print_flushed(converted_product)
-      print_flushed('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
+      #print_flushed('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
+      #print_flushed(origin_product)
+      #print_flushed('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
+      #print_flushed(converted_product)
+      #print_flushed('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
       print_flushed(str(traceback.format_exc()))
       raise
 
@@ -1250,6 +1258,16 @@ class GraphManager():
       print_flushed(str(traceback.format_exc()))
       raise e
 
+
+  def log_expected_num_target_success(self, mt_history_id, cnt, targetsite):
+    try:
+      query = "update mt_history set num_expected_success = num_expected_success + {} where id = {} and targetsite = '{}';COMMIT;".format(cnt, mt_history_id, targetsite)
+      self.pg_cur.execute(query)
+      return
+    except Exception as e:
+      self.pg_conn.rollback()
+      print_flushed(str(traceback.format_exc()))
+      raise e
 
 
 
