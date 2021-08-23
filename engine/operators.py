@@ -16,7 +16,6 @@ from functools import partial
 print_flushed = partial(print, flush=True)
 
 
-
 def post_notification_to_slack(msg, url):
     try:
         #subprocess.Popen("curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"" + str(msg).replace('"',"'") + "\"}' " + url + " &> /dev/null", shell=True)
@@ -24,7 +23,6 @@ def post_notification_to_slack(msg, url):
     except:
         print(str(traceback.format_exc()))
         pass
-
 
 
 class GlovalVariable():
@@ -89,7 +87,10 @@ class BaseOperator():
         return query % (tuple(list(map(lambda x: stack_indices[int(x)] + 1, indices))))
 
 
-selenium_chrome_erros = ['StaleElementReferenceException', 'WebDriverException', 'TimeoutException']
+selenium_chrome_erros = ['StaleElementReferenceException',
+                         'WebDriverException', 'TimeoutException']
+
+
 class BFSIterator(BaseOperator):
 
     def check_captcha(self, url, gvar):
@@ -114,7 +115,8 @@ class BFSIterator(BaseOperator):
                 gvar.web_mgr.click_elements('//button')
                 time.sleep(3)
                 gvar.web_mgr.load(url)
-                check_chaptcha = gvar.web_mgr.get_elements_by_selenium_(chaptcha_xpath)
+                check_chaptcha = gvar.web_mgr.get_elements_by_selenium_(
+                    chaptcha_xpath)
                 if cnt >= max_cnt:
                     raise
         except:
@@ -155,7 +157,8 @@ class BFSIterator(BaseOperator):
         err_cnt = 0
         err_op_name = "BFSIterator"
         while True:
-            print_flushed('@@@@@ Set up before running sub operators in BFSIterator')
+            print_flushed(
+                '@@@@@ Set up before running sub operators in BFSIterator')
             try:
                 op_name = "BFSIterator"
                 op_id = self.props['id']
@@ -165,7 +168,8 @@ class BFSIterator(BaseOperator):
                 print_flushed("@@@@@@@@@@ task url:", gvar.task_url)
 
                 if gvar.task_zipcode_url is not None:
-                    print_flushed("@@@@@@@@@@ input zipcode:", gvar.task_zipcode_url)
+                    print_flushed("@@@@@@@@@@ input zipcode:",
+                                  gvar.task_zipcode_url)
 
                 src_url = urlparse(gvar.task_url).netloc
                 print_flushed("@@@@@@@@@@ src_url:", src_url)
@@ -177,283 +181,60 @@ class BFSIterator(BaseOperator):
                 gvar.graph_mgr.insert_node_property(
                     gvar.stack_nodes[-1], 'url', gvar.task_url)
 
-
                 if 'amazon.de' in src_url:
                     print_flushed(src_url)
-                    # def interceptor_load(request):
-                    #   request.method = 'POST'
-                    #   request.headers['user-agent'] = str(random.randrange(1,99999999)) + str(''.join(random.choices(string.ascii_uppercase + string.digits, k=15))) + str(random.randrange(1,99999999))
-                    # gvar.web_mgr.get_cur_driver_().request_interceptor = interceptor_load
-                    # gvar.web_mgr.load(gvar.task_url)
-                    # time.sleep(1)
-                    # if gvar.task_url != gvar.web_mgr.get_current_url():
-                    #   time.sleep(5)
 
-                    # site_zipcode = gvar.web_mgr.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext")
-                    # zipcode = gvar.graph_mgr.get_zipcode(src_url, gvar.task_zipcode_url)
-                    # print_flushed('zipcode = ', site_zipcode)
-                    # if site_zipcode is None:
-                    #   while True:
-                    #     time.sleep(5)
-                    #     def interceptor_loop(request):
-                    #       request.method = 'POST'
-                    #       gvar.web_mgr.get_cur_driver_().request_interceptor = interceptor_loop
-                    #     site_zipcode = gvar.web_mgr.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext")
-                    #     print_flushed('zipcode = ', site_zipcode)
-                    #     if site_zipcode is not None: break;
-                    # if zipcode not in site_zipcode:
-                    #   url = "http://www.amazon.de/gp/glow/get-address-selections.html?deviceType=desktop&pageType=Gateway"
-
-                    #   def interceptor_de(request):
-                    #     request.method = 'POST'
-                    #     request.headers['user-agent'] = str(random.randrange(1,99999999)) + str(''.join(random.choices(string.ascii_uppercase + string.digits, k=15))) + str(random.randrange(1,99999999))
-                    #   gvar.web_mgr.get_cur_driver_().request_interceptor = interceptor_de
-                    #   gvar.web_mgr.load(url)
-                    #   time.sleep(1)
-                    #   self.check_captcha(url, gvar)
-
-                    #   token = gvar.web_mgr.get_html().split('CSRF_TOKEN : "')[1].split('", IDs')[0]
-                    #   print_flushed(token)
-
-                    #   url = 'http://www.amazon.de/gp/delivery/ajax/address-change.html?locationType=LOCATION_INPUT&zipCode={}&storeContext=office-products&deviceType=web&pageType=Detail&actionSource=glow&almBrandId=undefined'.format(zipcode)
-                    #   def interceptor_de2(request):
-                    #     del request.headers['anti-csrftoken-a2z']
-                    #     request.headers['user-agent'] = str(random.randrange(1,99999999)) + str(''.join(random.choices(string.ascii_uppercase + string.digits, k=15))) + str(random.randrange(1,99999999))
-                    #     request.headers['anti-csrftoken-a2z'] = token
-                    #   gvar.web_mgr.get_cur_driver_().request_interceptor = interceptor_de2
-                    #
-                    #   gvar.web_mgr.load(url)
-                    #   print_flushed(gvar.web_mgr.get_html())
-
-                    #   self.check_captcha(url, gvar)
-                    #   time.sleep(2)
-                    #   gvar.web_mgr.load(gvar.task_url)
-                    #   time.sleep(2)
-                    #   if gvar.task_url != gvar.web_mgr.get_current_url():
-                    #     time.sleep(5)
-                    #   site_zipcode = gvar.web_mgr.get_value_by_selenium('//*[@id="glow-ingress-line2"]', "alltext")
-                    #   print_flushed('(After apply) zipcode = ', site_zipcode)
-                    #   def interceptor_de3(request):
-                    #     del request.headers['anti-csrftoken-a2z']
-                    #     request.method = 'GET'
-                    #   gvar.web_mgr.get_cur_driver_().request_interceptor = interceptor_de3
-                #elif 'amazon.com' in src_url:
+                # elif 'amazon.com' in src_url:
                 elif 'amazon.com' in src_url:
                     gvar.web_mgr.load(gvar.task_url)
                     self.check_captcha(gvar.task_url, gvar)
+                    gvar.web_mgr.load(gvar.task_url)
+                    time.sleep(5)
+                    self.check_captcha(gvar.task_url, gvar)
+                    cnt = 0
+                    while True:
+                        cnt = cnt + 1
+                        try:
+                            site_zipcode = gvar.web_mgr.get_value_by_selenium(
+                                '//*[@id="glow-ingress-line2"]', "alltext")
+                            print_flushed('Zipcode: ', site_zipcode)
+                            if site_zipcode is None:
+                                self.check_captcha(
+                                    gvar.task_url, gvar)
+                                site_zipcode = gvar.web_mgr.get_value_by_selenium(
+                                    '//*[@id="glow-ingress-line2"]', "alltext")
+                            if '94024' in site_zipcode:
+                                break
+                            if '94024' not in site_zipcode:
+                                print_flushed(
+                                    'Change Zipcode')
+                                gvar.web_mgr.click_elements(
+                                    '//*[@id="nav-global-location-data-modal-action"]')
+                                time.sleep(2)
+                                gvar.web_mgr.send_keys_to_elements(
+                                    '//*[@id="GLUXZipUpdateInput"]', '94024')
+                                time.sleep(2)
+                                gvar.web_mgr.click_elements(
+                                    '//*[@id="GLUXZipInputSection"]/div[2]')
+                                time.sleep(2)
+                                gvar.web_mgr.click_elements(
+                                    '//div[@class="a-popover-footer"]//button')
+                                time.sleep(2)
+                                gvar.web_mgr.click_elements(
+                                    '//div[@class="a-popover-footer"]//input')
+                                time.sleep(2)
+                                gvar.web_mgr.load(gvar.task_url)
+                                self.check_captcha(gvar.task_url, gvar)
+                                site_zipcode = gvar.web_mgr.get_value_by_selenium(
+                                    '//*[@id="glow-ingress-line2"]', "alltext")
+                                print_flushed(
+                                    'Zipcode: ', site_zipcode)
+                        except:
+                            pass
+
                 elif 'amazon.co.uk' in src_url:
                     gvar.web_mgr.load(gvar.task_url)
                     self.check_captcha(gvar.task_url, gvar)
-                elif 'DISABLE-amazon.com' in src_url:
-                    print_flushed('@@@@@@@@ Current chrome country = {}, input = {}'.format(
-                        gvar.web_mgr.get_cur_driver_zipcode_country(), src_url))
-                    if 'amazon.com' not in gvar.web_mgr.get_cur_driver_zipcode_country():
-                        print_flushed('@@@@@@@@ Change chrome amazon country zipcode')
-                        gvar.web_mgr.set_cur_driver_zipcode_boolean()
-                        gvar.web_mgr.change_cur_driver_zipcode_country(src_url)
-
-                    if gvar.web_mgr.get_cur_driver_is_zipcode_reset() == True:
-                        print_flushed('@@@@@@@@ Change zipcode (zipcode is reset)')
-                        # Get token for zipcode
-                        url = "http://www.amazon.com/gp/glow/get-address-selections.html?deviceType=desktop&pageType=Gateway"
-
-                        def interceptor(request):
-                            request.method = 'POST'
-
-                        gvar.web_mgr.get_cur_driver_().request_interceptor = interceptor
-                        while True:
-                            try:
-                                gvar.web_mgr.load(url)
-                                time.sleep(1)
-                                print(gvar.web_mgr.get_html())
-                                token = gvar.web_mgr.get_html().split(
-                                    'CSRF_TOKEN : "')[1].split('", IDs')[0]
-                                print_flushed("@@@@@@@@@@ Token {} ".format(token))
-                                break
-                            except:
-                                sleep_time = 1000 + int(random.randrange(1, 60))
-                                print_flushed(
-                                    "@@@@@@@@@@ Retry get token {}s ".format(sleep_time))
-                                time.sleep(sleep_time)
-                                pass
-
-                        # Check zicpode
-                        gvar.web_mgr.load(gvar.task_url)
-                        time.sleep(3)
-                        site_zipcode = gvar.web_mgr.get_value_by_selenium(
-                            '//*[@id="glow-ingress-line2"]', "alltext")
-                        zipcode = gvar.graph_mgr.get_zipcode(
-                            src_url, gvar.task_zipcode_url)
-                        print_flushed('@@@@@@@@@@ zipcode = ', site_zipcode)
-                        if site_zipcode is None:
-                            self.check_captcha(gvar.task_url, gvar)
-                            site_zipcode = gvar.web_mgr.get_value_by_selenium(
-                                '//*[@id="glow-ingress-line2"]', "alltext")
-                            print_flushed('@@@@@@@@@@ after captcha zipcode = ', site_zipcode)
-                        if zipcode not in site_zipcode:
-                            url = 'http://www.amazon.com/gp/delivery/ajax/address-change.html?locationType=LOCATION_INPUT&zipCode={}&storeContext=office-products&deviceType=web&pageType=Detail&actionSource=glow&almBrandId=undefined'.format(
-                                zipcode)
-
-                            def interceptor2(request):
-                                del request.headers['anti-csrftoken-a2z']
-                                request.headers['anti-csrftoken-a2z'] = token
-                            gvar.web_mgr.get_cur_driver_().request_interceptor = interceptor2
-                            #max_cnt = 10
-                            #cnt = 0
-                            while True:
-                                gvar.web_mgr.load(url)
-                                time.sleep(1)
-                                if '"isValidAddress":1' in gvar.web_mgr.get_html():
-                                    print_flushed(
-                                        '@@@@@@@@@@@ change is zipcode reset as false')
-                                    gvar.web_mgr.reset_cur_driver_zipcode_boolean()
-                                    break
-                                else:
-                                    #cnt = cnt + 1
-                                    sleep_time = 1000 + \
-                                        int(random.randrange(1, 60))
-                                    print_flushed(
-                                        "@@@@@@@@@@ Retry get token {}s ".format(sleep_time))
-                                    time.sleep(sleep_time)
-                                    # if cnt < max_cnt:
-                                    #  print_flushed('re-request change-address api. {} retry'.format(str(cnt)))
-                                    # else:
-                                    #  break;
-                            # gvar.web_mgr.load(url)
-                            # time.sleep(2)
-                            gvar.web_mgr.load(gvar.task_url)
-                            time.sleep(2)
-                            if gvar.task_url != gvar.web_mgr.get_current_url():
-                                time.sleep(5)
-                            site_zipcode = gvar.web_mgr.get_value_by_selenium(
-                                '//*[@id="glow-ingress-line2"]', "alltext")
-                            print_flushed(
-                                '@@@@@@@@@@ (After apply, before check captcha) zipcode = ', site_zipcode)
-                            self.check_captcha(url, gvar)
-                            print_flushed(
-                                '@@@@@@@@@@ (After apply, before check captcha) zipcode = ', site_zipcode)
-
-                            def interceptor3(request):
-                                del request.headers['anti-csrftoken-a2z']
-                                request.method = 'GET'
-                            gvar.web_mgr.get_cur_driver_().request_interceptor = interceptor3
-                        ####################################
-                    else:
-                        gvar.web_mgr.load(gvar.task_url)
-                        time.sleep(2)
-                        if gvar.task_url != gvar.web_mgr.get_current_url():
-                            time.sleep(5)
-                        self.check_captcha(gvar.task_url, gvar)
-                        site_zipcode = gvar.web_mgr.get_value_by_selenium(
-                            '//*[@id="glow-ingress-line2"]', "alltext")
-                        print_flushed('@@@@@@@@@@ Current zipcode = ', site_zipcode)
-
-                #elif 'amazon.co.uk' in src_url:
-                elif 'DISABLE-amazon.co.uk' in src_url:
-                    print_flushed('@@@@@@@@ Current chrome country = {}, input = {}'.format(
-                        gvar.web_mgr.get_cur_driver_zipcode_country(), src_url))
-                    if 'amazon.co.uk' not in gvar.web_mgr.get_cur_driver_zipcode_country():
-                        print_flushed('@@@@@@@@ Change chrome amazon country zipcode')
-                        gvar.web_mgr.set_cur_driver_zipcode_boolean()
-                        gvar.web_mgr.change_cur_driver_zipcode_country(src_url)
-
-                    if gvar.web_mgr.get_cur_driver_is_zipcode_reset() == True:
-                        print_flushed('@@@@@@@@ Change zipcode (zipcode is reset)')
-                        # Get token for zipcode
-                        url = "http://www.amazon.co.uk/gp/glow/get-address-selections.html?deviceType=desktop&pageType=Gateway"
-
-                        def interceptor(request):
-                            request.method = 'POST'
-                        gvar.web_mgr.get_cur_driver_().request_interceptor = interceptor
-                        while True:
-                            try:
-                                gvar.web_mgr.load(url)
-                                time.sleep(1)
-                                token = gvar.web_mgr.get_html().split(
-                                    'CSRF_TOKEN : "')[1].split('", IDs')[0]
-                                print_flushed("@@@@@@@@@@ Token {} ".format(token))
-                                break
-                            except:
-                                sleep_time = 1000 + int(random.randrange(1, 60))
-                                print_flushed(
-                                    "@@@@@@@@@@ Retry get token {}s ".format(sleep_time))
-                                time.sleep(sleep_time)
-                                pass
-
-                        # Check zicpode
-                        def interceptor5(request):
-                            request.method = 'GET'
-                        gvar.web_mgr.get_cur_driver_().request_interceptor = interceptor5
-                        print_flushed('@@@@@@@@ task_url: {}'.format(gvar.task_url))
-                        gvar.web_mgr.load(gvar.task_url)
-                        time.sleep(3)
-                        site_zipcode = gvar.web_mgr.get_value_by_selenium(
-                            '//*[@id="glow-ingress-line2"]', "alltext")
-                        zipcode = gvar.graph_mgr.get_zipcode(
-                            src_url, gvar.task_zipcode_url)
-                        print_flushed('@@@@@@@@@@ zipcode = ', site_zipcode)
-                        if site_zipcode is None:
-                            self.check_captcha(gvar.task_url, gvar)
-                            site_zipcode = gvar.web_mgr.get_value_by_selenium(
-                                '//*[@id="glow-ingress-line2"]', "alltext")
-                            print_flushed('@@@@@@@@@@ after captcha zipcode = ', site_zipcode)
-                        if zipcode not in site_zipcode:
-                            url = 'http://www.amazon.co.uk/gp/delivery/ajax/address-change.html?locationType=LOCATION_INPUT&zipCode={}&storeContext=office-products&deviceType=web&pageType=Detail&actionSource=glow&almBrandId=undefined'.format(
-                                zipcode)
-
-                            def interceptor2(request):
-                                del request.headers['anti-csrftoken-a2z']
-                                request.headers['anti-csrftoken-a2z'] = token
-                            gvar.web_mgr.get_cur_driver_().request_interceptor = interceptor2
-                            #max_cnt = 10
-                            #cnt = 0
-                            while True:
-                                gvar.web_mgr.load(url)
-                                time.sleep(1)
-                                if '"isValidAddress":1' in gvar.web_mgr.get_html():
-                                    print_flushed(
-                                        '@@@@@@@@@@@ change is zipcode reset as false')
-                                    gvar.web_mgr.reset_cur_driver_zipcode_boolean()
-                                    break
-                                else:
-                                    #cnt = cnt + 1
-                                    sleep_time = 1000 + \
-                                        int(random.randrange(1, 60))
-                                    print_flushed(
-                                        "@@@@@@@@@@ Retry get token {}s ".format(sleep_time))
-                                    time.sleep(sleep_time)
-                                    # if cnt < max_cnt:
-                                    #  print_flushed('re-request change-address api. {} retry'.format(str(cnt)))
-                                    # else:
-                                    #  break;
-                            # gvar.web_mgr.load(url)
-                            # time.sleep(2)
-                            gvar.web_mgr.load(gvar.task_url)
-                            time.sleep(2)
-                            if gvar.task_url != gvar.web_mgr.get_current_url():
-                                time.sleep(5)
-                            site_zipcode = gvar.web_mgr.get_value_by_selenium(
-                                '//*[@id="glow-ingress-line2"]', "alltext")
-                            print_flushed(
-                                '@@@@@@@@@@ (After apply, before check captcha) zipcode = ', site_zipcode)
-                            self.check_captcha(url, gvar)
-                            print_flushed(
-                                '@@@@@@@@@@ (After apply, before check captcha) zipcode = ', site_zipcode)
-
-                            def interceptor3(request):
-                                del request.headers['anti-csrftoken-a2z']
-                                request.method = 'GET'
-                            gvar.web_mgr.get_cur_driver_().request_interceptor = interceptor3
-                        ####################################
-                    else:
-                        gvar.web_mgr.load(gvar.task_url)
-                        time.sleep(2)
-                        if gvar.task_url != gvar.web_mgr.get_current_url():
-                            time.sleep(5)
-                        self.check_captcha(gvar.task_url, gvar)
-                        site_zipcode = gvar.web_mgr.get_value_by_selenium(
-                            '//*[@id="glow-ingress-line2"]', "alltext")
-                        print_flushed('@@@@@@@@@@ Current zipcode = ', site_zipcode)
 
                 else:
                     gvar.web_mgr.load(gvar.task_url)
@@ -476,12 +257,14 @@ class BFSIterator(BaseOperator):
                         return
 
                 elif 'jomashop' in src_url:
-                    wrong_to_rendering_xpath = "//div[@id='react-top-error-boundary'] | //*[contains(text(),'Unable to fetch data')] | //*[contains(text(),'Something went wrong')] | //div[@classname='splash-screen'] | //*[contains(text(),'Data Fetch Error')]"          
-                    render_cnt = 0 
+                    wrong_to_rendering_xpath = "//div[@id='react-top-error-boundary'] | //*[contains(text(),'Unable to fetch data')] | //*[contains(text(),'Something went wrong')] | //div[@classname='splash-screen'] | //*[contains(text(),'Data Fetch Error')]"
+                    render_cnt = 0
                     max_render_cnt = 5
                     while True:
-                        print_flushed("@@@@@@@@@@ Check Wrong to rendering page (jomashop)")
-                        wrong_to_rendering_page = gvar.web_mgr.get_elements_by_lxml_(wrong_to_rendering_xpath)
+                        print_flushed(
+                            "@@@@@@@@@@ Check Wrong to rendering page (jomashop)")
+                        wrong_to_rendering_page = gvar.web_mgr.get_elements_by_lxml_(
+                            wrong_to_rendering_xpath)
                         if len(wrong_to_rendering_page) != 0:
                             render_cnt = render_cnt + 1
                             if render_cnt >= max_render_cnt:
@@ -491,7 +274,7 @@ class BFSIterator(BaseOperator):
                                 time.sleep(5)
                                 gvar.web_mgr.build_lxml_tree()
                         else:
-                            break;
+                            break
 
                     print_flushed("@@@@@@@@@@ Check invalid page (jomashop)")
                     #invalid_page_xpath = "//div[@class='image-404'] | //div[@class='product-buttons']//span[contains(text(),'OUT OF STOCK')] | //div[contains(text(),'Sold Out')] | //span[contains(text(),'Ships In')] | //span[contains(text(),'Contact us for')] | //span[contains(text(),'Ships in')] "
@@ -523,11 +306,13 @@ class BFSIterator(BaseOperator):
                         self.props['query'])
                     if len(is_invalid_input) == 0:
                         if 'is_detail' not in self.props:
-                            print_flushed("@@@@@@@@@@ Not Detail page, set as a failure")
+                            print_flushed(
+                                "@@@@@@@@@@ Not Detail page, set as a failure")
                             gvar.profiling_info['check_xpath_error'] = True
                             raise CheckXpathError
                         else:
-                            print_flushed("@@@@@@@@@@ Detail page, set as a invalid page")
+                            print_flushed(
+                                "@@@@@@@@@@ Detail page, set as a invalid page")
                             raise CheckXpathError
                 #######################################
 
@@ -538,9 +323,10 @@ class BFSIterator(BaseOperator):
                     print_flushed(self.props['page_id'])
 
                     if str(self.props['page_id']) not in res:
-                        print_flushed('@@@@@@@@@@ page number in button != page number in url')
+                        print_flushed(
+                            '@@@@@@@@@@ page number in button != page number in url')
                         gvar.profiling_info['btn_num_error'] = True
-                        raise BtnNumError 
+                        raise BtnNumError
                 gvar.graph_mgr.insert_node_property(
                     gvar.stack_nodes[-1], 'html', gvar.web_mgr.get_html())
 
@@ -551,24 +337,27 @@ class BFSIterator(BaseOperator):
 
                 op_time = time.time() - op_start
                 gvar.profiling_info[op_id] = {'op_time': op_time}
-                break;
+                break
 
             except Exception as e:
                 print_flushed(e.__class__.__name__)
                 if e.__class__.__name__ == 'BtnNumError':
                     try:
-                        fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
+                        fname = '/home/pse/PSE-engine/htmls/%s.html' % str(
+                            gvar.task_id)
                         gvar.web_mgr.store_page_source(fname)
                         print_flushed("error html:", fname)
                     except:
                         print_flushed("Fail to dump html")
                         pass
                     err_msg = '================================ CRAWLING NOTIFICATION ============================== \n'
-                    err_msg += 'In summary page pagination, button number in URL and element are different.\nPlease check web page and xpath rule\n\nURL: {}\nXpath rule: {}\n\n'.format(str(gvar.task_url), str(self.props['btn_query']).replace("'",'"'))
+                    err_msg += 'In summary page pagination, button number in URL and element are different.\nPlease check web page and xpath rule\n\nURL: {}\nXpath rule: {}\n\n'.format(
+                        str(gvar.task_url), str(self.props['btn_query']).replace("'", '"'))
                     url = gvar.graph_mgr.get_slack_url()
                     post_notification_to_slack(err_msg, url)
                     err_msg = '================================ MESSAGE ============================== \n'
-                    err_msg += 'In summary page pagination, button number in URL and element are different.\nPlease check web page and xpath rule\n\nURL: {}\nXpath rule: {}\n\n'.format(str(gvar.task_url), str(self.props['btn_query']).replace("'",'"'))
+                    err_msg += 'In summary page pagination, button number in URL and element are different.\nPlease check web page and xpath rule\n\nURL: {}\nXpath rule: {}\n\n'.format(
+                        str(gvar.task_url), str(self.props['btn_query']).replace("'", '"'))
                     err_msg += '================================ Opeartor ==================================\n'
                     err_msg += err_op_name + ' \n\n'
                     err_msg += '================================ STACK TRACE ============================== \n' + \
@@ -577,18 +366,21 @@ class BFSIterator(BaseOperator):
                     raise
                 elif e.__class__.__name__ == 'NoneDetailPageError':
                     try:
-                        fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
+                        fname = '/home/pse/PSE-engine/htmls/%s.html' % str(
+                            gvar.task_id)
                         gvar.web_mgr.store_page_source(fname)
                         print_flushed("error html:", fname)
                     except:
                         print_flushed("Fail to dump html")
                         pass
                     err_msg = '================================ CRAWLING NOTIFICATION ============================== \n'
-                    err_msg += 'In summary page pagination, there is no detail page in web page.\n Please check web page and xpath rule \n\nURL: {}\nXPath rule: {}\n\n'.format(str(gvar.task_url), str(e.xpath).replace("'",'"'))
+                    err_msg += 'In summary page pagination, there is no detail page in web page.\n Please check web page and xpath rule \n\nURL: {}\nXPath rule: {}\n\n'.format(
+                        str(gvar.task_url), str(e.xpath).replace("'", '"'))
                     url = gvar.graph_mgr.get_slack_url()
                     post_notification_to_slack(err_msg, url)
                     err_msg = '================================ MESSAGE ============================== \n'
-                    err_msg += 'In summary page pagination, there is no detail page in web page.\n Please check web page and xpath rule \n\nURL: {}\nXPath rule: {}\n\n'.format(str(gvar.task_url), str(e.xpath).replace("'",'"'))
+                    err_msg += 'In summary page pagination, there is no detail page in web page.\n Please check web page and xpath rule \n\nURL: {}\nXPath rule: {}\n\n'.format(
+                        str(gvar.task_url), str(e.xpath).replace("'", '"'))
                     err_msg += '================================ Opeartor ==================================\n'
                     err_msg += 'Expander \n\n'
                     err_msg += '================================ STACK TRACE ============================== \n' + \
@@ -597,91 +389,106 @@ class BFSIterator(BaseOperator):
                     raise
                 elif e.__class__.__name__ == 'InvalidPageError':
                     try:
-                        fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
+                        fname = '/home/pse/PSE-engine/htmls/%s.html' % str(
+                            gvar.task_id)
                         gvar.web_mgr.store_page_source(fname)
                         print_flushed("error html:", fname)
                     except:
                         print_flushed("Fail to dump html")
                         pass
                     err_msg = '================================ CRAWLING NOTIFICATION ============================== \n'
-                    err_msg += 'In summary page pagination, there is invalid web page.\n Please check web page and xpath rule \n\nURL: {}}\n\n'.format(str(gvar.task_url))
+                    err_msg += 'In summary page pagination, there is invalid web page.\n Please check web page and xpath rule \n\nURL: {}}\n\n'.format(
+                        str(gvar.task_url))
                     url = gvar.graph_mgr.get_slack_url()
                     post_notification_to_slack(err_msg, url)
                     err_msg = '================================ MESSAGE ============================== \n'
-                    err_msg += 'In summary page pagination, there is invalid web page.\n Please check web page and xpath rule \n\nURL: {}}\n\n'.format(str(gvar.task_url))
+                    err_msg += 'In summary page pagination, there is invalid web page.\n Please check web page and xpath rule \n\nURL: {}}\n\n'.format(
+                        str(gvar.task_url))
                     err_msg += '================================ Opeartor ==================================\n'
                     err_msg += 'BFSIterator \n\n'
                     err_msg += '================================ STACK TRACE ============================== \n' + \
                         str(traceback.format_exc())
                     gvar.graph_mgr.log_err_msg_of_task(gvar.task_id, err_msg)
                     raise
+                elif e.__class__.__name__ == 'CheckXpathError':
+                    try:
+                        fname = '/home/pse/PSE-engine/htmls/%s.html' % str(
+                            gvar.task_id)
+                        gvar.web_mgr.store_page_source(fname)
+                        print_flushed("error html:", fname)
+                    except:
+                        print_flushed("Fail to dump html")
+                        pass
+                    err_msg = '================================ CRAWLING NOTIFICATION ============================== \n'
+                    err_msg += 'There is no element with input xpath rule for checking web page is loaded successfully.\nPlease check web page and xpath rule\n\nURL: {}\nXPath rule: {}\n\n'.format(
+                        str(gvar.task_url), str(self.props['query']).replace("'", '"'))
+                    url = gvar.graph_mgr.get_slack_url()
+                    post_notification_to_slack(err_msg, url)
+                    err_msg = '================================ MESSAGE ============================== \n'
+                    err_msg += 'There is no element with input xpath rule for checking web page is loaded successfully.\nPlease check web page and xpath rule\n\nURL: {}\nXPath rule: {}\n\n'.format(
+                        str(gvar.task_url), str(self.props['query']).replace("'", '"'))
+                    err_msg += '================================ Opeartor ==================================\n'
+                    err_msg += err_op_name + ' \n\n'
+                    err_msg += '================================ STACK TRACE ============================== \n' + \
+                        str(traceback.format_exc())
+                    gvar.graph_mgr.log_err_msg_of_task(
+                        gvar.task_id, err_msg)
+                    raise
 
 
-                print('608888888888888888888888888888888888')
                 err_cnt = err_cnt + 1
                 if err_cnt >= 0:
-                    if e.__class__.__name__ == 'CheckXpathError':
+
+                    if e.__class__.__name__ == 'WebMgrErr' or e.__class__.__name__ == 'TimeoutException':
                         try:
-                            fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
+                            fname = '/home/pse/PSE-engine/htmls/%s.html' % str(
+                                gvar.task_id)
                             gvar.web_mgr.store_page_source(fname)
                             print_flushed("error html:", fname)
                         except:
                             print_flushed("Fail to dump html")
                             pass
                         err_msg = '================================ CRAWLING NOTIFICATION ============================== \n'
-                        err_msg += 'There is no element with input xpath rule for checking web page is loaded successfully.\nPlease check web page and xpath rule\n\nURL: {}\nXPath rule: {}\n\n'.format(str(gvar.task_url), str(self.props['query']).replace("'",'"'))
+                        err_msg += 'There is chromedriver error.\n\nURL: {}\n\n'.format(
+                            str(gvar.task_url))
                         url = gvar.graph_mgr.get_slack_url()
                         post_notification_to_slack(err_msg, url)
                         err_msg = '================================ MESSAGE ============================== \n'
-                        err_msg += 'There is no element with input xpath rule for checking web page is loaded successfully.\nPlease check web page and xpath rule\n\nURL: {}\nXPath rule: {}\n\n'.format(str(gvar.task_url), str(self.props['query']).replace("'",'"'))
+                        err_msg += 'There is chromedriver error.\n\nURL: {}\n\n'.format(
+                            str(gvar.task_url))
                         err_msg += '================================ Opeartor ==================================\n'
                         err_msg += err_op_name + ' \n\n'
                         err_msg += '================================ STACK TRACE ============================== \n' + \
                             str(traceback.format_exc())
-                        gvar.graph_mgr.log_err_msg_of_task(gvar.task_id, err_msg)
-                        raise
-                    elif e.__class__.__name__ == 'WebMgrErr' or e.__class__.__name__ == 'TimeoutException':
-                        try:
-                            fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
-                            gvar.web_mgr.store_page_source(fname)
-                            print_flushed("error html:", fname)
-                        except:
-                            print_flushed("Fail to dump html")
-                            pass
-                        err_msg = '================================ CRAWLING NOTIFICATION ============================== \n'
-                        err_msg += 'There is chromedriver error.\n\nURL: {}\n\n'.format(str(gvar.task_url))
-                        url = gvar.graph_mgr.get_slack_url()
-                        post_notification_to_slack(err_msg, url)
-                        err_msg = '================================ MESSAGE ============================== \n'
-                        err_msg += 'There is chromedriver error.\n\nURL: {}\n\n'.format(str(gvar.task_url))
-                        err_msg += '================================ Opeartor ==================================\n'
-                        err_msg += err_op_name + ' \n\n'
-                        err_msg += '================================ STACK TRACE ============================== \n' + \
-                            str(traceback.format_exc())
-                        gvar.graph_mgr.log_err_msg_of_task(gvar.task_id, err_msg)
+                        gvar.graph_mgr.log_err_msg_of_task(
+                            gvar.task_id, err_msg)
                         gvar.profiling_info['web_error'] = True
                         raise
                     else:
                         try:
-                            fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
+                            fname = '/home/pse/PSE-engine/htmls/%s.html' % str(
+                                gvar.task_id)
                             gvar.web_mgr.store_page_source(fname)
                             print_flushed("error html:", fname)
                         except:
                             print_flushed("Fail to dump html")
                             pass
                         err_msg = '================================ CRAWLING NOTIFICATION ============================== \n'
-                        err_msg += 'There is no element with input xpath rule of Key: {}.\nPlease check web page and xpath rule\n\nURL: {}\nKey: {}\nXPath rule: {}\n\n'.format(str(e.key), str(gvar.task_url), str(e.key), str(e.xpath).replace("'",'"'))
+                        err_msg += 'There is no element with input xpath rule of Key: {}.\nPlease check web page and xpath rule\n\nURL: {}\nKey: {}\nXPath rule: {}\n\n'.format(
+                            str(e.key), str(gvar.task_url), str(e.key), str(e.xpath).replace("'", '"'))
                         url = gvar.graph_mgr.get_slack_url()
                         post_notification_to_slack(err_msg, url)
                         err_msg = '================================ MESSAGE ============================== \n'
-                        err_msg += 'There is no element with input xpath rule of Key: {}.\nPlease check web page and xpath rule\n\nURL: {}\nKey: {}\nXPath rule: {}\n\n'.format(str(e.key), str(gvar.task_url), str(e.key), str(e.xpath).replace("'",'"'))
+                        err_msg += 'There is no element with input xpath rule of Key: {}.\nPlease check web page and xpath rule\n\nURL: {}\nKey: {}\nXPath rule: {}\n\n'.format(
+                            str(e.key), str(gvar.task_url), str(e.key), str(e.xpath).replace("'", '"'))
                         err_msg += '================================ Opeartor ==================================\n'
                         err_msg += err_op_name + ' \n\n'
                         err_msg += '================================ STACK TRACE ============================== \n' + \
                             str(traceback.format_exc())
-                        gvar.graph_mgr.log_err_msg_of_task(gvar.task_id, err_msg)
+                        gvar.graph_mgr.log_err_msg_of_task(
+                            gvar.task_id, err_msg)
                         raise OperatorError(e, self.props['id'])
-                    #else:
+                    # else:
                     #    fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
                     #    gvar.web_mgr.store_page_source(fname)
                     #    print_flushed("error html:", fname)
@@ -697,7 +504,6 @@ class BFSIterator(BaseOperator):
                 else:
                     gvar.web_mgr.restart(5)
                     print_flushed('err_cnt : ', err_cnt)
-
 
 
 class OpenNode(BaseOperator):
@@ -728,7 +534,8 @@ class OpenNode(BaseOperator):
                 num_elements = 1
 
             for i in range(num_elements):
-                print_flushed(i, "-th loop#############################################")
+                print_flushed(
+                    i, "-th loop#############################################")
                 node_id = gvar.graph_mgr.create_node(
                     gvar.task_id, parent_node_id, label)
                 gvar.stack_nodes.append(node_id)
@@ -782,24 +589,25 @@ class WaitOperator(BaseOperator):
 
 class ScrollOperator(BaseOperator):
     def run(self, gvar):
-         try:
-             op_id = self.props['id']
-             print_flushed("Do Scroll")
-             op_start = time.time()
-             gvar.web_mgr.scroll_to_bottom()
+        try:
+            op_id = self.props['id']
+            print_flushed("Do Scroll")
+            op_start = time.time()
+            gvar.web_mgr.scroll_to_bottom()
 
-             op_time = time.time() - op_start
-             gvar.profiling_info[op_id] = {'op_time': op_time}
-             return
-         except Exception as e:
-             if e.__class__.__name__ in selenium_chrome_erros:
-             #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
-                 print_flushed('Chrome Error in ScrollOperator')
-                 raise e
-             else:
-                 fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
-                 raise OperatorError(e, self.props['id'])
-         return
+            op_time = time.time() - op_start
+            gvar.profiling_info[op_id] = {'op_time': op_time}
+            return
+        except Exception as e:
+            if e.__class__.__name__ in selenium_chrome_erros:
+                # if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+                print_flushed('Chrome Error in ScrollOperator')
+                raise e
+            else:
+                fname = '/home/pse/PSE-engine/htmls/%s.html' % str(
+                    gvar.task_id)
+                raise OperatorError(e, self.props['id'])
+        return
 
 
 class HoverOperator(BaseOperator):
@@ -816,11 +624,12 @@ class HoverOperator(BaseOperator):
             return
         except Exception as e:
             if e.__class__.__name__ in selenium_chrome_erros:
-            #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+                # if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
                 print_flushed('Chrome Error in HoverOperator')
                 raise e
             else:
-                fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
+                fname = '/home/pse/PSE-engine/htmls/%s.html' % str(
+                    gvar.task_id)
                 raise OperatorError(e, self.props['id'], self.props['query'])
 
         return
@@ -876,7 +685,7 @@ class ClickOperator(BaseOperator):
             for column in self.props["queries"]:
                 query = column["query"]
                 log_query = query
-                check_query = column.get("check_query",'').strip()
+                check_query = column.get("check_query", '').strip()
                 if 'indices' in column:
                     query = self.set_query(
                         query, gvar.stack_indices, column['indices'])
@@ -900,11 +709,12 @@ class ClickOperator(BaseOperator):
             return
         except Exception as e:
             if e.__class__.__name__ in selenium_chrome_erros:
-            #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException' or e.__class__.__name__ ==  'StaleElementReferenceException':
+                # if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException' or e.__class__.__name__ ==  'StaleElementReferenceException':
                 print_flushed('Chrome Error in ClickOperator')
                 raise e
             else:
-                fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
+                fname = '/home/pse/PSE-engine/htmls/%s.html' % str(
+                    gvar.task_id)
                 raise OperatorError(e, self.props['id'], log_query)
 
         return
@@ -935,11 +745,12 @@ class MoveCursorOperator(BaseOperator):
             gvar.profiling_info[op_id] = {'op_time': op_time}
         except Exception as e:
             if e.__class__.__name__ in selenium_chrome_erros:
-            #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+                # if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
                 print_flushed('Chrome Error in MoveCursorOperator')
                 raise e
             else:
-                fname = '/home/pse/PSE-engine/htmls/%s.html' % str(gvar.task_id)
+                fname = '/home/pse/PSE-engine/htmls/%s.html' % str(
+                    gvar.task_id)
                 raise OperatorError(e, self.props['id'], log_query)
 
 
@@ -1044,10 +855,10 @@ class Expander(BaseOperator):
                 return self.run_0(gvar)
         except Exception as e:
             if e.__class__.__name__ in selenium_chrome_erros:
-            #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+                # if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
                 print_flushed('Chrome Error in ExpanderOperator')
                 raise e
-            elif e.__class__.__name__ =='NoneDetailPageError':
+            elif e.__class__.__name__ == 'NoneDetailPageError':
                 raise e
             else:
                 raise OperatorError(e, self.props['id'])
@@ -1127,12 +938,12 @@ class ValuesScrapper(BaseOperator):
             xpaths_time = time.time() - xpaths_time
         except Exception as e:
             if e.__class__.__name__ in selenium_chrome_erros:
-            #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+                # if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
                 print_flushed('Chrome Error in ValuesScrapper')
                 raise e
             else:
                 raise OperatorError(e, self.props['id'], log_query, log_key)
-        
+
         try:
             db_time = time.time()
             for key, value in result.items():
@@ -1195,12 +1006,12 @@ class ListsScrapper(BaseOperator):
             xpaths_time = time.time() - xpaths_time
         except Exception as e:
             if e.__class__.__name__ in selenium_chrome_erros:
-            #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+                # if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
                 print_flushed('Chrome Error in ListsScrapper')
                 raise e
             else:
                 raise OperatorError(e, self.props['id'], log_query, log_key)
-        try: 
+        try:
             db_time = time.time()
             for key, value in result.items():
                 gvar.graph_mgr.insert_node_property(
@@ -1218,7 +1029,6 @@ class ListsScrapper(BaseOperator):
         except Exception as e:
             raise OperatorError(e, self.props['id'])
         return
-
 
 
 class DictsScrapper(BaseOperator):
@@ -1280,12 +1090,12 @@ class DictsScrapper(BaseOperator):
             xpaths_time = time.time() - xpaths_time
         except Exception as e:
             if e.__class__.__name__ in selenium_chrome_erros:
-            #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+                # if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
                 print_flushed('Chrome Error in DictionariesScrapper')
                 raise e
             else:
                 raise OperatorError(e, self.props['id'], log_query, log_key)
-        
+
         try:
             db_time = time.time()
             for key, value in result.items():
@@ -1304,7 +1114,6 @@ class DictsScrapper(BaseOperator):
         except Exception as e:
             raise OperatorError(e, self.props['id'])
         return
-
 
 
 class OptionListScrapper(BaseOperator):
@@ -1327,14 +1136,14 @@ class OptionListScrapper(BaseOperator):
             if option_attr == '':
                 option_attr = 'alltext'
             log_query = option_name_query
-          
+
             if type(option_essential) != type(True):
                 option_essential = eval(option_essential)
 
             build_time = time.time()
             gvar.web_mgr.build_lxml_tree()
             build_time = time.time() - build_time
-            
+
             xpaths_time = time.time()
 
             option_names = gvar.web_mgr.get_values_by_lxml(
@@ -1351,11 +1160,12 @@ class OptionListScrapper(BaseOperator):
             xpaths_time = time.time() - xpaths_time
         except Exception as e:
             if e.__class__.__name__ in selenium_chrome_erros:
-            #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+                # if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
                 print_flushed('Chrome Error in OptionListScrapper')
                 raise e
             else:
-                raise OperatorError(e, self.props['id'], log_query, 'option list')
+                raise OperatorError(
+                    e, self.props['id'], log_query, 'option list')
 
         try:
             db_time = time.time()
@@ -1425,11 +1235,12 @@ class OptionMatrixScrapper(BaseOperator):
 
         except Exception as e:
             if e.__class__.__name__ in selenium_chrome_erros:
-            #if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
+                # if e.__class__.__name__ == 'WebDriverException' or e.__class__.__name__ == 'TimeoutException':
                 print_flushed('Chrome Error in OptionMatrixScrapper')
                 raise e
             else:
-                raise OperatorError(e, self.props['id'], log_query, 'option matrix')
+                raise OperatorError(
+                    e, self.props['id'], log_query, 'option matrix')
 
         try:
             db_time = time.time()
