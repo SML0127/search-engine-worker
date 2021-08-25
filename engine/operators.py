@@ -182,7 +182,51 @@ class BFSIterator(BaseOperator):
                     gvar.stack_nodes[-1], 'url', gvar.task_url)
 
                 if 'amazon.de' in src_url:
-                    print_flushed(src_url)
+                    gvar.web_mgr.load(gvar.task_url)
+                    self.check_captcha(gvar.task_url, gvar)
+                    gvar.web_mgr.load(gvar.task_url)
+                    time.sleep(5)
+                    self.check_captcha(gvar.task_url, gvar)
+                    cnt = 0
+                    while True:
+                        cnt = cnt + 1
+                        try:
+                            site_zipcode = gvar.web_mgr.get_value_by_selenium(
+                                '//*[@id="glow-ingress-line2"]', "alltext")
+                            print_flushed('Zipcode: ', site_zipcode)
+                            if site_zipcode is None:
+                                self.check_captcha(
+                                    gvar.task_url, gvar)
+                                site_zipcode = gvar.web_mgr.get_value_by_selenium(
+                                    '//*[@id="glow-ingress-line2"]', "alltext")
+                            if '60598' in site_zipcode:
+                                break
+                            if '60598' not in site_zipcode:
+                                print_flushed(
+                                    'Change Zipcode')
+                                gvar.web_mgr.click_elements(
+                                    '//*[@id="nav-global-location-data-modal-action"]')
+                                time.sleep(2)
+                                gvar.web_mgr.send_keys_to_elements(
+                                    '//*[@id="GLUXZipUpdateInput"]', '60598')
+                                time.sleep(2)
+                                gvar.web_mgr.click_elements(
+                                    '//*[@id="GLUXZipInputSection"]/div[2]')
+                                time.sleep(2)
+                                gvar.web_mgr.click_elements(
+                                    '//div[@class="a-popover-footer"]//button')
+                                time.sleep(2)
+                                gvar.web_mgr.click_elements(
+                                    '//div[@class="a-popover-footer"]//input')
+                                time.sleep(2)
+                                gvar.web_mgr.load(gvar.task_url)
+                                self.check_captcha(gvar.task_url, gvar)
+                                site_zipcode = gvar.web_mgr.get_value_by_selenium(
+                                    '//*[@id="glow-ingress-line2"]', "alltext")
+                                print_flushed(
+                                    'Zipcode: ', site_zipcode)
+                        except:
+                            pass
 
                 # elif 'amazon.com' in src_url:
                 elif 'amazon.com' in src_url:
@@ -235,6 +279,49 @@ class BFSIterator(BaseOperator):
                 elif 'amazon.co.uk' in src_url:
                     gvar.web_mgr.load(gvar.task_url)
                     self.check_captcha(gvar.task_url, gvar)
+                    gvar.web_mgr.load(gvar.task_url)
+                    time.sleep(5)
+                    self.check_captcha(gvar.task_url, gvar)
+                    cnt = 0
+                    while True:
+                        cnt = cnt + 1
+                        try:
+                            site_zipcode = gvar.web_mgr.get_value_by_selenium(
+                                '//*[@id="glow-ingress-line2"]', "alltext")
+                            print_flushed('Zipcode: ', site_zipcode)
+                            if site_zipcode is None:
+                                self.check_captcha(
+                                    gvar.task_url, gvar)
+                                site_zipcode = gvar.web_mgr.get_value_by_selenium(
+                                    '//*[@id="glow-ingress-line2"]', "alltext")
+                            if 'TW13' in site_zipcode:
+                                break
+                            if 'TW13' not in site_zipcode:
+                                print_flushed(
+                                    'Change Zipcode')
+                                gvar.web_mgr.click_elements(
+                                    '//*[@id="nav-global-location-data-modal-action"]')
+                                time.sleep(2)
+                                gvar.web_mgr.send_keys_to_elements(
+                                    '//*[@id="GLUXZipUpdateInput"]', 'TW13 6DH')
+                                time.sleep(2)
+                                gvar.web_mgr.click_elements(
+                                    '//*[@id="GLUXZipInputSection"]/div[2]')
+                                time.sleep(2)
+                                gvar.web_mgr.click_elements(
+                                    '//div[@class="a-popover-footer"]//button')
+                                time.sleep(2)
+                                gvar.web_mgr.click_elements(
+                                    '//div[@class="a-popover-footer"]//input')
+                                time.sleep(2)
+                                gvar.web_mgr.load(gvar.task_url)
+                                self.check_captcha(gvar.task_url, gvar)
+                                site_zipcode = gvar.web_mgr.get_value_by_selenium(
+                                    '//*[@id="glow-ingress-line2"]', "alltext")
+                                print_flushed(
+                                    'Zipcode: ', site_zipcode)
+                        except:
+                            pass
 
                 else:
                     gvar.web_mgr.load(gvar.task_url)
@@ -254,7 +341,7 @@ class BFSIterator(BaseOperator):
                         print_flushed("@@@@@@ Invalid page")
                         #gvar.profiling_info[op_id] = {'invalid': True}
                         gvar.profiling_info['invalid'] = True
-                        return
+                        raise InvalidPageError
 
                 elif 'jomashop' in src_url:
                     wrong_to_rendering_xpath = "//div[@id='react-top-error-boundary'] | //*[contains(text(),'Unable to fetch data')] | //*[contains(text(),'Something went wrong')] | //div[@classname='splash-screen'] | //*[contains(text(),'Data Fetch Error')]"
@@ -397,12 +484,12 @@ class BFSIterator(BaseOperator):
                         print_flushed("Fail to dump html")
                         pass
                     err_msg = '================================ CRAWLING NOTIFICATION ============================== \n'
-                    err_msg += 'In summary page pagination, there is invalid web page.\n Please check web page and xpath rule \n\nURL: {}}\n\n'.format(
+                    err_msg += 'There is invalid web page.\n Please check web page and xpath rule \n\nURL: {}}\n\n'.format(
                         str(gvar.task_url))
                     url = gvar.graph_mgr.get_slack_url()
                     post_notification_to_slack(err_msg, url)
                     err_msg = '================================ MESSAGE ============================== \n'
-                    err_msg += 'In summary page pagination, there is invalid web page.\n Please check web page and xpath rule \n\nURL: {}}\n\n'.format(
+                    err_msg += 'There is invalid web page.\n Please check web page and xpath rule \n\nURL: {}}\n\n'.format(
                         str(gvar.task_url))
                     err_msg += '================================ Opeartor ==================================\n'
                     err_msg += 'BFSIterator \n\n'
