@@ -1055,16 +1055,17 @@ if __name__ == '__main__':
     #web_manager.init({"chromedriver_user_agent":"PostmanRuntime/7.19.0", 'token': token})
     web_manager.init({"chromedriver_user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107"})
     print_flushed('after init')
+    time.sleep(10)
     #web_manager.load('https://www.amazon.com/gp/glow/get-address-selections.html?deviceType=desktop&pageType=Gateway&storeContext=NoStoreName')
     #print_flushed(web_manager.get_html().split('CSRF_TOKEN : "')[1].split('", IDs')[0])
     #web_manager.get_cur_driver_().delete_all_cookies()
     #web_manager.load('https://www.jomashop.com/watches-for-women.html?price=%7B%22from%22%3A100%2C%22to%22%3A1460%7D&manufacturer=Accutron%7CAdee+Kaye%7CAkribos+Xxiv%7CAlpina%7CAnne+Klein%7CAppetime%7CApple%7CArmani+Exchange%7CBall%7CBallast%7CBaume+Et+Mercier%7CBedat%7CBell+And+Ross%7CBertha%7CBertolucci%7CBoucheron%7CBreitling%7CBruno+Magli%7CBulova%7CBurberry%7CBurgi%7CBvlgari%7CCalibre%7CCalvin+Klein%7CCarl+F.+Bucherer%7CCartier%7CCertina%7CCharmex%7CCharriol%7CChristian+Van+Sant%7CCitizen%7CCj+Lasso%7CCoach%7CConcord%7CCorum%7CCrayo%7CD1+Milano%7CDaniel+Wellington%7CDavidoff%7CDeep+Blue%7CDior%7CDkny%7CEarth%7CEbel%7CEdox%7CEmporio+Armani%7CEmpress%7CEnicar%7CErnest+Borel%7CEterna%7CFendi%7CFerragamo%7CFerre+Milano%7CFossil%7CFurla%7CGevril%7CGlashutte%7CGucci%7CGv2+By+Gevril%7CHaurex+Italy%7CHublot%7CJacob+%26+Co.%7CJbw%7CJivago%7CJohan+Eric%7CJoshua+And+Sons%7CJunghans%7CJust+Cavalli%7CKate+Spade%7CLongines')
     #web_manager.load('https://outlet.arcteryx.com/us/en/shop/mens/beta-lt-jacket-(2019)')
     #web_manager.load('https://outlet.arcteryx.com/us/en/shop/mens/beta-sl-hybrid-jacket')
-    web_manager.load('https://outlet.arcteryx.com/us/en/shop/mens/alpha-sv-jacket-(2016)')
+    #web_manager.load('https://outlet.arcteryx.com/us/en/shop/mens/alpha-sv-jacket-(2016)')
     #print_flushed(web_manager.get_html())
     #web_manager.build_lxml_tree()
-    print_flushed('----------------------------')
+    #print_flushed('----------------------------')
 
      #list option test
     #option_name_query = "//*[@class='OptionLabel__OptionSpan-ef5zek-1 dvTlFU qa--option-label-size']" 
@@ -1072,8 +1073,8 @@ if __name__ == '__main__':
     ##option_value_query = "//*[@class='Size__SizeListItem-sliccf-2 uJLTY']/button"#self.props['option_value_query']
     #option_value_query = "//*[@class='Size__SizeListItem-sliccf-2 uJLTY']/button[@class='Size__SizeListValue-sliccf-3 kOtQwH    ']" 
     #option_attr = "alltext"#self.props.get('option_attr', 'alltext')
-    web_manager.click_elements("//*[@id='features']//button")
-    web_manager.click_elements("//*[@id='materials']//button")
+    #web_manager.click_elements("//*[@id='features']//button")
+    #web_manager.click_elements("//*[@id='materials']//button")
     #web_manager.build_lxml_tree()
     #print(web_manager.get_html())
     #web_manager.get_values_by_lxml("//*[@id='features']//*[@class='featureWrapper']", 'innerHTML')
@@ -1098,45 +1099,4 @@ if __name__ == '__main__':
   except:
     print_flushed(str(traceback.format_exc()))
   web_manager.close()
-#
-#  try:
-#    web_manager.load("https://www.amazon.com/Sensodyne-Pronamel-Whitening-Strengthening-Toothpaste/dp/B0762LYFKP?pf_rd_p=9dbbfba7-e756-51ca-b790-09e9b92beee1&pf_rd_r=EG4J8ZAJZNB9B3HBQ9G1&pd_rd_wg=W8hx6&ref_=pd_gw_ri&pd_rd_w=kynj4&pd_rd_r=6365323e-7c16-4273-a2c5-5d85b04565f5")
-#    web_manager.wait_loading()
-#
-#    print_flushed(web_manager.get_value_by_selenium("//span[@id='productTitle']", "alltext"))
-#    #print_flushed(web_manager.get_value_by_selenium("//span[@id='productTitle1']", "alltext"))
-#    print_flushed(web_manager.get_value_by_selenium_strong("//span[@id='productTitle']", "alltext"))
-#    #print_flushed(web_manager.get_value_by_selenium_strong("//span[@id='productTitle1']", "alltext"))
-#    print_flushed(web_manager.get_values_by_selenium("//div[@id='centerCol']//li/span", "alltext"))
-#    print_flushed(web_manager.get_values_by_selenium("//div[@id='centerCol']//li/span1", "alltext"))
-#    print_flushed(web_manager.get_values_by_selenium_strong("//div[@id='centerCol']//li/span", "alltext"))
-#    #print_flushed(web_manager.get_values_by_selenium_strong("//div[@id='centerCol']//li/span1", "alltext"))
-#
-#    print_flushed(web_manager.get_key_values_by_selenium("//div[@class='content']/ul/li", "./b", "alltext", ".", "alltext"))
-#    print_flushed(web_manager.get_key_values_by_selenium("//div[@class='content']/ul/li1", "./b", "alltext", ".", "alltext"))
-#    print_flushed(web_manager.get_key_values_by_selenium_strong("//div[@class='content']/ul/li", "./b", "alltext", ".", "alltext"))
-#    #print_flushed(web_manager.get_key_values_by_selenium_strong("//div[@class='content']/ul/li1", "./b", "alltext", ".", "alltext"))
-#
-#    web_manager.build_lxml_tree()
-#    print_flushed(web_manager.get_value_by_lxml("//span[@id='productTitle']", "alltext"))
-#    #print_flushed(web_manager.get_value_by_lxml("//span[@id='productTitle1']", "alltext"))
-#    print_flushed(web_manager.get_value_by_lxml_strong("//span[@id='productTitle']", "alltext"))
-#    #print_flushed(web_manager.get_value_by_lxml_strong("//span[@id='productTitle1']", "alltext"))
-#    print_flushed(web_manager.get_values_by_lxml("//div[@id='centerCol']//li/span", "alltext"))
-#    print_flushed(web_manager.get_values_by_lxml("//div[@id='centerCol']//li/span1", "alltext"))
-#    print_flushed(web_manager.get_values_by_lxml_strong("//div[@id='centerCol']//li/span", "alltext"))
-#    #print_flushed(web_manager.get_values_by_lxml_strong("//div[@id='centerCol']//li/span1", "alltext"))
-#
-#    print_flushed(web_manager.get_key_values_by_lxml("//div[@class='content']/ul/li", "./b", "alltext", ".", "alltext"))
-#    print_flushed(web_manager.get_key_values_by_lxml("//div[@class='content']/ul/li1", "./b", "alltext", ".", "alltext"))
-#    print_flushed(web_manager.get_key_values_by_lxml_strong("//div[@class='content']/ul/li", "./b", "alltext", ".", "alltext"))
-#    #print_flushed(web_manager.get_key_values_by_lxml_strong("//div[@class='content']/ul/li1", "./b", "alltext", ".", "alltext"))
-#
-#    print_flushed(web_manager.get_subtree_with_style("//ul[@class='a-unordered-list a-vertical a-spacing-none']"))
-#    print_flushed(web_manager.get_subtree_with_style_strong("//ul[@class='a-unordered-list a-vertical a-spacing-none']"))
-#
-#  except Exception as e:
-#    print_flushed(e)
-#    pass
-#  web_manager.close()
 

@@ -96,12 +96,20 @@ class Cafe24SingleUploader(Resource):
     log_mpids = []
     log_mpids_array = []
     targetsite_url = ""
+    job_id = -1 
     try:
       (args, mpids) = task
+      job_id = args['job_id'] 
       log_mt_history_id = args['mt_history_id']
       log_max_num_product = len(mpids)
       log_mpids_array = mpids
       log_mpids = ', '.join(map(str, mpids)) 
+
+      self.exporter = Exporter()
+      self.exporter.init()
+      err_cafe24_op = 'Import transformation program'
+      self.exporter.import_rules_from_code(args['code'])
+
       self.cafe24manager = Cafe24Manager(args)
       print_flushed("-----------------------Request auth code----------------------")
       err_cafe24_op = 'Get cafe24 auth code'
@@ -112,14 +120,9 @@ class Cafe24SingleUploader(Resource):
       self.cafe24manager.list_brands()
       #targetsite_url = 'https://{}.cafe24.com/'.format(args['mall_id'])
 
-      self.exporter = Exporter()
-      self.exporter.init()
-      err_cafe24_op = 'Import transformation program'
-      self.exporter.import_rules_from_code(args['code'])
 
       #print_flushed(exec_id, label)
       #print_flushed(node_ids)
-      job_id = args['job_id'] 
       tsid = args['tsid'] 
       targetsite_url, gateway = self.graph_manager.get_targetsite(tsid)
       print_flushed("tsid: ", tsid)
@@ -160,6 +163,8 @@ class Cafe24SingleUploader(Resource):
             err_msg += str(e) + '\n\n'
             err_msg += '================================ STACK TRACE ============================== \n' + str(traceback.format_exc())
             self.graph_manager.log_err_msg_of_upload(log_mpid, err_msg, log_mt_history_id )
+            status = self.graph_manager.check_status_of_product(job_id, log_mpid)
+            self.graph_manager.logging_all_uploaded_product(log_mt_history_id, job_id, args['execution_id'], log_mpid,{'Error':'Set-up error (before upload)'},{'Error':'Set-up error (before upload)'}, targetsite_url, -1, status) 
           finally:
             self.graph_manager.log_expected_num_target_success(log_mt_history_id, 1, args['targetsite_encode'])
           successful_node += 1
@@ -180,7 +185,8 @@ class Cafe24SingleUploader(Resource):
               if is_uploaded == False and status != 3: # upload as new item
                 product, original_product_information = self.exporter.export_from_mpid_onetime(job_id, mpid, tsid)
                 log_operation = 'Create new product'
-
+                if mpid % 5 == 0:
+                  raise 
                 product['targetsite_url'] = targetsite_url
                 product['mpid'] = mpid
                 print_flushed('mpid : ', mpid)
@@ -245,6 +251,11 @@ class Cafe24SingleUploader(Resource):
             err_msg += 'URL: ' + targetsite_url + '\n\n'
             err_msg += '================================ STACK TRACE ============================== \n' + str(traceback.format_exc())
             self.graph_manager.log_err_msg_of_upload(log_mpid, err_msg, log_mt_history_id )
+            try:
+              status = self.graph_manager.check_status_of_product(job_id, log_mpid)
+              self.graph_manager.logging_all_uploaded_product(log_mt_history_id, job_id, args['execution_id'], log_mpid,{'Error':'Set-up error (before upload)'},{'Error':'Set-up error (before upload)'}, targetsite_url, -1, status) 
+            except:
+              print(str(traceback.format_exc()))
           finally:
             self.graph_manager.log_expected_num_target_success(log_mt_history_id, 1, args['targetsite_encode'])
             
@@ -329,6 +340,8 @@ class Cafe24SingleUploader(Resource):
             err_msg += str(e) + '\n\n'
             err_msg += '================================ STACK TRACE ============================== \n' + str(traceback.format_exc())
             self.graph_manager.log_err_msg_of_upload(log_mpid, err_msg, log_mt_history_id )
+            status = self.graph_manager.check_status_of_product(job_id, log_mpid)
+            self.graph_manager.logging_all_uploaded_product(log_mt_history_id, job_id, args['execution_id'], log_mpid,{'Error':'Set-up error (before upload)'},{'Error':'Set-up error (before upload)'}, targetsite_url, -1, status) 
           finally:
             self.graph_manager.log_expected_num_target_success(log_mt_history_id, 1, args['targetsite_encode'])
 
@@ -336,29 +349,33 @@ class Cafe24SingleUploader(Resource):
       self.exporter.close()
       print_flushed("Close cafe24 manager (no except)")
     except:
-      failed_node = log_max_num_product
-      err_msg = "Fail to upload items \n"
-      err_msg += err_cafe24_op + " \n"
-      err_msg += "My site product pids: " + log_mpids + " \n" 
-      err_msg += '================================ STACK TRACE ============================== \n' + str(traceback.format_exc())
-      self.graph_manager.log_err_msg_of_upload(-1, err_msg, log_mt_history_id )
-      
-      profiling_info['total_time'] = time.time() - total_time
-      profiling_info['successful_node'] = 0
-      profiling_info['failed_node'] = failed_node
-      print_flushed('s/f', successful_node, '/', failed_node)
-      print_flushed(traceback.format_exc())
-      for mpid in log_mpids_array:
-        try:
-          self.graph_manager.logging_all_uploaded_product(log_mt_history_id, job_id, args['execution_id'], mpid,{'Error':'Set-up error (before upload)'},{'Error':'Set-up error (before upload)'}, targetsite_url, -1, -1) 
-          err_msg = "Set-up error (e.g. get authorization, get token ...) \n"
-          err_msg += "자체 상품 ID: " + mpid + " \n" 
-          err_msg += '================================ STACK TRACE ============================== \n' + str(traceback.format_exc())
-          self.graph_manager.log_err_msg_of_upload(mpid, err_msg, log_mt_history_id )
-        except:
-          print_flushed(traceback.format_exc())
-      self.graph_manager.log_expected_num_target_success(log_mt_history_id, failed_node, args['targetsite_encode'])
-      
+      try:
+        failed_node = log_max_num_product
+        err_msg = "Fail to upload items \n"
+        err_msg += err_cafe24_op + " \n"
+        err_msg += "My site product pids: " + log_mpids + " \n" 
+        err_msg += '================================ STACK TRACE ============================== \n' + str(traceback.format_exc())
+        self.graph_manager.log_err_msg_of_upload(-1, err_msg, log_mt_history_id )
+        
+        profiling_info['total_time'] = time.time() - total_time
+        profiling_info['successful_node'] = 0
+        profiling_info['failed_node'] = failed_node
+        print_flushed('s/f', successful_node, '/', failed_node)
+        print_flushed(traceback.format_exc())
+        for mpid in log_mpids_array:
+          try:
+            status = self.graph_manager.check_status_of_product(job_id, mpid)
+            self.graph_manager.logging_all_uploaded_product(log_mt_history_id, job_id, args['execution_id'], mpid,{'Error':'Set-up error (before upload)'},{'Error':'Set-up error (before upload)'}, targetsite_url, -1, status) 
+            err_msg = "Set-up error (e.g. get authorization, get token ...) \n"
+            err_msg += "자체 상품 ID: " + str(mpid) + " \n" 
+            err_msg += '================================ STACK TRACE ============================== \n' + str(traceback.format_exc())
+            self.graph_manager.log_err_msg_of_upload(mpid, err_msg, log_mt_history_id )
+          except:
+            print_flushed(traceback.format_exc())
+        self.graph_manager.log_expected_num_target_success(log_mt_history_id, failed_node, args['targetsite_encode'])
+      except:
+        print_flushed(traceback.format_exc())
+        
       try:
          self.cafe24manager.close()
       except:
