@@ -161,7 +161,6 @@ class pseWorker(Worker):
             gvar.stage_id = task['stage_id'] 
             gvar.task_id = task['task_id']
             gvar.task_url = task['url']
-            gvar.task_zipcode_url = task['zipcode_url']
             return op, gvar
         except:
             raise
