@@ -368,12 +368,19 @@ class Cafe24Manager:
             raise e
 
         if 'cafe24.com' in image_path:
-            print_flushed(
-                image_path[len('http://{}.cafe24.com'.format(self.mall_id)):])
-            return image_path[len('http://{}.cafe24.com'.format(self.mall_id)):]
+            if 'https' in image_path:
+                print_flushed(image_path[len('https://{}.cafe24.com'.format(self.mall_id)):])
+                return image_path[len('https://{}.cafe24.com'.format(self.mall_id)):]
+            else:
+                print_flushed(image_path[len('http://{}.cafe24.com'.format(self.mall_id)):])
+                return image_path[len('http://{}.cafe24.com'.format(self.mall_id)):]
         else:
-            print_flushed(image_path[len('http://{}.shop'.format(self.mall_id)):])
-            return image_path[len('http://{}.shop'.format(self.mall_id)):]
+            if 'https' in image_path:
+                print_flushed(image_path[len('https://{}.shop'.format(self.mall_id)):])
+                return image_path[len('https://{}.shop'.format(self.mall_id)):]
+            else:
+                print_flushed(image_path[len('http://{}.shop'.format(self.mall_id)):])
+                return image_path[len('http://{}.shop'.format(self.mall_id)):]
 
     def upload_image_from_file(self, fpath):
         imgFile = open(fpath, 'rb')

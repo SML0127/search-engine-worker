@@ -185,8 +185,6 @@ class Cafe24SingleUploader(Resource):
               if is_uploaded == False and status != 3: # upload as new item
                 product, original_product_information = self.exporter.export_from_mpid_onetime(job_id, mpid, tsid)
                 log_operation = 'Create new product'
-                if mpid % 5 == 0:
-                  raise 
                 product['targetsite_url'] = targetsite_url
                 product['mpid'] = mpid
                 print_flushed('mpid : ', mpid)
