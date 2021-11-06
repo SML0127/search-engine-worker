@@ -1,4 +1,4 @@
 # PSE-worker
 
 
-This is an engine(worker) code to collect the data of products of many e-commerce sites.
+Engine(worker) code to crawling and parsing the product data of e-commerce sites.
