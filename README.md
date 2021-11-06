@@ -5,10 +5,6 @@
 - Create workflows for crawling.
 - Crawl and Parse product data in distributed environment (Master / Worker model).
 - Upload / Update crawled data in the database incrementaly (View maintenance in Database).
-
-   (Update example)
-<img width="400" height="500" alt="overall_architecture" src="https://user-images.githubusercontent.com/13589283/140600455-fc2c143e-9d12-4c8c-984f-e1d9b082c9fb.jpg">
-
 - Upload / Update crawled data to target sites (View maintenance in target sites).
 - Register schedule for crawling and view maintenance.
 
@@ -36,6 +32,16 @@
 - [Apachi Airflow](https://airflow.apache.org/) for Scheduling
 - [Redis](https://redis.io/) & [RQ](https://python-rq.org/) for Message Broker in distributed environment
 - [Selenium](https://www.selenium.dev/) & [Chromedriver](https://chromedriver.chromium.org/downloads) & XPath for Crawling
+
+<br>
+
+## Overall Architecture
+<br>
+<img width="400" height="500" alt="overall_architecture" src="https://user-images.githubusercontent.com/13589283/140601538-9ebc134e-0e55-404e-9929-c231295de423.png">
+
+## Overall Architecture with Implementaion
+<br>
+<img width="500" height="300" alt="overall_architecture" src="https://user-images.githubusercontent.com/13589283/140601624-d8bd5686-a8a9-4d40-baf9-c6376fb3c1cb.jpg">
 
 <br>
 
@@ -76,6 +82,5 @@ https://user-images.githubusercontent.com/13589283/140605266-5f5999bd-fd8d-4595-
 - Upload / Update crawled data to target sites (View maintenance in target sites).
 
 https://user-images.githubusercontent.com/13589283/140605229-4057f834-82d0-4917-8e39-a60aceb9599f.mp4
-
 
 
