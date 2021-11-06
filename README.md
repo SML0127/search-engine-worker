@@ -2,6 +2,7 @@
 
 
 ## What we provide
+- Create workflows for crawling.
 - Crawl and Parse product data in distributed environment (Master / Worker model).
 - Upload / Update crawled data in the database incrementaly (View maintenance in Database).
 
@@ -10,6 +11,8 @@
 
 - Upload / Update crawled data to target sites (View maintenance in target sites).
 - Register schedule for crawling and view maintenance.
+
+<br>
 
 ------------
 ## How to support
@@ -21,16 +24,39 @@
    - git repository link for Master: https://github.com/SML0127/pse-master-Dockerfile
    - git repository link for Worker: https://github.com/SML0127/pse-worker-Dockerfile
 
+<br>
 
 ------------
-## What languages, libraries, and tools were used?
-- Mainly based on Python
+## What environment, languages, libraries, and tools were used?
+- Master / Worker are run at Ubuntu 20.04.
+- Mainly based on Python for Master / Worker.
+- [React](https://reactjs.org/) & JSX for GUI.
 - Python Flask for Web Application Server and DB Server
 - PostgreSQL for Database
 - [Apachi Airflow](https://airflow.apache.org/) for Scheduling
 - [Redis](https://redis.io/) & [RQ](https://python-rq.org/) for Message Broker in distributed environment
-- [Selenium](https://www.selenium.dev/) & [Chromedriver](https://chromedriver.chromium.org/downloads) for Crawling
+- [Selenium](https://www.selenium.dev/) & [Chromedriver](https://chromedriver.chromium.org/downloads) & XPath for Crawling
 
+<br>
+
+------------
+## Screenshots of GUI
+- Create a workflow for crawling.
+<img width="1635" height="400" src="https://user-images.githubusercontent.com/13589283/140605666-554aa847-a258-4a81-bf9d-31994bb48a26.png">
+
+
+- Get XPath for parameter of operators in workfrow.
+<img width="1635" height="400" src="https://user-images.githubusercontent.com/13589283/140606117-22d6f28b-574a-4452-b643-23776494d951.png">
+
+
+- Save and load workflos.
+<img width="1635" height="400" src="https://user-images.githubusercontent.com/13589283/140605668-54f0635d-8618-40a3-90be-72db7bd4c79d.png">
+
+
+- Crawled data and Error Message.
+<img width="1635" height="400" src="https://user-images.githubusercontent.com/13589283/140606249-e399f5dd-4ec5-4d1b-bc2b-09b68d211c8b.png">
+
+<br>
 
 ------------
 ## Demo videos
