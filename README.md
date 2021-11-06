@@ -3,7 +3,7 @@
 
 ## What we provide
 - Crawl and Parse product data in distributed environment (Master / Worker model).
-- Upload / Update product information in the database incrementaly (View maintenance in Database).
+- Upload / Update crawled data in the database incrementaly (View maintenance in Database).
 
    (Update example)
 <img width="400" height="500" alt="overall_architecture" src="https://user-images.githubusercontent.com/13589283/140600455-fc2c143e-9d12-4c8c-984f-e1d9b082c9fb.jpg">
@@ -30,3 +30,20 @@
 - [Apachi Airflow](https://airflow.apache.org/) for Scheduling
 - [Redis](https://redis.io/) & [RQ](https://python-rq.org/) for Message Broker in distributed environment
 - [Selenium](https://www.selenium.dev/) & [Chromedriver](https://chromedriver.chromium.org/downloads) for Crawling
+
+
+------------
+## Demo videos
+- Crawling
+
+
+https://user-images.githubusercontent.com/13589283/140605217-df4290e2-34d9-4207-ad2d-0c8164c7ce03.mp4
+
+
+- Upload / Update crawled data (View maintenance in Database).
+- Upload / Update crawled data to target sites (View maintenance in target sites).
+
+https://user-images.githubusercontent.com/13589283/140605229-4057f834-82d0-4917-8e39-a60aceb9599f.mp4
+
+
+
