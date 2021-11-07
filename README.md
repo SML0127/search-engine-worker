@@ -14,8 +14,10 @@
 ## How to support
 - Provide all services through GUI.
    - git repository link: https://github.com/SML0127/pse-extension
-- For crawling in distributed environment, we used Breadth-First-Search Crawling Model and Redis & RQ as a Message Broker.
-- For Breadth-First-Search Crawling Model, we create several operators for crawling.
+- Easyly create workflow for crawling (no code, script).
+- For crawling in distributed environment, we chose Breadth-First-Search Crawling Model and Redis & RQ as a Message Broker.
+- For Breadth-First-Search Crawling Model, we created several operators for crawling.
+- 
 - [Docker](https://www.docker.com/) image for our ubuntu environment
    - git repository link for Master: https://github.com/SML0127/pse-master-Dockerfile
    - git repository link for Worker: https://github.com/SML0127/pse-worker-Dockerfile
@@ -27,11 +29,12 @@
 - Master / Worker are run at Ubuntu 20.04.
 - Mainly based on Python for Master / Worker.
 - [React](https://reactjs.org/) & JSX for GUI.
-- Python Flask for Web Application Server and DB Server
+- Python Flask for Web Application Server & DB Server
 - PostgreSQL for Database
 - [Apachi Airflow](https://airflow.apache.org/) for Scheduling
 - [Redis](https://redis.io/) & [RQ](https://python-rq.org/) for Message Broker in distributed environment
 - [Selenium](https://www.selenium.dev/) & [Chromedriver](https://chromedriver.chromium.org/downloads) & XPath for Crawling
+- [Docker](https://www.docker.com/) image for enviornment of Master / Worker
 
 <br>
 
@@ -51,7 +54,7 @@
 <img width="1635" height="350" src="https://user-images.githubusercontent.com/13589283/140605666-554aa847-a258-4a81-bf9d-31994bb48a26.png">
 
 
-- Get XPath for parameter of operators in workfrow.
+- Get XPath for parameters of operators in the workflow.
 <img width="1635" height="350" src="https://user-images.githubusercontent.com/13589283/140606117-22d6f28b-574a-4452-b643-23776494d951.png">
 
 
@@ -60,7 +63,11 @@
 
 
 - Crawled data and Error Message.
-<img width="1635" height="350" src="https://user-images.githubusercontent.com/13589283/140606249-e399f5dd-4ec5-4d1b-bc2b-09b68d211c8b.png">
+<img width="1635" height="350" src="https://user-images.githubusercontent.com/13589283/140636187-1679fd69-2d53-47de-bf5a-2f27fe8f99eb.png">
+
+
+- History of Crawling and Upload / Update.
+<img width="1635" height="350" src="https://user-images.githubusercontent.com/13589283/140636178-5adb00e8-0393-4bc4-8225-7db08d3876a3.png">
 
 <br>
 
