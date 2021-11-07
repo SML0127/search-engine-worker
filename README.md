@@ -51,23 +51,23 @@
 ------------
 ## Screenshots of GUI
 - Create a workflow for crawling.
-<img width="1635" height="350" src="https://user-images.githubusercontent.com/13589283/140605666-554aa847-a258-4a81-bf9d-31994bb48a26.png">
+<img width="1635" height="300" src="https://user-images.githubusercontent.com/13589283/140605666-554aa847-a258-4a81-bf9d-31994bb48a26.png">
 
 
 - Get XPath for parameters of operators in the workflow.
-<img width="1635" height="350" src="https://user-images.githubusercontent.com/13589283/140606117-22d6f28b-574a-4452-b643-23776494d951.png">
+<img width="1635" height="300" src="https://user-images.githubusercontent.com/13589283/140606117-22d6f28b-574a-4452-b643-23776494d951.png">
 
 
 - Save and load workflos.
-<img width="1635" height="350" src="https://user-images.githubusercontent.com/13589283/140605668-54f0635d-8618-40a3-90be-72db7bd4c79d.png">
+<img width="1635" height="300" src="https://user-images.githubusercontent.com/13589283/140605668-54f0635d-8618-40a3-90be-72db7bd4c79d.png">
 
 
 - Crawled data and Error Message.
-<img width="1635" height="350" src="https://user-images.githubusercontent.com/13589283/140636187-1679fd69-2d53-47de-bf5a-2f27fe8f99eb.png">
+<img width="1635" height="300" src="https://user-images.githubusercontent.com/13589283/140636187-1679fd69-2d53-47de-bf5a-2f27fe8f99eb.png">
 
 
 - History of Crawling and Upload / Update.
-<img width="1635" height="350" src="https://user-images.githubusercontent.com/13589283/140636178-5adb00e8-0393-4bc4-8225-7db08d3876a3.png">
+<img width="1635" height="300" src="https://user-images.githubusercontent.com/13589283/140636178-5adb00e8-0393-4bc4-8225-7db08d3876a3.png">
 
 <br>
 
