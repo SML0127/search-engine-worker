@@ -22,7 +22,7 @@ import base64
 if __name__ == '__main__':
   #gvar = GlovalVariable()
   #gvar.graph_mgr = GraphManager()
-  #gvar.graph_mgr.connect("host=141.223.197.35 port=54320 user=pse password=pse dbname=pse")
+  #gvar.graph_mgr.connect("host= port= user=pse password=pse dbname=pse")
   try:
     #tmp = test()
     #tmp.init()
