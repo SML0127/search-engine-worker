@@ -723,7 +723,7 @@ if __name__ == '__main__':
   gvar = GlovalVariable()
 
   gvar.graph_mgr = GraphManager()
-  gvar.graph_mgr.connect("host=141.223.197.36 port=5434 user=smlee password=smlee dbname=pse")
+  gvar.graph_mgr.connect("host=  port=  user=smlee password=smlee dbname=pse")
   gvar.web_mgr = WebManager()
   gvar.task_id = 0
   gvar.exec_id = 0
