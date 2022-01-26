@@ -1397,7 +1397,7 @@ if __name__ == '__main__':
 
     gvar.graph_mgr = GraphManager()
     gvar.graph_mgr.connect(
-        "host=141.223.197.35 port=54320 user=pse password=pse dbname=pse")
+        "host= port= user=pse password=pse dbname=pse")
     gvar.web_mgr = WebManager()
     gvar.task_id = 0
     gvar.exec_id = 0
