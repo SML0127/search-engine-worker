@@ -1,12 +1,12 @@
 # This is the settings file for Product Search Engine - worker.
 
 # 0. Redis connection
-redis_host: "141.223.197.35"
-redis_port: "63790"
+redis_host: ""
+redis_port: ""
 # 1. DB connection
 
-log_db_conn_info: "host=141.223.197.35 port=54320 user=pse password=pse dbname=pse"
-graph_db_conn_info: "host=141.223.197.35 port=54320 user=pse password=pse dbname=pse"
+log_db_conn_info: "host= port= user=pse password=pse dbname=pse"
+graph_db_conn_info: "host= port= user=pse password=pse dbname=pse"
 
 
 # 3. Chromedriver path
