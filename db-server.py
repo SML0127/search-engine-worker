@@ -354,8 +354,7 @@ except:
 
 db_conn = None
 try:
-    db_conn = psycopg2.connect("dbname='pse' user='smlee' host='141.223.197.36' port='5434' password='smlee'")
-    #db_conn = psycopg2.connect("dbname='pse' user='smlee' host='141.223.197.36' port='5432' password='smlee'")
+    db_conn = psycopg2.connect("dbname='pse' user='smlee' host='' port='' password='smlee'")
 except:
     print("fail connect to the database")
 
